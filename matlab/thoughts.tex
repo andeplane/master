@@ -1,0 +1,31 @@
+%&latex
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsbsy}
+\usepackage{amsfonts}
+\usepackage{color}
+\usepackage{bbm}
+\usepackage{epstopdf}
+
+\newcommand{\eqsN}{\begin{equation*}}
+\newcommand{\eqeN}{\end{equation*}}
+\newcommand{\eqs}{\begin{equation}}
+\newcommand{\eqe}{\end{equation}}
+\newcommand{\diff}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\esum}[3]{\sum_{#1=#2}^#3}
+\newcommand{\nsum}{\esum{n}{0}{\infty}}
+\newcommand{\prt}[1]{\frac{\partial}{\partial#1}}
+\newcommand{\prtt}[1]{\frac{\partial^2}{\partial#1^2}}
+\newcommand{\f}[2]{\frac{#1}{#2}}
+\newcommand{\dd}[1]{\ \text{d}#1}
+\begin{document}
+\author{Anders Hafreager}
+\title{DSMC}
+\maketitle
+Vi starter med å lage $n$ partikler med hastigheter fordelt med Maxwell Speed Distribution, altså normalfordeling i hver dimensjon med $\sigma = \sqrt{kT/m}$. Ved en gitt massetetthet $\rho$ (1.78 kg/m$^3$ for argon) kan vi regne hvor mange ekte atomer hver partikkel $i$ tilsvarer ved $eff = \rho/m*L^3/n$. 
+Vi antar at vi deler opp volumet i $k$ celler og velger et tidssteg $dt$ slik at vi har god oppløsning i hver celle.
+\end{document}
