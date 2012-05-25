@@ -54,21 +54,20 @@ function dsmc(particles,timesteps,cells,animate)
     
     r = L*rand(particles,3); % Initiate random positions
     r(:,3) = 0;
+    
     for ipart=1:particles
        dr = [xc,yc,0] - r(ipart,:);
        drLen = norm(dr);
-       if(drLen < radius)
-           rnd = rand();
+       while(drLen < radius)
+           r(ipart,1:2) = L*rand(1,2);
            
-           r(ipart,1) = radius*cos(2*pi*rnd);
-           r(ipart,2) = radius*sin(2*pi*rnd);
-       else
-           
+           dr = [xc,yc,0] - r(ipart,:);
+           drLen = norm(dr);
        end
     end
     
     v = normrnd(0,sigma,particles,3); % Maxwell distribution
-    v(:,1) = v(:,1) + sigma;
+    v(:,1) = v(:,1) + 3*sigma;
     v(:,3) = 0; % set z to 0
     
     vmagI = sqrt(v(:,1).^2 + v(:,2).^2 + v(:,3).^2); % Initial v
@@ -81,10 +80,10 @@ function dsmc(particles,timesteps,cells,animate)
         
        % Integrate position
        r = r + v*tau;
-       %r(:,1) = mod(r(:,1)+L0,L0); %Periodic boundary conditions
-       %r(:,1) = mod(r(:,1)+1000*L0,L0); %Periodic boundary conditions
        
-       r = mod(r+1000*L,L); %Periodic boundary conditions
+       r(:,1) = mod(r(:,1)+1000*L0,L0); %Periodic boundary conditions
+       
+       %r = mod(r+1000*L,L); %Periodic boundary conditions
        
        if(animate)
            % Clear figure and plot this timestep
@@ -97,9 +96,9 @@ function dsmc(particles,timesteps,cells,animate)
            plot([0 0],[0,L],'c');
            plot(circleX,circleY,'g');
            axis('equal')
-           %axis([xmin xmax xmin xmax]);
+           axis([xmin xmax xmin xmax]);
 
-           %title(sprintf('t = %f ms',1000*i*tau));
+           title(sprintf('t = %f ns',1000000*i*tau));
            A(:,i)=getframe(fig1,winsize); % save to movie
        end
        
@@ -107,7 +106,7 @@ function dsmc(particles,timesteps,cells,animate)
        
        % [r,v] = collideWithCircle(r,sortData,cells,v,tau,radius,xc,yc);
        
-       % [r,v] = collideWithEnv(r,sortData,cells,v,tau,L);
+       [r,v] = collideWithEnv(r,sortData,cells,v,tau,L);
        
        [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells);
        
@@ -126,7 +125,7 @@ function dsmc(particles,timesteps,cells,animate)
 end
 
 function [x,y] = getCircle(xc,yc,radius)
-    t = linspace(0,2*pi,30);
+    t = linspace(0,2*pi,30);sky
     x = radius*cos(t) + xc;
     y = radius*sin(t) + yc;
 end
@@ -143,9 +142,10 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
        
        %if j == 1 || j == cells % close to the walls
            particlesInCell = sd(jcell,1);
-            
+           
            % Loop through all particles and see if they are colliding
            for ipart = 1:particlesInCell; 
+               
               ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
               
               if r(ip1,2) < 0
@@ -179,13 +179,23 @@ function [r,v] = collideWithCircle(r,sd,cells,v,tau,radius,xc,yc)
            % Loop through all particles and see if they are colliding
            for ipart = 1:particlesInCell; 
                
-              ip1 = sd(ipart+sd(jcell,2),3); % Actual particle index
+              ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
               if(norm(r(ip1,:) - [xc,yc,0]) < radius)
                  %collided
+                 dt = tau/2;
+                 
                  oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
+                 
+                 % alpha = acos(dot(
+                 
+                 
+                 
+                 
                  dt = oldR(2) / v(ip1,2); % Calculate time until collision
                  r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
+                 
                  v(ip1,2) = -v(ip1,2); % Invert velocity
+                 
                  % Move the particles the rest of the time
                  r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
                  

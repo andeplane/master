@@ -54,25 +54,24 @@ function dsmc(particles,timesteps,cells,animate)
     
     r = L*rand(particles,3); % Initiate random positions
     r(:,3) = 0;
+    
     for ipart=1:particles
        dr = [xc,yc,0] - r(ipart,:);
        drLen = norm(dr);
-       if(drLen < radius)
-           rnd = rand();
+       while(drLen < radius)
+           r(ipart,1:2) = L*rand(1,2);
            
-           r(ipart,1) = radius*cos(2*pi*rnd);
-           r(ipart,2) = radius*sin(2*pi*rnd);
-       else
-           
+           dr = [xc,yc,0] - r(ipart,:);
+           drLen = norm(dr);
        end
     end
     
     v = normrnd(0,sigma,particles,3); % Maxwell distribution
-    %v(:,1) = v(:,1) + sigma;
+    v(:,1) = v(:,1) + 3*sigma;
     v(:,3) = 0; % set z to 0
     
-    vmagI = sqrt(v(:,1).^2 + v(:,2).^2 + v(:,3).^2); % Initial v
-    
+    E0 = 0.5*v(:,:).^2;
+    E = E0;
     
     for i=1:timesteps
        %L = max(L - L0*0.001,0.6*L0);
@@ -81,10 +80,11 @@ function dsmc(particles,timesteps,cells,animate)
         
        % Integrate position
        r = r + v*tau;
+       % [r,v] = collideWithCircle(r,sortData,cells,v,tau,radius,xc,yc);
+       
        
        r(:,1) = mod(r(:,1)+1000*L0,L0); %Periodic boundary conditions
-       
-       %r = mod(r+1000*L,L); %Periodic boundary conditions
+       % r = mod(r+1000*L,L); %Periodic boundary conditions
        
        if(animate)
            % Clear figure and plot this timestep
@@ -97,17 +97,16 @@ function dsmc(particles,timesteps,cells,animate)
            plot([0 0],[0,L],'c');
            plot(circleX,circleY,'g');
            axis('equal')
-           %axis([xmin xmax xmin xmax]);
+           % axis([xmin xmax xmin xmax]);
 
-           %title(sprintf('t = %f ms',1000*i*tau));
+           title(sprintf('t = %f ns',1000000*i*tau));
            A(:,i)=getframe(fig1,winsize); % save to movie
        end
        
        sortData = sort(r,L,cells,particles,sortData); %Put particles in cells
        
-       % [r,v] = collideWithCircle(r,sortData,cells,v,tau,radius,xc,yc);
+       [r,v] = collideWithEnv(r,sortData,cells,v,tau,L);
        
-       [r,v] = collideWithEnv(r,sortData,cells,v,tau,L,particles);
        
        [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells);
        
@@ -116,8 +115,10 @@ function dsmc(particles,timesteps,cells,animate)
        if mod(i,100) < 1
            dCol = coltot - oldColTot;
            oldColTot = coltot;
+           E = 0.5*v(:,:).^2;
            
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
+           sprintf('Energy: %f J (E/E0=%2f)',E,E/E0)
        end
     end
     
@@ -131,64 +132,47 @@ function [x,y] = getCircle(xc,yc,radius)
     y = radius*sin(t) + yc;
 end
 
-function [r,v] = collideWithEnv(r,sd,cells,v,tau,L,particles)
+function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
     %cell number i and j as a function of k
     ci = @(k) mod(k-1,cells);
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
     ck = @(i,j) (j-1)*4 + i;
-    
-    for ipart=1:particles
-        if r(ipart,2) < 0
-             oldR = r(ipart,:) - v(ipart,:)*tau; %Go back in time
-             dt = oldR(2) / v(ipart,2); % Calculate time until collision
-             r(ipart,:) = r(ipart,:) + v(ipart,:)*dt; % Move the particles less
-             v(ipart,2) = -v(ipart,2); % Invert velocity
-             % Move the particles the rest of the time
-             r(ipart,:) = r(ipart,:) + v(ipart,:)*(tau - dt);
-          end
-
-          if r(ipart,2) > L
-             oldR = r(ipart,:) - v(ipart,:)*tau; %Go back in time
-             dt = (L - oldR(2)) / v(ipart,2); % Calculate time until collision
-             r(ipart,:) = r(ipart,:) + v(ipart,:)*dt; % Move the particles less
-             v(ipart,2) = -v(ipart,2); % Invert velocity
-             % Move the particles the rest of the time
-             r(ipart,:) = r(ipart,:) + v(ipart,:)*(tau - dt);
-          end
+    friction = 0.5;
+    for jcell=1:cells*cells
+       j = cj(jcell);
+       
+       %if j == 1 || j == cells % close to the walls
+           particlesInCell = sd(jcell,1);
+           
+           % Loop through all particles and see if they are colliding
+           for ipart = 1:particlesInCell; 
+               
+              ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
+              
+              if r(ip1,2) < 0
+                 oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
+                 dt = oldR(2) / v(ip1,2); % Calculate time until collision
+                 r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
+                 v(ip1,2) = -v(ip1,2); % Invert velocity
+                 v(ip1,1) = v(ip1,1)*friction;
+                 % Move the particles the rest of the time
+                 r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
+              end
+              
+              if r(ip1,2) > L
+                 oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
+                 dt = (L - oldR(2)) / v(ip1,2); % Calculate time until collision
+                 r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
+                 v(ip1,2) = -v(ip1,2); % Invert velocity
+                 v(ip1,1) = v(ip1,1)*friction;
+                 % Move the particles the rest of the time
+                 r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
+              end
+              
+           end
+       %end
     end
-    
-%     for jcell=1:cells*cells
-%        j = cj(jcell);
-%        
-%        %if j == 1 || j == cells % close to the walls
-%            particlesInCell = sd(jcell,1);
-%            
-%            % Loop through all particles and see if they are colliding
-%            for ipart = 1:particlesInCell; 
-%               ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
-%               
-%               if r(ip1,2) < 0
-%                  oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
-%                  dt = oldR(2) / v(ip1,2); % Calculate time until collision
-%                  r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
-%                  v(ip1,2) = -v(ip1,2); % Invert velocity
-%                  % Move the particles the rest of the time
-%                  r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
-%               end
-%               
-%               if r(ip1,2) > L
-%                  oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
-%                  dt = (L - oldR(2)) / v(ip1,2); % Calculate time until collision
-%                  r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
-%                  v(ip1,2) = -v(ip1,2); % Invert velocity
-%                  % Move the particles the rest of the time
-%                  r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
-%               end
-%               
-%            end
-%        %end
-%     end
 end
 
 function [r,v] = collideWithCircle(r,sd,cells,v,tau,radius,xc,yc)
@@ -200,15 +184,29 @@ function [r,v] = collideWithCircle(r,sd,cells,v,tau,radius,xc,yc)
            for ipart = 1:particlesInCell; 
                
               ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
+              
               if(norm(r(ip1,:) - [xc,yc,0]) < radius)
                  %collided
-                 oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
-                 dt = oldR(2) / v(ip1,2); % Calculate time until collision
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
-                 v(ip1,2) = -v(ip1,2); % Invert velocity
-                 % Move the particles the rest of the time
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
                  
+                 oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
+                 % Calculate time of colision
+                 x0 = oldR(1);
+                 y0 = oldR(2);
+                 vx = v(ip1,1);
+                 vy = v(ip1,2);
+                 
+                 a = v(ip1,1)*v(ip1,1) + v(ip1,2)*v(ip1,2);
+                 b = 2*(x0*vx + y0*vy - xc*vx - yc*vy);
+                 c = -radius^2 - 2*xc*x0 - 2*yc*y0 + x0^2 + y0^2 + yc^2 + xc^2;
+                 t0 = (-b + sqrt(b^2 - 4*a*c))/(2*a);
+                 t1 = (-b - sqrt(b^2 - 4*a*c))/(2*a);
+                 
+                 t = min(t0,t1);
+                 
+                 r(ip1,:) = r(ip1,:) + v(ip1,:)*t;
+                 v(ip1,:) = -v(ip1,:);
+                 
+                 r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau-t);
               end
               
            end
