@@ -4,7 +4,7 @@ function dsmc(particles,timesteps,cells,animate)
     ci = @(k) mod(k-1,cells);
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
-    ck = @(i,j) (j-1)*4 + i;
+    ck = @(i,j) (j-1)*cells + i;
     
     boltz = 1.3806e-23;    % Boltzmann (J/K)
     mass = 6.63e-26;       % Mass of argon atom (kg)
@@ -82,7 +82,6 @@ function dsmc(particles,timesteps,cells,animate)
        r = r + v*tau;
        % [r,v] = collideWithCircle(r,sortData,cells,v,tau,radius,xc,yc);
        
-       
        r(:,1) = mod(r(:,1)+1000*L0,L0); %Periodic boundary conditions
        % r = mod(r+1000*L,L); %Periodic boundary conditions
        
@@ -97,7 +96,7 @@ function dsmc(particles,timesteps,cells,animate)
            plot([0 0],[0,L],'c');
            plot(circleX,circleY,'g');
            axis('equal')
-           axis([xmin xmax xmin xmax]);
+           % axis([xmin xmax xmin xmax]);
 
            title(sprintf('t = %f ns',1000000*i*tau));
            A(:,i)=getframe(fig1,winsize); % save to movie
@@ -150,12 +149,17 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
     ci = @(k) mod(k-1,cells);
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
-    ck = @(i,j) (j-1)*4 + i;
+    ck = @(i,j) (j-1)*cells + i;
     friction = 0.1;
+    %maxJ = 0;
     for jcell=1:cells*cells
        j = cj(jcell);
+       %if j>maxJ
+       %    maxJ = j;
+       %    sprintf('increased max j: %d',j)
+       %end
        
-       %if j == 1 || j == cells % close to the walls
+       if j == 1 || j == cells % close to the walls
            particlesInCell = sd(jcell,1);
            
            % Loop through all particles and see if they are colliding
@@ -166,9 +170,10 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
               if r(ip1,2) < 0
                  oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
                  dt = oldR(2) / v(ip1,2); % Calculate time until collision
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
+                 
+                 r(ip1,:) = oldR + v(ip1,:)*dt; % Move the particles less
                  v(ip1,2) = -v(ip1,2); % Invert velocity
-                 v(ip1,1) = v(ip1,1)*friction;
+                 v(ip1,:) = v(ip1,:)*friction;
                  % Move the particles the rest of the time
                  r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
               end
@@ -176,15 +181,16 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
               if r(ip1,2) > L
                  oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
                  dt = (L - oldR(2)) / v(ip1,2); % Calculate time until collision
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
+                 
+                 r(ip1,:) = oldR + v(ip1,:)*dt; % Move the particles less
                  v(ip1,2) = -v(ip1,2); % Invert velocity
-                 v(ip1,1) = v(ip1,1)*friction;
+                 v(ip1,:) = v(ip1,:)*friction;
                  % Move the particles the rest of the time
                  r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
               end
               
            end
-       %end
+       end
     end
 end
 
@@ -285,7 +291,7 @@ function sd = sort(r,L,cells,particles,sd)
     ci = @(k) mod(k-1,cells);
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
-    ck = @(i,j) (j-1)*4 + i;
+    ck = @(i,j) (j-1)*cells + i;
     
     jx = zeros(particles,1);
     jy = zeros(particles,1);
@@ -296,6 +302,10 @@ function sd = sort(r,L,cells,particles,sd)
         %Place particle i in the correct cell based on its position. 
         i = ceil(r(ipart,1)*cells/L);
         j = ceil(r(ipart,2)*cells/L);
+        
+        if(r(ipart,2) > 2*L || r(ipart,2) < -2*L)
+           sprintf('We have a particle (%d) that is at %f L, j=%d',ipart,r(ipart,2)/L,j) 
+        end
         
         if(i < 1) i = 1; end
         if(i > cells) i = cells; end

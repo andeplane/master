@@ -4,7 +4,7 @@ function dsmc(particles,timesteps,cells,animate)
     ci = @(k) mod(k-1,cells);
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
-    ck = @(i,j) (j-1)*4 + i;
+    ck = @(i,j) (j-1)*cells + i;
     
     boltz = 1.3806e-23;    % Boltzmann (J/K)
     mass = 6.63e-26;       % Mass of argon atom (kg)
@@ -70,8 +70,8 @@ function dsmc(particles,timesteps,cells,animate)
     v(:,1) = v(:,1) + 3*sigma;
     v(:,3) = 0; % set z to 0
     
-    vmagI = sqrt(v(:,1).^2 + v(:,2).^2 + v(:,3).^2); % Initial v
-    
+    E0 = 0.5*v(:,:).^2;
+    E = E0;
     
     for i=1:timesteps
        %L = max(L - L0*0.001,0.6*L0);
@@ -80,10 +80,11 @@ function dsmc(particles,timesteps,cells,animate)
         
        % Integrate position
        r = r + v*tau;
+       [r,v] = collideWithCircle(r,sortData,cells,v,tau,radius,xc,yc);
+       
        
        r(:,1) = mod(r(:,1)+1000*L0,L0); %Periodic boundary conditions
-       
-       %r = mod(r+1000*L,L); %Periodic boundary conditions
+       % r = mod(r+1000*L,L); %Periodic boundary conditions
        
        if(animate)
            % Clear figure and plot this timestep
@@ -96,7 +97,7 @@ function dsmc(particles,timesteps,cells,animate)
            plot([0 0],[0,L],'c');
            plot(circleX,circleY,'g');
            axis('equal')
-           axis([xmin xmax xmin xmax]);
+           % axis([xmin xmax xmin xmax]);
 
            title(sprintf('t = %f ns',1000000*i*tau));
            A(:,i)=getframe(fig1,winsize); % save to movie
@@ -104,9 +105,8 @@ function dsmc(particles,timesteps,cells,animate)
        
        sortData = sort(r,L,cells,particles,sortData); %Put particles in cells
        
-       % [r,v] = collideWithCircle(r,sortData,cells,v,tau,radius,xc,yc);
-       
        [r,v] = collideWithEnv(r,sortData,cells,v,tau,L);
+       
        
        [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells);
        
@@ -115,6 +115,21 @@ function dsmc(particles,timesteps,cells,animate)
        if mod(i,100) < 1
            dCol = coltot - oldColTot;
            oldColTot = coltot;
+           
+           %k = 1000;
+           
+           %xvel = zeros(k,1);
+           %count = zeros(k,1);
+           %for ipart=1:particles
+           %    verCell = ceil(k*r(ipart,2)/L);
+           %    if(verCell > k) verCell = k; end
+           %    xvel(verCell) = xvel(verCell) + v(ipart,1);
+           %    count(verCell) = count(verCell)+1;
+           %end
+           
+           %figure(2)
+           %xvel = smooth(xvel./count);
+           %plot(xvel)
            
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
        end
@@ -125,7 +140,7 @@ function dsmc(particles,timesteps,cells,animate)
 end
 
 function [x,y] = getCircle(xc,yc,radius)
-    t = linspace(0,2*pi,30);sky
+    t = linspace(0,2*pi,30);
     x = radius*cos(t) + xc;
     y = radius*sin(t) + yc;
 end
@@ -135,12 +150,13 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
     ci = @(k) mod(k-1,cells);
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
-    ck = @(i,j) (j-1)*4 + i;
+    ck = @(i,j) (j-1)*cells + i;
+    friction = 0.2;
     
     for jcell=1:cells*cells
        j = cj(jcell);
        
-       %if j == 1 || j == cells % close to the walls
+       if j == 1 || j == cells % close to the walls
            particlesInCell = sd(jcell,1);
            
            % Loop through all particles and see if they are colliding
@@ -153,6 +169,7 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
                  dt = oldR(2) / v(ip1,2); % Calculate time until collision
                  r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
                  v(ip1,2) = -v(ip1,2); % Invert velocity
+                 v(ip1,:) = v(ip1,:)*friction; %Decrease the velocity
                  % Move the particles the rest of the time
                  r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
               end
@@ -162,12 +179,13 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
                  dt = (L - oldR(2)) / v(ip1,2); % Calculate time until collision
                  r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
                  v(ip1,2) = -v(ip1,2); % Invert velocity
+                 v(ip1,:) = v(ip1,:)*friction; %Decrease the velocity
                  % Move the particles the rest of the time
                  r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
               end
               
            end
-       %end
+       end
     end
 end
 
@@ -178,27 +196,30 @@ function [r,v] = collideWithCircle(r,sd,cells,v,tau,radius,xc,yc)
             
            % Loop through all particles and see if they are colliding
            for ipart = 1:particlesInCell; 
-               
               ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
+              
               if(norm(r(ip1,:) - [xc,yc,0]) < radius)
                  %collided
-                 dt = tau/2;
                  
                  oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
+                 % Calculate time of colision
+                 x0 = oldR(1);
+                 y0 = oldR(2);
+                 vx = v(ip1,1);
+                 vy = v(ip1,2);
                  
-                 % alpha = acos(dot(
+                 a = v(ip1,1)*v(ip1,1) + v(ip1,2)*v(ip1,2);
+                 b = 2*(x0*vx + y0*vy - xc*vx - yc*vy);
+                 c = -radius^2 - 2*xc*x0 - 2*yc*y0 + x0^2 + y0^2 + yc^2 + xc^2;
+                 t0 = (-b + sqrt(b^2 - 4*a*c))/(2*a);
+                 t1 = (-b - sqrt(b^2 - 4*a*c))/(2*a);
                  
+                 t = min(t0,t1);
                  
+                 r(ip1,:) = r(ip1,:) + v(ip1,:)*t;
+                 v(ip1,:) = -v(ip1,:);
                  
-                 
-                 dt = oldR(2) / v(ip1,2); % Calculate time until collision
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
-                 
-                 v(ip1,2) = -v(ip1,2); % Invert velocity
-                 
-                 % Move the particles the rest of the time
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
-                 
+                 r(ip1,:) = r(ip1,:) + v(ip1,:)*tau;
               end
               
            end
@@ -264,7 +285,7 @@ function sd = sort(r,L,cells,particles,sd)
     ci = @(k) mod(k-1,cells);
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
-    ck = @(i,j) (j-1)*4 + i;
+    ck = @(i,j) (j-1)*cells + i;
     
     jx = zeros(particles,1);
     jy = zeros(particles,1);
@@ -275,6 +296,11 @@ function sd = sort(r,L,cells,particles,sd)
         %Place particle i in the correct cell based on its position. 
         i = ceil(r(ipart,1)*cells/L);
         j = ceil(r(ipart,2)*cells/L);
+        
+        if(r(ipart,2) > 2*L || r(ipart,2) < 2*L)
+           sprintf('We have a particle (%d) that is at %f L, j=%d',ipart,r(ipart,2)/L,j) 
+           input('we should cancel');
+        end
         
         if(i < 1) i = 1; end
         if(i > cells) i = cells; end
