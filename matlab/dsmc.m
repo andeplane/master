@@ -97,7 +97,7 @@ function dsmc(particles,timesteps,cells,animate)
            plot([0 0],[0,L],'c');
            plot(circleX,circleY,'g');
            axis('equal')
-           % axis([xmin xmax xmin xmax]);
+           axis([xmin xmax xmin xmax]);
 
            title(sprintf('t = %f ns',1000000*i*tau));
            A(:,i)=getframe(fig1,winsize); % save to movie
@@ -115,10 +115,23 @@ function dsmc(particles,timesteps,cells,animate)
        if mod(i,100) < 1
            dCol = coltot - oldColTot;
            oldColTot = coltot;
-           E = 0.5*v(:,:).^2;
+           
+           %k = 1000;
+           
+           %xvel = zeros(k,1);
+           %count = zeros(k,1);
+           %for ipart=1:particles
+           %    verCell = ceil(k*r(ipart,2)/L);
+           %    if(verCell > k) verCell = k; end
+           %    xvel(verCell) = xvel(verCell) + v(ipart,1);
+           %    count(verCell) = count(verCell)+1;
+           %end
+           
+           %figure(2)
+           %xvel = smooth(xvel./count);
+           %plot(xvel)
            
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
-           sprintf('Energy: %f J (E/E0=%2f)',E,E/E0)
        end
     end
     
@@ -138,7 +151,7 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
     ck = @(i,j) (j-1)*4 + i;
-    friction = 0.5;
+    friction = 0.1;
     for jcell=1:cells*cells
        j = cj(jcell);
        
