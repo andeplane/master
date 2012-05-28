@@ -80,14 +80,15 @@ function dsmc(particles,timesteps,cells,animate)
         
        % Integrate position
        r = r + v*tau;
-       [r,v] = collideWithCircle(r,sortData,cells,v,tau,radius,xc,yc);
-       
        
        r(:,1) = mod(r(:,1)+1000*L0,L0); %Periodic boundary conditions
+       
        % r = mod(r+1000*L,L); %Periodic boundary conditions
+       
        
        if(animate)
            % Clear figure and plot this timestep
+           figure(1);
            clf(fig1);
            plot(r(:,1),r(:,2),'d');
            hold on;
@@ -107,6 +108,7 @@ function dsmc(particles,timesteps,cells,animate)
        
        [r,v] = collideWithEnv(r,sortData,cells,v,tau,L);
        
+       col = 0;
        
        [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells);
        
@@ -115,21 +117,7 @@ function dsmc(particles,timesteps,cells,animate)
        if mod(i,100) < 1
            dCol = coltot - oldColTot;
            oldColTot = coltot;
-           
-           %k = 1000;
-           
-           %xvel = zeros(k,1);
-           %count = zeros(k,1);
-           %for ipart=1:particles
-           %    verCell = ceil(k*r(ipart,2)/L);
-           %    if(verCell > k) verCell = k; end
-           %    xvel(verCell) = xvel(verCell) + v(ipart,1);
-           %    count(verCell) = count(verCell)+1;
-           %end
-           
-           %figure(2)
-           %xvel = smooth(xvel./count);
-           %plot(xvel)
+           % plotMeanXVelocity(r,v,L,particles);
            
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
        end
@@ -151,10 +139,14 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
     ck = @(i,j) (j-1)*cells + i;
-    friction = 0.2;
-    
+    friction = 0.1;
+    %maxJ = 0;
     for jcell=1:cells*cells
        j = cj(jcell);
+       %if j>maxJ
+       %    maxJ = j;
+       %    sprintf('increased max j: %d',j)
+       %end
        
        if j == 1 || j == cells % close to the walls
            particlesInCell = sd(jcell,1);
@@ -167,9 +159,10 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
               if r(ip1,2) < 0
                  oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
                  dt = oldR(2) / v(ip1,2); % Calculate time until collision
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
+                 
+                 r(ip1,:) = oldR + v(ip1,:)*dt; % Move the particles less
                  v(ip1,2) = -v(ip1,2); % Invert velocity
-                 v(ip1,:) = v(ip1,:)*friction; %Decrease the velocity
+                 v(ip1,:) = v(ip1,:)*friction;
                  % Move the particles the rest of the time
                  r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
               end
@@ -177,9 +170,10 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
               if r(ip1,2) > L
                  oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
                  dt = (L - oldR(2)) / v(ip1,2); % Calculate time until collision
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*dt; % Move the particles less
+                 
+                 r(ip1,:) = oldR + v(ip1,:)*dt; % Move the particles less
                  v(ip1,2) = -v(ip1,2); % Invert velocity
-                 v(ip1,:) = v(ip1,:)*friction; %Decrease the velocity
+                 v(ip1,:) = v(ip1,:)*friction;
                  % Move the particles the rest of the time
                  r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
               end
@@ -189,42 +183,54 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
     end
 end
 
-function [r,v] = collideWithCircle(r,sd,cells,v,tau,radius,xc,yc)
-    for jcell=1:cells*cells
-       %if j == 1 || j == cells % close to the walls
-           particlesInCell = sd(jcell,1);
-            
-           % Loop through all particles and see if they are colliding
-           for ipart = 1:particlesInCell; 
-              ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
-              
-              if(norm(r(ip1,:) - [xc,yc,0]) < radius)
-                 %collided
-                 
-                 oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
-                 % Calculate time of colision
-                 x0 = oldR(1);
-                 y0 = oldR(2);
-                 vx = v(ip1,1);
-                 vy = v(ip1,2);
-                 
-                 a = v(ip1,1)*v(ip1,1) + v(ip1,2)*v(ip1,2);
-                 b = 2*(x0*vx + y0*vy - xc*vx - yc*vy);
-                 c = -radius^2 - 2*xc*x0 - 2*yc*y0 + x0^2 + y0^2 + yc^2 + xc^2;
-                 t0 = (-b + sqrt(b^2 - 4*a*c))/(2*a);
-                 t1 = (-b - sqrt(b^2 - 4*a*c))/(2*a);
-                 
-                 t = min(t0,t1);
-                 
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*t;
-                 v(ip1,:) = -v(ip1,:);
-                 
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*tau;
-              end
-              
-           end
-       %end
-    end
+function [r,v] = collideWithCircle(r,sd,cells,v,tau,radius,xc,yc,L,particles)
+    %for jcell=1:cells*cells
+       %particlesInCell = sd(jcell,1);
+
+       % Loop through all particles and see if they are colliding
+       
+       %for ipart = 1:particlesInCell; 
+       for ipart = 1:particles 
+          %ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
+          ip1 = ipart;
+
+          rFromCircle = r(ip1,:) - [xc,yc,0];
+          
+          if(norm(rFromCircle) < radius)
+             %collided
+
+             oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
+             % Calculate time of colision
+             x0 = oldR(1);
+             y0 = oldR(2);
+             vx = v(ip1,1);
+             vy = v(ip1,2);
+
+             a = v(ip1,1)*v(ip1,1) + v(ip1,2)*v(ip1,2);
+             b = 2*(x0*vx + y0*vy - xc*vx - yc*vy);
+             c = -radius^2 - 2*xc*x0 - 2*yc*y0 + x0^2 + y0^2 + yc^2 + xc^2;
+             t0 = (-b + sqrt(b^2 - 4*a*c))/(2*a);
+             t1 = (-b - sqrt(b^2 - 4*a*c))/(2*a);
+
+             t = min(t0,t1);
+
+             r(ip1,:) = oldR + v(ip1,:)*t;
+             v(ip1,:) = -v(ip1,:);
+
+             r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau-t);
+             
+             % It is possible that we send our particle outside the box,
+             % So for now, just cap the y-position inside [0,L]
+             r(ip1,2) = min(r(ip1,2),L);
+             r(ip1,2) = max(r(ip1,2),0);
+             
+             if(norm(r(ip1,:) - [xc,yc,0]) < radius) 
+                 sprintf('Particle %d is still inside the circle. Distance before/after: %f,%f',ip1,norm(rFromCircle),norm(r(ip1,:) - [xc,yc,0]))
+             end
+          end
+
+       end
+    %end
 
 end
 
@@ -250,7 +256,9 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells)
            ip2 = sd(t2+sd(jcell,2),3);
            
            % Calculate relative speed
-           cr = sqrt((v(ip1,1) - v(ip2,1))^2 + (v(ip1,2) - v(ip2,2))^2 + (v(ip1,3) - v(ip2,3))^2);
+           cr = norm(v(ip1,:)-v(ip2,:));
+           
+           % cr = sqrt((v(ip1,1) - v(ip2,1))^2 + (v(ip1,2) - v(ip2,2))^2 + (v(ip1,3) - v(ip2,3))^2);
            if cr > crm
                % Update max relative speed
                crm = cr;
@@ -297,9 +305,8 @@ function sd = sort(r,L,cells,particles,sd)
         i = ceil(r(ipart,1)*cells/L);
         j = ceil(r(ipart,2)*cells/L);
         
-        if(r(ipart,2) > 2*L || r(ipart,2) < 2*L)
+        if(r(ipart,2) > 2*L || r(ipart,2) < -2*L)
            sprintf('We have a particle (%d) that is at %f L, j=%d',ipart,r(ipart,2)/L,j) 
-           input('we should cancel');
         end
         
         if(i < 1) i = 1; end
@@ -339,4 +346,26 @@ function sd = sort(r,L,cells,particles,sd)
         sd(l,3) = ipart;
         temp(k) = temp(k) + 1;
     end
+end
+
+function plotMeanXVelocity(r,v,L,particles)
+   res = 1000;
+           
+   xvel = zeros(res,1);
+   count = zeros(res,1);
+   for ipart=1:particles
+      verCell = ceil(res*r(ipart,2)/L);
+      if(verCell > res) verCell = res; end
+      xvel(verCell) = xvel(verCell) + v(ipart,1);
+      count(verCell) = count(verCell)+1;
+   end
+
+   figure(2);
+   xvel = smooth(xvel./count);
+   
+   y = linspace(0,L,res);
+   plot(y,xvel)
+   title('Mean velocity across the canal')
+   xlabel('y')
+   ylabel('Mean velocity')
 end
