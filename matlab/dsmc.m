@@ -47,31 +47,12 @@ function dsmc(particles,timesteps,cells,animate)
     xmax = L0*1.05;
     xmin = L0-xmax;
     
-    radius = L0/4;
-    xc = L0/2;
-    yc = L0/2;
-    [circleX, circleY] = getCircle(xc,yc,radius);
-    
     r = L*rand(particles,3); % Initiate random positions
-    r(:,3) = 0;
-    
-    for ipart=1:particles
-       dr = [xc,yc,0] - r(ipart,:);
-       drLen = norm(dr);
-       while(drLen < radius)
-           r(ipart,1:2) = L*rand(1,2);
-           
-           dr = [xc,yc,0] - r(ipart,:);
-           drLen = norm(dr);
-       end
-    end
-    
     v = normrnd(0,sigma,particles,3); % Maxwell distribution
-    v(:,1) = v(:,1) + 3*sigma;
-    v(:,3) = 0; % set z to 0
+    v(:,1) = v(:,1) + 3*sigma; % add gas velocity
     
-    E0 = 0.5*v(:,:).^2;
-    E = E0;
+    v(:,3) = 0; % set z to 0
+    r(:,3) = 0;
     
     for i=1:timesteps
        %L = max(L - L0*0.001,0.6*L0);
@@ -97,7 +78,6 @@ function dsmc(particles,timesteps,cells,animate)
            plot([0 L0],[0,0],'r');
            plot([L0 L0],[0,L],'c');
            plot([0 0],[0,L],'c');
-           plot(circleX,circleY,'g');
            axis('equal')
            % axis([xmin xmax xmin xmax]);
 
@@ -124,10 +104,4 @@ function dsmc(particles,timesteps,cells,animate)
     
     %Play movie
     movie(fig1,A,1,3,winsize);
-end
-
-function [x,y] = getCircle(xc,yc,radius)
-    t = linspace(0,2*pi,30);
-    x = radius*cos(t) + xc;
-    y = radius*sin(t) + yc;
 end
