@@ -1,11 +1,17 @@
-function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
+function [r,v] = mover(r,sd,cells,v,tau,L,mpv)
     %cell number i and j as a function of k
     ci = @(k) mod(k-1,cells);
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
     ck = @(i,j) (j-1)*cells + i;
     friction = 0.1;
-    %maxJ = 0;
+    
+    direction = [1, -1];
+    ywall = [0, L];
+    stddev = mpv/sqrt(2);
+    
+    yold = r;
+              
     for jcell=1:cells*cells
        j = cj(jcell);
        %if j>maxJ
@@ -20,29 +26,21 @@ function [r,v] = collideWithEnv(r,sd,cells,v,tau,L)
            for ipart = 1:particlesInCell; 
                
               ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
+              flag = 0;
               
-              if r(ip1,2) < 0
-                 oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
-                 dt = oldR(2) / v(ip1,2); % Calculate time until collision
-                 
-                 r(ip1,:) = oldR + v(ip1,:)*dt; % Move the particles less
-                 v(ip1,2) = -v(ip1,2); % Invert velocity
-                 v(ip1,:) = v(ip1,:)*friction;
-                 % Move the particles the rest of the time
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
+              if(r(ip1,2) <= 0) flag = 1; end
+              if(r(ip1,2) >= L) flag = 2; end
+              
+              if(flag > 0)
+                % we collided
+                v(ip1,2) = direction(flag)*sqrt(-log(1-rand())) * mpv;
+                v(ip1,1) = stddev*normrnd(0,1);
+                sprintf('New y=%f, old y=%f, diff=%f',
+                dtr = tau*(r(ip1,2)-ywall(flag))/(r(ip1,2)-yold(ip1,2));
+                
+                r(ip1,2) = ywall(flag) + v(ip1,2)*dtr;
+                sprintf('We collided (flag=%f). dtr=%f',flag,dtr)
               end
-              
-              if r(ip1,2) > L
-                 oldR = r(ip1,:) - v(ip1,:)*tau; %Go back in time
-                 dt = (L - oldR(2)) / v(ip1,2); % Calculate time until collision
-                 
-                 r(ip1,:) = oldR + v(ip1,:)*dt; % Move the particles less
-                 v(ip1,2) = -v(ip1,2); % Invert velocity
-                 v(ip1,:) = v(ip1,:)*friction;
-                 % Move the particles the rest of the time
-                 r(ip1,:) = r(ip1,:) + v(ip1,:)*(tau - dt);
-              end
-              
            end
        end
     end

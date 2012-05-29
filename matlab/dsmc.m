@@ -1,11 +1,15 @@
-function dsmc(particles,timesteps,cells,animate)
+function dsmc(particles,timesteps,particlesPerCell)
     format long;
-    %cell number i and j as a function of k
-    ci = @(k) mod(k-1,cells);
-    cj = @(k) ceil(k/cells);
-    %cell number as function of i, j
-    ck = @(i,j) (j-1)*cells + i;
     
+    % Plots
+    animate = true;
+    meanXVelocity = true;
+    energyVsTime = true;
+    
+    % Calculate the required number of cells
+    cells = ceil(sqrt(particles/particlesPerCell));
+    
+    % Some constants
     boltz = 1.3806e-23;    % Boltzmann (J/K)
     mass = 6.63e-26;       % Mass of argon atom (kg)
     diam = 3.66e-10;       % Effective diameter of argon atom (m)
@@ -14,7 +18,6 @@ function dsmc(particles,timesteps,cells,animate)
     L = 1e-6;              % System size is one micron
     
     eff_num = density/mass*L*L*L/particles;
-    sprintf('Each particle represents %f atoms',eff_num)
     v0 = sqrt(3*boltz*T/mass); % Used to calculate initial vmax
     sigma = sqrt(boltz*T/mass); % Standard deviation
     
@@ -30,78 +33,82 @@ function dsmc(particles,timesteps,cells,animate)
        %Xref = sortData(:,3) Maps real particle index to the ordered set
     
     tau = 0.2*(L/cells)/v0; % Timestep
+    coeff = 0.5*eff_num*pi*diam*diam*tau/(L*L*L/(cells*cells)); % Not quite sure where it comes from
     vrmax = zeros(cells,cells) + 3*v0; % Initial vmax
     selxtra = zeros(cells,cells); % The 'Rem' part in N_pairs on page 4 in the GPU article
     coltot = 0; % Total number of collisions
     oldColTot = 0;
     
     % Prepare movie
-    fig1=figure(1);
-    winsize = get(fig1,'Position');
-    winsize(1:2) = [0 0];
-    A=moviein(timesteps,fig1,winsize);
-    set(fig1,'NextPlot','replacechildren');
+    if(animate)
+        fig1=figure(1);
+        winsize = get(fig1,'Position');
+        winsize(1:2) = [0 0];
+        A=moviein(timesteps,fig1,winsize);
+        set(fig1,'NextPlot','replacechildren');
+    end
     
-    L0 = L;
-    
-    xmax = L0*1.05;
-    xmin = L0-xmax;
+    xmax = L*1.05;
+    xmin = L-xmax;
     
     r = L*rand(particles,3); % Initiate random positions
     v = normrnd(0,sigma,particles,3); % Maxwell distribution
-    v(:,1) = v(:,1) + 3*sigma; % add gas velocity
+    v(:,1) = v(:,1) + 3*sigma; % add gas velocity in x-direction
     
-    v(:,3) = 0; % set z to 0
+    % set z and v_z to 0
+    v(:,3) = 0; 
     r(:,3) = 0;
     
+    sprintf('Starting simulation with')
+    sprintf('Particles: %d',particles)
+    sprintf('Cells (each dimension): %d',cells)
+    sprintf('v0 = %f m/s',v0)
+    sprintf('T = %f kelvin',T)
+    sprintf('tau = %f ns',tau * 10^9)
+    sprintf('Each particle represents %f atoms',eff_num)
+    
+    E = zeros(1,timesteps);
+    
     for i=1:timesteps
-       %L = max(L - L0*0.001,0.6*L0);
-       
-       coeff = 0.5*eff_num*pi*diam*diam*tau/(L*L*L/(cells*cells)); % Not quite sure where it comes from
+        if(energyVsTime) E(i) = 0.5*sum(sum(v.^2,2)); end
         
-       % Integrate position
-       r = r + v*tau;
-       
-       r(:,1) = mod(r(:,1)+1000*L0,L0); %Periodic boundary conditions
-       
-       % r = mod(r+1000*L,L); %Periodic boundary conditions
-       
-       % [r,v] = collideWithCircle(r,sortData,cells,v,tau,radius,xc,yc,L,particles);
-       
        if(animate)
            % Clear figure and plot this timestep
            figure(1);
            clf(fig1);
            plot(r(:,1),r(:,2),'d');
            hold on;
-           plot([0 L0],[L,L],'r');
-           plot([0 L0],[0,0],'r');
-           plot([L0 L0],[0,L],'c');
+           plot([0 L],[L,L],'r');
+           plot([0 L],[0,0],'r');
+           plot([L L],[0,L],'c');
            plot([0 0],[0,L],'c');
+           xlabel('x [m]');
+           ylabel('y [m]');
            axis('equal')
            % axis([xmin xmax xmin xmax]);
 
-           title(sprintf('t = %f ns',1000000*i*tau));
+           title(sprintf('t = %f ns',10^9*i*tau));
            A(:,i)=getframe(fig1,winsize); % save to movie
        end
        
        sortData = sortParticles(r,L,cells,particles,sortData); %Put particles in cells
-       
-       [r,v] = collideWithEnv(r,sortData,cells,v,tau,L);
-       
-       [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells);
+       [r,v] = mover(r,sortData,cells,v,tau,L,v0); % Move and collide with walls
+       [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells); % Collide with other particles
        
        coltot = coltot + col; % Increase total collisions
        
        if mod(i,100) < 1
            dCol = coltot - oldColTot;
            oldColTot = coltot;
-           % plotMeanXVelocity(r,v,L,particles);
+           if meanXVelocity plotMeanXVelocity(r,v,L,particles); end
            
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
        end
     end
     
-    %Play movie
-    movie(fig1,A,1,3,winsize);
+    if(energyVsTime)
+        t = linspace(0,timesteps*tau,timesteps);
+        plotEnergy(t,E);
+    end
+    
 end
