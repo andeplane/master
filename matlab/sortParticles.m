@@ -1,6 +1,6 @@
 function sd = sortParticles(r,L,cells,particles,sd)
     %cell number i and j as a function of k
-    ci = @(k) mod(k-1,cells);
+    ci = @(k) mod(k-1,cells)+1;
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
     ck = @(i,j) (j-1)*cells + i;

@@ -1,11 +1,19 @@
-function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells) 
+function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L) 
+    ci = @(k) mod(k-1,cells)+1;
+    cj = @(k) ceil(k/cells);
+    
+    
     col = 0;
+    colCells = zeros(cells,cells);
+    
     for jcell = 1:cells*cells
         number = sd(jcell,1); %Number of particles in this cell
         if number < 2
             continue; 
         end
-       
+        i = ci(jcell);
+        j = cj(jcell);
+        
         % How many collisions (N_pairs in gpu article)
         select = coeff*number*(number-1)*crmax(jcell) + selxtra(jcell);
         nsel = floor(select);
@@ -30,7 +38,9 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells)
            
            if cr/crmax(jcell) > rand()
               % We have a collision
-              col = col + 1; 
+              col = col + 1;
+              
+              colCells(i,j) = colCells(i,j) + 1;
               
               % Center of mass velocity
               vcm = 0.5*(v(ip1,:) + v(ip2,:));
@@ -50,4 +60,10 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells)
            crmax(jcell) = crm;
         end
     end
+    
+    %figure(5);
+    %x = 0:L;
+    %y = 0:L;
+    %imagesc(x,y,colCells');
+    %colorbar;
 end
