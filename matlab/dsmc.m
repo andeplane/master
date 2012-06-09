@@ -3,9 +3,9 @@ function dsmc(timesteps)
     format long;
     
     % Plots
-    animate = true;
+    animate = false;
     meanXVelocity = false;
-    energyVsTime = false;
+    energyVsTime = true;
     plotPressure = false;
     
     particlesPerCell = 25;
@@ -20,7 +20,7 @@ function dsmc(timesteps)
     massgrams = mass*1000;
     
     diam = 3.66e-10;       % Effective diameter of argon atom (m)
-    T = 273;               % Temperature (K)
+    T = 150;               % Temperature (K)
     density = 1.78;        % Density of argon at STP (kg/m^3)
     L = 1e-6;              % System size is one micron
     
@@ -96,7 +96,13 @@ function dsmc(timesteps)
     E = zeros(1,timesteps);
     Pmax = 0;
     
+    totalNumberOfParticles = zeros(timesteps,1);
+    
+    [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,sigma,1000);
+    
     for i=1:timesteps
+       totalNumberOfParticles(i) = numParticles;
+        
        if(energyVsTime) E(i) = 0.5*sum(sum(v.^2,2)); end
        
        if(animate && numParticles > 0)
@@ -126,8 +132,10 @@ function dsmc(timesteps)
        % v_before = v;
        [r,v] = mover(r,sortData,cells,v,tau,L,v0,numParticles,p); % Move and collide with walls
        [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells,L,numParticles,p); % Collide with other particles
-       [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,sigma);
        
+       % [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,sigma);
+       
+       % [p,up,numParticles] = cleanUpParticles(p,up,numParticles,r,L);
        % deltaV = v - v_before;
        
        % [P,Pmax] = calculatePressure(sortData,cells,v,mass,L,plotPressure,Pmax,eff_num,deltaV);
@@ -142,12 +150,15 @@ function dsmc(timesteps)
            
            
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
+           sprintf('Total energy: %f',E(i))
        end
     end
     
     if(energyVsTime)
         t = linspace(0,timesteps*tau,timesteps);
         plotEnergy(t,E);
+        figure
+        plot(t,totalNumberOfParticles);
     end
     
 end

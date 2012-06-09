@@ -1,6 +1,6 @@
 function [r,v] = mover(r,sd,cells,v,tau,L,mpv,numParticles,p)
     particleIndices = p(1:numParticles);
-    yold = r(particleIndices,2);
+    yold = r(:,2);
     r(particleIndices,:) = r(particleIndices,:) + v(particleIndices,:)*tau;
     
     r(particleIndices,1) = mod(r(particleIndices,1)+1000*L,L); %Periodic boundary conditions
