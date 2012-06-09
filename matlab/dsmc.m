@@ -1,11 +1,15 @@
-function dsmc(particles,timesteps,particlesPerCell)
+function dsmc(timesteps)
+    close all;
     format long;
     
     % Plots
     animate = true;
-    meanXVelocity = true;
-    energyVsTime = true;
+    meanXVelocity = false;
+    energyVsTime = false;
     plotPressure = false;
+    
+    particlesPerCell = 25;
+    particles = 10000;
     
     % Calculate the required number of cells
     cells = ceil(sqrt(particles/particlesPerCell));
@@ -26,7 +30,7 @@ function dsmc(particles,timesteps,particlesPerCell)
     
     % For small systems (testing) the number of cells^2 might be larger
     % than the number of particles
-    dim = max(particles,cells*cells) + 10;
+    dim = max(100*particles,cells*cells) + 10;
     
     sortData = zeros(dim,3);
     
@@ -37,6 +41,7 @@ function dsmc(particles,timesteps,particlesPerCell)
     
     tau = 0.2*(L/cells)/v0; % Timestep
     coeff = 0.5*eff_num*pi*diam*diam*tau/(L*L*L/(cells*cells)); % Not quite sure where it comes from
+    
     vrmax = zeros(cells,cells) + 3*v0; % Initial vmax
     selxtra = zeros(cells,cells); % The 'Rem' part in N_pairs on page 4 in the GPU article
     coltot = 0; % Total number of collisions
@@ -54,17 +59,27 @@ function dsmc(particles,timesteps,particlesPerCell)
     xmax = L*1.05;
     xmin = L-xmax;
     
-    r = L*rand(particles,3); % Initiate random positions
-    v = normrnd(0,sigma,particles,3); % Maxwell distribution
+    numParticles = 0;
     
-    v(:,1) = v(:,1) + 3*sigma; % add gas velocity in x-direction
+    p = zeros(100*particles,1);
+    up = linspace(1,100*particles,100*particles);
+    
+    r = zeros(100*particles,3);
+    
+    % v = normrnd(0,sigma,particles,3); % Maxwell distribution
+    
+    
+    v = zeros(100*particles,3);
+    
+    % v(:,1) = v(:,1) + 3*sigma; % add gas velocity in x-direction
     
     % set z and v_z to 0
-    v(:,3) = 0; 
-    r(:,3) = 0;
+    % v(:,3) = 0; 
+    % r(:,3) = 0;
     
     % Calculate pressure (ideal gas)
     % 39.948 g/mol
+    
     chemAmount = particles*eff_num*massgrams / 39.948;
     pTot = chemAmount*208*T/(L*L); % total pressure
     
@@ -83,12 +98,16 @@ function dsmc(particles,timesteps,particlesPerCell)
     
     for i=1:timesteps
        if(energyVsTime) E(i) = 0.5*sum(sum(v.^2,2)); end
-        
-       if(animate)
+       
+       if(animate && numParticles > 0)
            % Clear figure and plot this timestep
            figure(1);
            clf(fig1);
-           plot(r(:,1),r(:,2),'d');
+           
+           particleIndices = p(1:numParticles);
+           
+           axis([xmin xmax xmin xmax]);
+           plot(r(particleIndices,1),r(particleIndices,2),'d');
            hold on;
            plot([0 L],[L,L],'r');
            plot([0 L],[0,0],'r');
@@ -97,20 +116,21 @@ function dsmc(particles,timesteps,particlesPerCell)
            xlabel('x [m]');
            ylabel('y [m]');
            axis('equal')
-           % axis([xmin xmax xmin xmax]);
 
            title(sprintf('t = %f ns',10^9*i*tau));
            A(:,i)=getframe(fig1,winsize); % save to movie
        end
        
-       sortData = sortParticles(r,L,cells,particles,sortData); %Put particles in cells
+       sortData = sortParticles(r,L,cells,sortData,numParticles,p); %Put particles in cells
        
-       v_before = v;
-       [r,v] = mover(r,sortData,cells,v,tau,L,v0); % Move and collide with walls
-       [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells,L); % Collide with other particles
-       deltaV = v - v_before;
+       % v_before = v;
+       [r,v] = mover(r,sortData,cells,v,tau,L,v0,numParticles,p); % Move and collide with walls
+       [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells,L,numParticles,p); % Collide with other particles
+       [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,sigma);
        
-       [P,Pmax] = calculatePressure(sortData,cells,v,mass,L,plotPressure,Pmax,eff_num,deltaV);
+       % deltaV = v - v_before;
+       
+       % [P,Pmax] = calculatePressure(sortData,cells,v,mass,L,plotPressure,Pmax,eff_num,deltaV);
        
        
        coltot = coltot + col; % Increase total collisions

@@ -1,8 +1,11 @@
-function [r,v] = mover(r,sd,cells,v,tau,L,mpv)
-    yold = r(:,2);
-    r = r + v*tau;
-    r(:,1) = mod(r(:,1)+1000*L,L); %Periodic boundary conditions
-    [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold);
+function [r,v] = mover(r,sd,cells,v,tau,L,mpv,numParticles,p)
+    particleIndices = p(1:numParticles);
+    yold = r(particleIndices,2);
+    r(particleIndices,:) = r(particleIndices,:) + v(particleIndices,:)*tau;
+    
+    r(particleIndices,1) = mod(r(particleIndices,1)+1000*L,L); %Periodic boundary conditions
+    
+    [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold,p);
     
     %newLivingParticles = 0;
     %newParticleIndices = zeros(10^7,1);
@@ -16,7 +19,7 @@ function [r,v] = mover(r,sd,cells,v,tau,L,mpv)
     %end
 end
 
-function [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold)
+function [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold,p)
     cj = @(k) ceil(k/cells);
     
     direction = [1, -1];
@@ -31,21 +34,22 @@ function [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold)
            
            % Loop through all particles and see if they are colliding
            for ipart = 1:particlesInCell; 
-               
-              ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
+              ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index in particle index list, jeez
+              particleIndex = p(ip1);
+              
               flag = 0;
               
-              if(r(ip1,2) <= 0) flag = 1; end
-              if(r(ip1,2) >= L) flag = 2; end
+              if(r(particleIndex,2) <= 0) flag = 1; end
+              if(r(particleIndex,2) >= L) flag = 2; end
               
               if(flag > 0)
                 % we collided
-                v(ip1,2) = direction(flag)*sqrt(-log(1-rand())) * mpv;
-                v(ip1,1) = stddev*normrnd(0,1);
+                v(particleIndex,2) = direction(flag)*sqrt(-log(1-rand())) * mpv;
+                v(particleIndex,1) = stddev*normrnd(0,1);
 
-                dtr = tau*(r(ip1,2)-ywall(flag))/(r(ip1,2)-yold(ip1));
+                dtr = tau*(r(particleIndex,2)-ywall(flag))/(r(particleIndex,2)-yold(particleIndex));
                 
-                r(ip1,2) = ywall(flag) + v(ip1,2)*dtr;
+                r(particleIndex,2) = ywall(flag) + v(particleIndex,2)*dtr;
               end
            end
        end

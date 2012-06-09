@@ -1,7 +1,6 @@
-function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L) 
+function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L,numParticles,p) 
     ci = @(k) mod(k-1,cells)+1;
     cj = @(k) ceil(k/cells);
-    
     
     col = 0;
     colCells = zeros(cells,cells);
@@ -27,8 +26,11 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L)
            ip1 = sd(t1+sd(jcell,2),3); % Actual particle index
            ip2 = sd(t2+sd(jcell,2),3);
            
+           particleIndex1 = p(ip1);
+           particleIndex2 = p(ip2);
+           
            % Calculate relative speed
-           cr = norm(v(ip1,:)-v(ip2,:));
+           cr = norm(v(particleIndex1,:)-v(particleIndex2,:));
            
            % cr = sqrt((v(ip1,1) - v(ip2,1))^2 + (v(ip1,2) - v(ip2,2))^2 + (v(ip1,3) - v(ip2,3))^2);
            if cr > crm
@@ -43,7 +45,7 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L)
               colCells(i,j) = colCells(i,j) + 1;
               
               % Center of mass velocity
-              vcm = 0.5*(v(ip1,:) + v(ip2,:));
+              vcm = 0.5*(v(particleIndex1,:) + v(particleIndex2,:));
               
               cos_th = 1 - 2*rand(); % Random cosine
               sin_th = sqrt(1 - cos_th^2);
@@ -53,8 +55,8 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L)
               vrel(2) = cr*sin_th*cos(phi);
               vrel(3) = cr*sin_th*sin(phi);
               
-              v(ip1,:) = vcm(:) + 0.5*vrel(:);
-              v(ip2,:) = vcm(:) - 0.5*vrel(:);
+              v(particleIndex1,:) = vcm(:) + 0.5*vrel(:);
+              v(particleIndex2,:) = vcm(:) - 0.5*vrel(:);
            end
            
            crmax(jcell) = crm;

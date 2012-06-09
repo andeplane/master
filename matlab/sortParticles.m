@@ -1,21 +1,23 @@
-function sd = sortParticles(r,L,cells,particles,sd)
+function sd = sortParticles(r,L,cells,sd,numParticles,p)
     %cell number i and j as a function of k
     ci = @(k) mod(k-1,cells)+1;
     cj = @(k) ceil(k/cells);
     %cell number as function of i, j
     ck = @(i,j) (j-1)*cells + i;
     
-    jx = zeros(particles,1);
-    jy = zeros(particles,1);
+    jx = zeros(numParticles,1);
+    jy = zeros(numParticles,1);
     
     sd(:,1) = 0; % Reset the number of particles in each cell
     
-    for ipart=1:particles
+    for ipart=1:numParticles
         %Place particle i in the correct cell based on its position. 
-        i = ceil(r(ipart,1)*cells/L);
-        j = ceil(r(ipart,2)*cells/L);
+        particleIndex = p(ipart);
         
-        if(r(ipart,2) > 2*L || r(ipart,2) < -2*L)
+        i = ceil(r(particleIndex,1)*cells/L);
+        j = ceil(r(particleIndex,2)*cells/L);
+        
+        if(r(particleIndex,2) > 2*L || r(particleIndex,2) < -2*L)
            sprintf('We have a particle (%d) that is at %f L, j=%d',ipart,r(ipart,2)/L,j) 
         end
         
@@ -42,7 +44,7 @@ function sd = sortParticles(r,L,cells,particles,sd)
     
     % Create a mapping between the sorted set to the real particle indices
     temp = zeros(cells*cells,1);
-    for ipart=1:particles
+    for ipart=1:numParticles
         i = jx(ipart);
         j = jy(ipart);
         
