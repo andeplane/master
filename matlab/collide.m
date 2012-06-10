@@ -1,19 +1,22 @@
 function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L,numParticles,p) 
-    ci = @(k) mod(k-1,cells)+1;
-    cj = @(k) ceil(k/cells);
+    ci = @(l) mod(l-1,cells)+1;
+    cj = @(l) ceil((mod(l-1,cells*cells)+1)/cells);
+    ck = @(l) ceil(l/cells^2);
     
     col = 0;
     colCells = zeros(cells,cells);
     
-    for jcell = 1:cells*cells
+    for jcell = 1:cells^3
         number = sd(jcell,1); %Number of particles in this cell
         if number < 2
             continue; 
         end
         i = ci(jcell);
         j = cj(jcell);
+        k = ck(jcell);
         
         % How many collisions (N_pairs in gpu article)
+        
         select = coeff*number*(number-1)*crmax(jcell) + selxtra(jcell);
         nsel = floor(select);
         selxtra(jcell) = select - nsel; % Rem
@@ -62,10 +65,4 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L,num
            crmax(jcell) = crm;
         end
     end
-    
-    %figure(5);
-    %x = 0:L;
-    %y = 0:L;
-    %imagesc(x,y,colCells');
-    %colorbar;
 end
