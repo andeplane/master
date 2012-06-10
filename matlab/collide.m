@@ -29,11 +29,6 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L,num
            particleIndex1 = p(ip1);
            particleIndex2 = p(ip2);
            
-           if(particleIndex1 == 0 || particleIndex2 == 0)
-               isel = isel - 1;
-              continue;
-           end
-           
            % Calculate relative speed
            cr = norm(v(particleIndex1,:)-v(particleIndex2,:));
            

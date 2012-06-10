@@ -1,11 +1,11 @@
-function [r,v] = mover(r,sd,cells,v,tau,L,mpv,numParticles,p)
+function [r,v] = mover(r,sd,cells,v,tau,L,stddev,numParticles,p)
     particleIndices = p(1:numParticles);
     yold = r(:,2);
     r(particleIndices,:) = r(particleIndices,:) + v(particleIndices,:)*tau;
     
     r(particleIndices,1) = mod(r(particleIndices,1)+1000*L,L); %Periodic boundary conditions
     
-    [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold,p);
+    [r,v] = collideWithWalls(r,sd,cells,v,tau,L,stddev,yold,p);
     
     %newLivingParticles = 0;
     %newParticleIndices = zeros(10^7,1);
@@ -19,12 +19,13 @@ function [r,v] = mover(r,sd,cells,v,tau,L,mpv,numParticles,p)
     %end
 end
 
-function [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold,p)
+function [r,v] = collideWithWalls(r,sd,cells,v,tau,L,stddev,yold,p)
     cj = @(k) ceil(k/cells);
+    boltz = 1.3806e-23;    % Boltzmann (J/K)
     
     direction = [1, -1];
     ywall = [0, L];
-    stddev = mpv/sqrt(2);
+    factor = sqrt(2)*stddev;
               
     for jcell=1:cells*cells
        j = cj(jcell);
@@ -44,9 +45,10 @@ function [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold,p)
               
               if(flag > 0)
                 % we collided
-                v(particleIndex,2) = direction(flag)*sqrt(-log(1-rand())) * mpv;
+                
+                v(particleIndex,2) = direction(flag)*sqrt(-log(1-rand())) * factor;
                 v(particleIndex,1) = stddev*normrnd(0,1);
-
+                
                 dtr = tau*(r(particleIndex,2)-ywall(flag))/(r(particleIndex,2)-yold(particleIndex));
                 
                 r(particleIndex,2) = ywall(flag) + v(particleIndex,2)*dtr;

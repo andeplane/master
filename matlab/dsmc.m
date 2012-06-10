@@ -20,7 +20,8 @@ function dsmc(timesteps)
     massgrams = mass*1000;
     
     diam = 3.66e-10;       % Effective diameter of argon atom (m)
-    T = 150;               % Temperature (K)
+    T = 273;               % Temperature (K)
+    TWall = 273;               % Temperature (K)
     density = 1.78;        % Density of argon at STP (kg/m^3)
     L = 1e-6;              % System size is one micron
     
@@ -56,32 +57,17 @@ function dsmc(timesteps)
         set(fig1,'NextPlot','replacechildren');
     end
     
+    % Plot axis limits
     xmax = L*1.05;
     xmin = L-xmax;
     
     numParticles = 0;
     
+    % Particle arrays
     p = zeros(100*particles,1);
     up = linspace(1,100*particles,100*particles);
-    
     r = zeros(100*particles,3);
-    
-    % v = normrnd(0,sigma,particles,3); % Maxwell distribution
-    
-    
     v = zeros(100*particles,3);
-    
-    % v(:,1) = v(:,1) + 3*sigma; % add gas velocity in x-direction
-    
-    % set z and v_z to 0
-    % v(:,3) = 0; 
-    % r(:,3) = 0;
-    
-    % Calculate pressure (ideal gas)
-    % 39.948 g/mol
-    
-    chemAmount = particles*eff_num*massgrams / 39.948;
-    pTot = chemAmount*208*T/(L*L); % total pressure
     
     sprintf('Starting simulation with')
     sprintf('Particles: %d',particles)
@@ -89,16 +75,17 @@ function dsmc(timesteps)
     sprintf('Cells (total): %d',cells*cells)
     sprintf('v0 = %f m/s',v0)
     sprintf('T = %f kelvin',T)
-    sprintf('P = %f Pa',pTot)
     sprintf('tau = %f ns',tau * 10^9)
     sprintf('Each particle represents %f atoms',eff_num)
     
     E = zeros(1,timesteps);
-    Pmax = 0;
     
     totalNumberOfParticles = zeros(timesteps,1);
     
     [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,sigma,1000);
+    
+    E(1) = 0.5*sum(sum(v.^2,2));
+    sprintf('Energy at t=0: %f J',E(1))
     
     for i=1:timesteps
        totalNumberOfParticles(i) = numParticles;
@@ -130,13 +117,12 @@ function dsmc(timesteps)
        sortData = sortParticles(r,L,cells,sortData,numParticles,p); %Put particles in cells
        
        % v_before = v;
-       [r,v] = mover(r,sortData,cells,v,tau,L,v0,numParticles,p); % Move and collide with walls
+       [r,v] = mover(r,sortData,cells,v,tau,L,sigma,numParticles,p); % Move and collide with walls
        [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells,L,numParticles,p); % Collide with other particles
        
-       % [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,sigma);
+       % [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,sigma,10);
        
-       % [p,up,numParticles] = cleanUpParticles(p,up,numParticles,r,L);
-       % deltaV = v - v_before;
+       % [r,v,p,up,numParticles] = cleanUpParticles(p,up,numParticles,r,L);
        
        % [P,Pmax] = calculatePressure(sortData,cells,v,mass,L,plotPressure,Pmax,eff_num,deltaV);
        
@@ -147,7 +133,6 @@ function dsmc(timesteps)
            dCol = coltot - oldColTot;
            oldColTot = coltot;
            if meanXVelocity plotMeanXVelocity(r,v,L,particles); end
-           
            
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
            sprintf('Total energy: %f',E(i))
