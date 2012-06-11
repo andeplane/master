@@ -1,4 +1,4 @@
-function [r,v] = mover(r,sd,cells,v,tau,L,R,stddev,numParticles,p)
+function [r,v] = mover(r,cells,v,tau,L,R,stddev,numParticles,p)
     particleIndices = p(1:numParticles);
     rold = r;
     r(particleIndices,:) = r(particleIndices,:) + v(particleIndices,:)*tau;
@@ -10,7 +10,7 @@ end
 
 function [r,v] = collideWithWalls(r,cells,v,R,stddev,rold,p,numParticles)
     cj = @(l) ceil((mod(l-1,cells*cells)+1)/cells);
-    an = @(x,y) mod((atan2(y,x) + 100*pi),2*pi); % Calculate angle
+    an = @(x,y) mod((atan2(y,x) + 4*pi),2*pi); % Calculate angle
     transform = @(vector,angle) ([cos(angle) -sin(angle); sin(angle) cos(angle)]*vector')';
     
     factor = sqrt(2)*stddev;
@@ -26,6 +26,7 @@ function [r,v] = collideWithWalls(r,cells,v,R,stddev,rold,p,numParticles)
           % [z,y] are rotated
           vz = -sqrt(-log(rand())) * factor;
           vy = stddev*normrnd(0,1);
+          
           vx = stddev*normrnd(0,1);
           
           vzy = transform([vz,vy],angle); % Rotate back to normal coordinates
@@ -37,7 +38,7 @@ function [r,v] = collideWithWalls(r,cells,v,R,stddev,rold,p,numParticles)
           sprintf('We have a particle outside :/') 
        end
     end
-              
+    
 %     for jcell=1:cells*cells
 %        j = cj(jcell);
 %        

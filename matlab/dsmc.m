@@ -6,7 +6,7 @@ function dsmc(timesteps)
     energyVsTime = true;
     
     particlesPerCell = 25;
-    particles = 10000;
+    particles = 5000;
     
     % Calculate the required number of cells
     cells = ceil((particles/particlesPerCell)^(1/3));
@@ -66,7 +66,7 @@ function dsmc(timesteps)
     
     totalNumberOfParticles = zeros(timesteps,1);
     
-    [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,R,sigma,1000);
+    [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,R,sigma,5000);
     
     E(1) = 0.5*sum(sum(v.^2,2));
     sprintf('Energy at t=0: %f J',E(1))
@@ -78,7 +78,7 @@ function dsmc(timesteps)
        
        sortData = sortParticles(r,L,cells,sortData,numParticles,p); %Put particles in cells
        
-       [r,v] = mover(r,sortData,cells,v,tau,L,R,sigma,numParticles,p); % Move and collide with walls
+       [r,v] = mover(r,cells,v,tau,L,R,sigma,numParticles,p); % Move and collide with walls
        [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells,L,numParticles,p); % Collide with other particles
        
        coltot = coltot + col; % Increase total collisions
@@ -95,6 +95,8 @@ function dsmc(timesteps)
     if(energyVsTime)
         t = linspace(0,timesteps*tau,timesteps);
         plotEnergy(t,E);
+        maxEnergy = max(E);
+        axis([0 max(t) 0 max(E)]);
         figure
         plot(t,totalNumberOfParticles);
     end
