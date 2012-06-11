@@ -1,4 +1,4 @@
-function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L,numParticles,p) 
+function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,p) 
     ci = @(l) mod(l-1,cells)+1;
     cj = @(l) ceil((mod(l-1,cells*cells)+1)/cells);
     ck = @(l) ceil(l/cells^2);
