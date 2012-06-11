@@ -1,4 +1,6 @@
 function [r,v] = mover(r,sd,cells,v,tau,L,mpv)
+    mpv = mpv / sqrt(3);
+    
     yold = r(:,2);
     r = r + v*tau;
     r(:,1) = mod(r(:,1)+1000*L,L); %Periodic boundary conditions
@@ -22,7 +24,7 @@ function [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold)
     
     direction = [1, -1];
     ywall = [0, L];
-    stddev = mpv/sqrt(2);
+    stddev = mpv;
               
     for jcell=1:cells*cells
        j = cj(jcell);
@@ -41,7 +43,7 @@ function [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold)
               
               if(flag > 0)
                 % we collided
-                v(ip1,2) = direction(flag)*sqrt(-log(1-rand())) * mpv;
+                v(ip1,2) = direction(flag)*sqrt(-2*log(rand())) * mpv;
                 v(ip1,1) = stddev*normrnd(0,1);
 
                 dtr = tau*(r(ip1,2)-ywall(flag))/(r(ip1,2)-yold(ip1));
