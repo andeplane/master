@@ -11,14 +11,13 @@ function dsmc(timesteps)
     % Calculate the required number of cells
     cells = ceil((particles/particlesPerCell)^(1/3));
     
-    
     % Some constants
     boltz = 1.3806e-23;    % Boltzmann (J/K)
     mass = 6.63e-26;       % Mass of argon atom (kg)
     diam = 3.66e-10;       % Effective diameter of argon atom (m)
     T = 273;               % Temperature (K)
     density = 1.78;        % Density of argon at STP (kg/m^3)
-    L = 1e-6;              % Tube length
+    L = 1e-5;              % Tube length
     R = L/10;              % Tube radius
     
     volume = pi*R*R*L;
@@ -37,7 +36,7 @@ function dsmc(timesteps)
        %index = sortData(:,2) Ordered set of particles
        %Xref = sortData(:,3) Maps real particle index to the ordered set
     
-    tau = 0.2*(L/cells)/v0; % Timestep
+    tau = 0.2*(2*R/cells)/v0; % Timestep
     coeff = 0.5*eff_num*pi*diam*diam*tau/(L*L*L/(cells^3)); % Not quite sure where it comes from
     
     vrmax = zeros(cells,cells,cells) + 3*v0; % Initial vmax
@@ -66,17 +65,31 @@ function dsmc(timesteps)
     
     totalNumberOfParticles = zeros(timesteps,1);
     
-    [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,R,sigma,5000);
+    % [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,sigma,500);
     
     E(1) = 0.5*sum(sum(v.^2,2));
     sprintf('Energy at t=0: %f J',E(1))
+    sprintf('Mean velocity = %f m/s',mean(mean(abs(v),2)))
+    
+    animate = true;
+    if(animate)
+        fig1=figure(1);
+        winsize = get(fig1,'Position');
+        winsize(1:2) = [0 0];
+        A=moviein(timesteps,fig1,winsize);
+        set(fig1,'NextPlot','replacechildren');
+    end
+    
+    t = linspace(0,2*pi,100);
+    circleX = R*cos(t);
+    circleY = R*sin(t);
     
     for i=1:timesteps
        totalNumberOfParticles(i) = numParticles;
         
        if(energyVsTime) E(i) = 0.5*sum(sum(v.^2,2)); end
        
-       sortData = sortParticles(r,L,cells,sortData,numParticles,p); %Put particles in cells
+       sortData = sortParticles(r,L,cells,sortData,numParticles,p); % Put particles in cells
        
        [r,v] = mover(r,cells,v,tau,L,R,sigma,numParticles,p); % Move and collide with walls
        [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells,L,numParticles,p); % Collide with other particles
@@ -89,16 +102,38 @@ function dsmc(timesteps)
            
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
            sprintf('Total energy: %f',E(i))
+           % plotMeanXVelocity(r,v,R,numParticles,p)
        end
+       
+       
+       % Clear figure and plot this timestep
+        particleIndices = p(1:numParticles);
+           figure(1);
+           clf(fig1);
+           plot(r(particleIndices,1),r(particleIndices,2),'d');
+           hold on;
+           % plot(circleX,circleY,'g');
+           xlabel('z [m]');
+           ylabel('y [m]');
+           axis('equal')
+           
+           axis([0 L -R R]);
+
+           title(sprintf('t = %f ns',10^9*i*tau));
+           A(:,i)=getframe(fig1,winsize); % save to movie
+           
+           [r,v,p,up,numParticles] = cleanUpParticles(p,up,numParticles,r,v,L);
+           [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,sigma,10);
     end
     
     if(energyVsTime)
         t = linspace(0,timesteps*tau,timesteps);
         plotEnergy(t,E);
-        maxEnergy = max(E);
         axis([0 max(t) 0 max(E)]);
-        figure
-        plot(t,totalNumberOfParticles);
+        axis 'auto x';
+        
+        % figure
+        % plot(t,totalNumberOfParticles);
     end
     
 end
