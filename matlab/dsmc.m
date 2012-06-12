@@ -3,11 +3,11 @@ function dsmc(timesteps)
     format long;
     
     % Plots
-    doAnimate = false;
+    doAnimate = true;
     energyVsTime = true;
     
     particlesPerCell = 25;
-    particles = 1000;
+    particles = 4000;
     
     % Calculate the required number of cells
     cells = ceil((particles/particlesPerCell)^(1/3));
@@ -108,8 +108,8 @@ function dsmc(timesteps)
        end
        
        [r,v,p,up,numParticles] = cleanUpParticles(p,up,numParticles,r,v,L,R);
-       [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,sigma,50);
-       if(doAnimate) animate; end
+       [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,sigma,10);
+       if(doAnimate) animate(numParticles,p,r,R,L,i,tau,fig1,circleX,circleY,winsize,A); end
     end
     
     if(energyVsTime)

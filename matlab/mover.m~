@@ -14,7 +14,9 @@ function [r,v] = collideWithWalls(r,cells,v,R,stddev,rold,p,numParticles,tau)
     transform = @(vector,angle) ([cos(angle) -sin(angle); sin(angle) cos(angle)]*vector')';
     
     
-    specularWalls = true;
+    specularWalls = false;
+    
+    
     
     factor = sqrt(2)*stddev;
     
@@ -26,42 +28,42 @@ function [r,v] = collideWithWalls(r,cells,v,R,stddev,rold,p,numParticles,tau)
           % Collided with wall
           angle = an(r(particleIndex,3),r(particleIndex,2));
           
-          % Calculate time of collision
+          
           a = vz0^2+vy0^2;
           b = 2*(r(particleIndex,3)*vz0+r(particleIndex,2)*vy0);
-          c = r(particleIndex,3)^2 + r(particleIndex,2)^2 - R^2;
+        c = r(particleIndex,3)^2 + r(particleIndex,2)^2 - R^2;
 
-          t0 = (-b + sqrt(b^2 - 4*a*c))/(2*a);
-          t1 = (-b - sqrt(b^2 - 4*a*c))/(2*a);
+        t0 = (-b + sqrt(b^2 - 4*a*c))/(2*a);
+        t1 = (-b - sqrt(b^2 - 4*a*c))/(2*a);
 
-          dt = max(t0,t1); % Positive root
+        dt = max(t0,t1); % Positive root
           
-          r(particleIndex,:) = rold(particleIndex,:); % Go back in time
-          r(particleIndex,:) = r(particleIndex,:) + v(particleIndex,:)*dt; % Go to wall
+          
+          r(particleIndex,:) = rold(particleIndex,:);
+          
+          r(particleIndex,:) = r(particleIndex,:) + v(particleIndex,:)*dt;
           
           if(specularWalls)
-              % Inverse the normal velocity component
-              vRotated = transform(v(particleIndex,[3,2]),-angle);
-              
-              % Add sucky friction in parallell velocities
-              
-              vRotated(1) = -vRotated(1); % z-component
-              vRotated(2) = 0.2*vRotated(2); % y-component
+                vRotated = transform(v(particleIndex,[3,2]),-angle);
+                vRotated(1) = -vRotated(1);
 
-              vzy = transform(vRotated,angle);
-              vx = 0.2*v(particleIndex,1); % We keep this
+                vzy = transform(vRotated,angle);
+                vx = v(particleIndex,1);
 
-              v(particleIndex,:) = [vx vzy([2,1])];
+                v(particleIndex,:) = [vx vzy([2,1])];
+                r(particleIndex,:) = r(particleIndex,:) + v(particleIndex,:)*(tau - dt);
           else
               % [z,y] are rotated
               vz = -sqrt(-log(rand())) * factor;
               vy = stddev*normrnd(0,1);
               vx = stddev*normrnd(0,1);
-              vzy = transform([vz,vy],angle); % Rotate back to normal coordinates
-              v(particleIndex,:) = [vx vzy([2,1])];
+              vzy = transform([vz,vy],angle); % Rotate back to normal
+              coordinates
           end
-          
-          r(particleIndex,:) = r(particleIndex,:) + v(particleIndex,:)*(tau - dt);
+       end
+       
+       if(norm(r(particleIndex,2:3)) > R)
+          sprintf('We have a particle outside :/') 
        end
     end
 end

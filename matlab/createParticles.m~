@@ -1,0 +1,14 @@
+function [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,L,sigma,newParticlesCount)
+    for i=1:newParticlesCount
+       numParticles = numParticles + 1;
+       particleIndex = up(numParticles);
+       p(numParticles) = particleIndex;
+       
+       theta = 2*pi*rand();
+       radial = 
+       
+       r(particleIndex,:) = [0,rand()*L,0];
+       v(particleIndex,:) = normrnd(0,sigma,1,3); % Maxwell distribution
+       % v(particleIndex,1) = v(particleIndex,1) + 3*sigma;
+    end
+end
