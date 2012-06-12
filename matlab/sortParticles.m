@@ -1,7 +1,4 @@
-function sd = sortParticles(r,L,cells,sd,numParticles,p)
-    %cell number i and j as a function of k
-    ci = @(l) mod(l-1,cells)+1;
-    cj = @(l) ceil(l/cells);
+function sd = sortParticles(r,L,R,cells,sd,numParticles,p)
     %cell number as function of i, j
     cl = @(i,j,k) (k-1)*cells^2 + (j-1)*cells + i;
     
@@ -15,9 +12,13 @@ function sd = sortParticles(r,L,cells,sd,numParticles,p)
         %Place particle i in the correct cell based on its position. 
         particleIndex = p(ipart);
         
-        i = ceil(r(particleIndex,1)*cells/L);
-        j = ceil(r(particleIndex,2)*cells/L);
-        k = ceil(r(particleIndex,3)*cells/L);
+        rx = r(particleIndex,1);
+        ry = r(particleIndex,2);
+        rz = r(particleIndex,3);
+        
+        i = ceil(rx*cells/L);
+        j = ceil((ry+R)*cells/(2*R));
+        k = ceil((rz+R)*cells/(2*R));
         
         if(i < 1) i = 1; end
         if(i > cells) i = cells; end

@@ -8,6 +8,9 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,p)
     
     for jcell = 1:cells^3
         number = sd(jcell,1); %Number of particles in this cell
+        
+        % sprintf('Colliding cell %d, partciles: %d',jcell,number)
+        
         if number < 2
             continue; 
         end
@@ -18,7 +21,11 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,p)
         % How many collisions (N_pairs in gpu article)
         
         select = coeff*number*(number-1)*crmax(jcell) + selxtra(jcell);
+        
         nsel = floor(select);
+        
+        % sprintf('Colliding cell %d with %d particles and %d candidates',jcell,nsel, number)
+        
         selxtra(jcell) = select - nsel; % Rem
         crm = crmax(jcell); %Max relative speed in this cell
         

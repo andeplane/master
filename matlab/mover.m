@@ -1,9 +1,9 @@
-function [r,v] = mover(r,cells,v,tau,R,stddev,numParticles,p)
+function [r,v] = mover(r,cells,v,tau,R,L,stddev,numParticles,p)
     particleIndices = p(1:numParticles);
     rold = r;
     r(particleIndices,:) = r(particleIndices,:) + v(particleIndices,:)*tau;
     
-    % r(particleIndices,1) = mod(r(particleIndices,1)+1000*L,L); %Periodic boundary conditions
+    r(particleIndices,1) = mod(r(particleIndices,1)+1000*L,L); %Periodic boundary conditions
     
     [r,v] = collideWithWalls(r,cells,v,R,stddev,rold,p,numParticles,tau);
 end
@@ -14,7 +14,7 @@ function [r,v] = collideWithWalls(r,cells,v,R,stddev,rold,p,numParticles,tau)
     transform = @(vector,angle) ([cos(angle) -sin(angle); sin(angle) cos(angle)]*vector')';
     
     
-    specularWalls = true;
+    specularWalls = false;
     
     factor = sqrt(2)*stddev;
     
@@ -49,7 +49,7 @@ function [r,v] = collideWithWalls(r,cells,v,R,stddev,rold,p,numParticles,tau)
               vRotated(2) = 0.2*vRotated(2); % y-component
 
               vzy = transform(vRotated,angle);
-              vx = 0.2*v(particleIndex,1); % We keep this
+              vx = 0.2*v(particleIndex,1); % We keep this component as it is
 
               v(particleIndex,:) = [vx vzy([2,1])];
           else

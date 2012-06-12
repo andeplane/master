@@ -3,11 +3,11 @@ function dsmc(timesteps)
     format long;
     
     % Plots
-    doAnimate = true;
+    doAnimate = false;
     energyVsTime = true;
     
     particlesPerCell = 25;
-    particles = 4000;
+    particles = 50000;
     
     % Calculate the required number of cells
     cells = ceil((particles/particlesPerCell)^(1/3));
@@ -19,7 +19,7 @@ function dsmc(timesteps)
     T = 273;               % Temperature (K)
     density = 1.78;        % Density of argon at STP (kg/m^3)
     R = 1e-6;              % Tube radius
-    L = 4*R;              % Tube length
+    L = 2*R;              % Tube length
     
     
     volume = pi*R*R*L;
@@ -39,7 +39,6 @@ function dsmc(timesteps)
        %Xref = sortData(:,3) Maps real particle index to the ordered set
     
     tau = 0.2*(2*R/cells)/v0; % Timestep
-    coeff = 0.5*eff_num*pi*diam*diam*tau/(L*L*L/(cells^3)); % Not quite sure where it comes from
     
     vrmax = zeros(cells,cells,cells) + 3*v0; % Initial vmax
     selxtra = zeros(cells,cells,cells); % The 'Rem' part in N_pairs on page 4 in the GPU article
@@ -67,11 +66,13 @@ function dsmc(timesteps)
     
     totalNumberOfParticles = zeros(timesteps,1);
     
-    [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,sigma,1000);
+    [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,L,sigma,50000);
     
     E(1) = 0.5*sum(sum(v.^2,2));
     sprintf('Energy at t=0: %f J',E(1))
-    sprintf('Mean velocity = %f m/s',mean(mean(abs(v),2)))
+    particleIndices = p(1:numParticles);
+    
+    sprintf('Mean velocity = %f m/s',mean(mean(abs(v(particleIndices,:)),2)))
     
     if(doAnimate)
         fig1=figure(1);
@@ -86,29 +87,33 @@ function dsmc(timesteps)
     circleY = R*sin(t);
     
     for i=1:timesteps
+       eff_num = density/mass*volume/particles;
+       coeff = 0.5*eff_num*pi*diam*diam*tau/(pi*R^2*L/(cells^3)); % Not quite sure where it comes from
        totalNumberOfParticles(i) = numParticles;
         
        if(energyVsTime) E(i) = 0.5*sum(sum(v.^2,2)); end
        
-       sortData = sortParticles(r,L,cells,sortData,numParticles,p); % Put particles in cells
-       
-       [r,v] = mover(r,cells,v,tau,R,sigma,numParticles,p); % Move and collide with walls
+       sortData = sortParticles(r,L,R,cells,sortData,numParticles,p); % Put particles in cells
+       % sprintf('Moving...')
+       [r,v] = mover(r,cells,v,tau,R,L,sigma,numParticles,p); % Move and collide with walls
+       % sprintf('Moved, done. Colliding...')
        [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells,p); % Collide with other particles
-       
+       % sprintf('Collided, done. Cleaning up...')
        coltot = coltot + col; % Increase total collisions
        
-       if mod(i,100) < 1
+       if mod(i,10) < 1
            dCol = coltot - oldColTot;
            oldColTot = coltot;
+           
+           plotMeanXVelocity(r,v,R,numParticles,p)
            
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
            sprintf('Total energy: %f',E(i))
            sprintf('Living particles: %f',numParticles)
-           plotMeanXVelocity(r,v,R,numParticles,p)
        end
-       
+       % sprintf('Cleaned up particles')
        [r,v,p,up,numParticles] = cleanUpParticles(p,up,numParticles,r,v,L,R);
-       [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,sigma,10);
+       % [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,sigma,10);
        if(doAnimate) animate(numParticles,p,r,R,L,i,tau,fig1,circleX,circleY,winsize,A); end
     end
     
