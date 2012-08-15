@@ -3,9 +3,9 @@ function dsmc(particles,timesteps,particlesPerCell)
     
     % Plots
     animate = false;
-    meanXVelocity = true;
-    energyVsTime = true;
-    plotPressure = true;
+    meanXVelocity = false;
+    energyVsTime = false;
+    plotPressure = false;
     
     % Calculate the required number of cells
     cells = ceil(sqrt(particles/particlesPerCell));
@@ -57,7 +57,7 @@ function dsmc(particles,timesteps,particlesPerCell)
     r = L*rand(particles,3); % Initiate random positions
     v = normrnd(0,sigma,particles,3); % Maxwell distribution
     
-    %v(:,1) = v(:,1) + 3*sigma; % add gas velocity in x-direction
+    v(:,1) = v(:,1) + 3*sigma; % add gas velocity in x-direction
     
     % set z and v_z to 0
     v(:,3) = 0; 
@@ -81,8 +81,10 @@ function dsmc(particles,timesteps,particlesPerCell)
     E = zeros(1,timesteps);
     Pmax = 0;
     
+    fid = fopen('pos.xyz','w');
+    
     for i=1:timesteps
-        if(energyVsTime) E(i) = 0.5*sum(sum(v.^2,2)); end
+       if(energyVsTime) E(i) = 0.5*sum(sum(v.^2,2)); end
         
        if(animate)
            % Clear figure and plot this timestep
@@ -103,6 +105,9 @@ function dsmc(particles,timesteps,particlesPerCell)
            A(:,i)=getframe(fig1,winsize); % save to movie
        end
        v_before = v;
+       
+       fprintf(fid,'%d %d %f\n',particles,timesteps,L);
+       fprintf(fid,'%f %f %f',r
        
        sortData = sortParticles(r,L,cells,particles,sortData); %Put particles in cells
        [r,v] = mover(r,sortData,cells,v,tau,L,v0); % Move and collide with walls

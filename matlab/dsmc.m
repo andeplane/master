@@ -3,11 +3,11 @@ function dsmc(timesteps)
     format long;
     
     % Plots
-    doAnimate = false;
-    energyVsTime = true;
+    doAnimate = true;
+    energyVsTime = false;
     
     particlesPerCell = 25;
-    particles = 50000;
+    particles = 20000;
     
     % Calculate the required number of cells
     cells = ceil((particles/particlesPerCell)^(1/3));
@@ -18,8 +18,8 @@ function dsmc(timesteps)
     diam = 3.66e-10;       % Effective diameter of argon atom (m)
     T = 273;               % Temperature (K)
     density = 1.78;        % Density of argon at STP (kg/m^3)
-    R = 1e-6;              % Tube radius
-    L = 2*R;              % Tube length
+    R = 5e-7;              % Tube radius
+    L = 5*R;              % Tube length
     
     
     volume = pi*R*R*L;
@@ -66,7 +66,7 @@ function dsmc(timesteps)
     
     totalNumberOfParticles = zeros(timesteps,1);
     
-    [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,L,sigma,50000);
+    [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,L,sigma,1/4*5000,true);
     
     E(1) = 0.5*sum(sum(v.^2,2));
     sprintf('Energy at t=0: %f J',E(1))
@@ -88,7 +88,7 @@ function dsmc(timesteps)
     
     for i=1:timesteps
        eff_num = density/mass*volume/particles;
-       coeff = 0.5*eff_num*pi*diam*diam*tau/(pi*R^2*L/(cells^3)); % Not quite sure where it comes from
+       coeff = 0.5*eff_num*pi*diam*diam*tau/(volume/cells^3); % Not quite sure where it comes from
        totalNumberOfParticles(i) = numParticles;
         
        if(energyVsTime) E(i) = 0.5*sum(sum(v.^2,2)); end
@@ -105,7 +105,7 @@ function dsmc(timesteps)
            dCol = coltot - oldColTot;
            oldColTot = coltot;
            
-           plotMeanXVelocity(r,v,R,numParticles,p)
+           % plotMeanXVelocity(r,v,R,numParticles,p)
            
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
            sprintf('Total energy: %f',E(i))
@@ -113,18 +113,22 @@ function dsmc(timesteps)
        end
        % sprintf('Cleaned up particles')
        [r,v,p,up,numParticles] = cleanUpParticles(p,up,numParticles,r,v,L,R);
-       % [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,sigma,10);
+       newParticles = particles - numParticles;
+       [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,L,sigma,20,newParticles);
+       
        if(doAnimate) animate(numParticles,p,r,R,L,i,tau,fig1,circleX,circleY,winsize,A); end
     end
     
     if(energyVsTime)
-        t = linspace(0,timesteps*tau,timesteps);
+        t = linspace(0,timesteps*tau*10^9,timesteps);
         plotEnergy(t,E);
         axis([0 max(t) 0 max(E)]);
         axis 'auto x';
+        xlabel('Time [ns]')
+        xlabel('Energy')
         
-        figure
-        plot(t,totalNumberOfParticles);
+        % figure
+        % plot(t,totalNumberOfParticles);
     end
     
 end

@@ -2,9 +2,9 @@ function dsmc(particles,timesteps,particlesPerCell)
     format long;
     
     % Plots
-    animate = true;
-    meanXVelocity = true;
-    energyVsTime = true;
+    animate = false;
+    meanXVelocity = false;
+    energyVsTime = false;
     plotPressure = false;
     
     % Calculate the required number of cells
@@ -81,8 +81,10 @@ function dsmc(particles,timesteps,particlesPerCell)
     E = zeros(1,timesteps);
     Pmax = 0;
     
+    fid = fopen('pos.xyz','w');
+    
     for i=1:timesteps
-        if(energyVsTime) E(i) = 0.5*sum(sum(v.^2,2)); end
+       if(energyVsTime) E(i) = 0.5*sum(sum(v.^2,2)); end
         
        if(animate)
            % Clear figure and plot this timestep
@@ -104,12 +106,15 @@ function dsmc(particles,timesteps,particlesPerCell)
        end
        v_before = v;
        
+       fprintf(fid,'%d\n a\n',particles);
+       fprintf(fid,'H %f %f 0\n',r(:,1:2)'*10^6);
+       
        sortData = sortParticles(r,L,cells,particles,sortData); %Put particles in cells
        [r,v] = mover(r,sortData,cells,v,tau,L,v0); % Move and collide with walls
        [col, v, vrmax, selxtra] = collide(v,vrmax,selxtra,coeff,sortData,cells,L); % Collide with other particles
        deltaV = v - v_before;
        
-       [P,Pmax] = calculatePressure(sortData,cells,v,mass,L,plotPressure,Pmax,eff_num,deltaV);
+       % [P,Pmax] = calculatePressure(sortData,cells,v,mass,L,plotPressure,Pmax,eff_num,deltaV);
        
        
        coltot = coltot + col; % Increase total collisions
@@ -123,6 +128,8 @@ function dsmc(particles,timesteps,particlesPerCell)
            sprintf('Done %d of %d steps. %d collisions (%d new)',i,timesteps,coltot,dCol)
        end
     end
+    fclose(fid);
+    sprintf('Done!')
     
     if(energyVsTime)
         t = linspace(0,timesteps*tau,timesteps);
