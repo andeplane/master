@@ -9,7 +9,7 @@ function [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,L,sig
        z = radial*cos(theta);
        y = radial*sin(theta);
        
-       r(particleIndex,:) = [L*rand()*uniformX,y,z];
+       r(particleIndex,:) = [L*rand(),y,z];
        v(particleIndex,:) = normrnd(0,sigma,1,3); % Maxwell distribution
        v(particleIndex,1) = v(particleIndex,1) + 3*sigma;
     end

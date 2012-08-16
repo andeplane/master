@@ -29,7 +29,7 @@ function animate(numParticles,p,r,R,L,i,tau,fig1,circleX,circleY,winsize,a)
     ylabel('y [m]');
     axis('equal')
 
-    axis([-1.1*R 1.1*R -1.1*R 1.1*R]);
+    % axis([-1.1*R 1.1*R -1.1*R 1.1*R]);
     
     title(sprintf('t = %f ns',10^9*i*tau));    
 end

@@ -3,7 +3,7 @@ function dsmc(timesteps)
     format long;
     
     % Plots
-    doAnimate = true;
+    doAnimate = false;
     energyVsTime = false;
     
     particlesPerCell = 25;
@@ -18,8 +18,8 @@ function dsmc(timesteps)
     diam = 3.66e-10;       % Effective diameter of argon atom (m)
     T = 273;               % Temperature (K)
     density = 1.78;        % Density of argon at STP (kg/m^3)
-    R = 5e-7;              % Tube radius
-    L = 5*R;              % Tube length
+    R = 1e-6;              % Tube radius
+    L = 5*R;               % Tube length
     
     
     volume = pi*R*R*L;
@@ -38,7 +38,7 @@ function dsmc(timesteps)
        %index = sortData(:,2) Ordered set of particles
        %Xref = sortData(:,3) Maps real particle index to the ordered set
     
-    tau = 0.2*(2*R/cells)/v0; % Timestep
+    tau = 0.05  *(2*R/cells)/v0; % Timestep
     
     vrmax = zeros(cells,cells,cells) + 3*v0; % Initial vmax
     selxtra = zeros(cells,cells,cells); % The 'Rem' part in N_pairs on page 4 in the GPU article
@@ -86,6 +86,8 @@ function dsmc(timesteps)
     circleX = R*cos(t);
     circleY = R*sin(t);
     
+    fid = fopen('pos.xyz','w');
+    
     for i=1:timesteps
        eff_num = density/mass*volume/particles;
        coeff = 0.5*eff_num*pi*diam*diam*tau/(volume/cells^3); % Not quite sure where it comes from
@@ -116,8 +118,14 @@ function dsmc(timesteps)
        newParticles = particles - numParticles;
        [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,R,L,sigma,20,newParticles);
        
+       particleIndices = p(1:numParticles);
+       fprintf(fid,'%d\n a\n',numParticles);
+       fprintf(fid,'H %f %f %f\n',r(particleIndices,:)'*10^6);
+       
        if(doAnimate) animate(numParticles,p,r,R,L,i,tau,fig1,circleX,circleY,winsize,A); end
     end
+    
+    fclose(fid);
     
     if(energyVsTime)
         t = linspace(0,timesteps*tau*10^9,timesteps);
