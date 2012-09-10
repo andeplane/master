@@ -1,22 +1,20 @@
-function sd = sortParticles(L,R,cells,sd,particles)
-% function sd = sortParticles(r,L,R,cells,sd,numParticles,p)
-% sortData = sortParticles(L,R,cells,sortData,particles);
+function sd = sortParticles(r,L,R,cells,sd,numParticles,p)
     %cell number as function of i, j
     cl = @(i,j,k) (k-1)*cells^2 + (j-1)*cells + i;
     
-    jx = zeros(particles.count,1);
-    jy = zeros(particles.count,1);
-    jz = zeros(particles.count,1);
+    jx = zeros(numParticles,1);
+    jy = zeros(numParticles,1);
+    jz = zeros(numParticles,1);
     
     sd(:,1) = 0; % Reset the number of particles in each cell
     
-    for ipart=1:particles.count
+    for ipart=1:numParticles
         %Place particle i in the correct cell based on its position. 
-        particleIndex = particles.indices(ipart);
+        particleIndex = p(ipart);
         
-        rx = particles.r(particleIndex,1);
-        ry = particles.r(particleIndex,2);
-        rz = particles.r(particleIndex,3);
+        rx = r(particleIndex,1);
+        ry = r(particleIndex,2);
+        rz = r(particleIndex,3);
         
         i = ceil(rx*cells/L);
         j = ceil((ry+R)*cells/(2*R));
@@ -48,7 +46,7 @@ function sd = sortParticles(L,R,cells,sd,particles)
     
     % Create a mapping between the sorted set to the real particle indices
     temp = zeros(cells^3,1);
-    for ipart=1:particles.count
+    for ipart=1:numParticles
         i = jx(ipart);
         j = jy(ipart);
         k = jz(ipart);

@@ -23,13 +23,16 @@ function [P,Pmax] = calculatePressure(sd,cells,v,mass,L,doPlotPressure,Pmax,eff_
         for ipart=1:number
            ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
            sumv = sumv+norm(v(ip1,:))^2;
-           P1(i,j) = P1(i,j) + norm(deltaV(ip1,:));
+           % P1(i,j) = P1(i,j) + norm(deltaV(ip1,:));
         end
+        
+        P1(i,j) = number;
         
         P(i,j) = sumv*eff_num*mass/(L*L);
     end
     
-    P1 = P1*mass
+    % P = P1*mass/(L^3);
+    
     newMax = max(P(:));
     if(newMax > Pmax)
        Pmax = newMax; 

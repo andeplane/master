@@ -1,22 +1,31 @@
-function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L,numParticles,p) 
+function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,p) 
     ci = @(l) mod(l-1,cells)+1;
     cj = @(l) ceil((mod(l-1,cells*cells)+1)/cells);
+    ck = @(l) ceil(l/cells^2);
     
     col = 0;
     colCells = zeros(cells,cells);
     
-    for jcell = 1:cells*cells
+    for jcell = 1:cells^3
         number = sd(jcell,1); %Number of particles in this cell
+        
+        % sprintf('Colliding cell %d, partciles: %d',jcell,number)
+        
         if number < 2
             continue; 
         end
         i = ci(jcell);
         j = cj(jcell);
+        k = ck(jcell);
         
         % How many collisions (N_pairs in gpu article)
         
         select = coeff*number*(number-1)*crmax(jcell) + selxtra(jcell);
+        
         nsel = floor(select);
+        
+        % sprintf('Colliding cell %d with %d particles and %d candidates',jcell,nsel, number)
+        
         selxtra(jcell) = select - nsel; % Rem
         crm = crmax(jcell); %Max relative speed in this cell
         
@@ -63,10 +72,4 @@ function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,L,num
            crmax(jcell) = crm;
         end
     end
-    
-    %figure(5);
-    %x = 0:L;
-    %y = 0:L;
-    %imagesc(x,y,colCells');
-    %colorbar;
 end

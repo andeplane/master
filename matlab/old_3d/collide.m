@@ -1,4 +1,4 @@
-function [col, particles, crmax, selxtra] = collide(crmax,selxtra,coeff,sd,cells,particles) 
+function [col, v, crmax, selxtra] = collide(v,crmax,selxtra,coeff,sd,cells,p) 
     ci = @(l) mod(l-1,cells)+1;
     cj = @(l) ceil((mod(l-1,cells*cells)+1)/cells);
     ck = @(l) ceil(l/cells^2);
@@ -36,11 +36,11 @@ function [col, particles, crmax, selxtra] = collide(crmax,selxtra,coeff,sd,cells
            ip1 = sd(t1+sd(jcell,2),3); % Actual particle index
            ip2 = sd(t2+sd(jcell,2),3);
            
-           particleIndex1 = particles.indices(ip1);
-           particleIndex2 = particles.indices(ip2);
+           particleIndex1 = p(ip1);
+           particleIndex2 = p(ip2);
            
            % Calculate relative speed
-           cr = norm(particles.v(particleIndex1,:)-particles.v(particleIndex2,:));
+           cr = norm(v(particleIndex1,:)-v(particleIndex2,:));
            
            % cr = sqrt((v(ip1,1) - v(ip2,1))^2 + (v(ip1,2) - v(ip2,2))^2 + (v(ip1,3) - v(ip2,3))^2);
            if cr > crm
@@ -55,7 +55,7 @@ function [col, particles, crmax, selxtra] = collide(crmax,selxtra,coeff,sd,cells
               colCells(i,j) = colCells(i,j) + 1;
               
               % Center of mass velocity
-              vcm = 0.5*(particles.v(particleIndex1,:) + particles.v(particleIndex2,:));
+              vcm = 0.5*(v(particleIndex1,:) + v(particleIndex2,:));
               
               cos_th = 1 - 2*rand(); % Random cosine
               sin_th = sqrt(1 - cos_th^2);
@@ -65,8 +65,8 @@ function [col, particles, crmax, selxtra] = collide(crmax,selxtra,coeff,sd,cells
               vrel(2) = cr*sin_th*cos(phi);
               vrel(3) = cr*sin_th*sin(phi);
               
-              particles.v(particleIndex1,:) = vcm(:) + 0.5*vrel(:);
-              particles.v(particleIndex2,:) = vcm(:) - 0.5*vrel(:);
+              v(particleIndex1,:) = vcm(:) + 0.5*vrel(:);
+              v(particleIndex2,:) = vcm(:) - 0.5*vrel(:);
            end
            
            crmax(jcell) = crm;

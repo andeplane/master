@@ -1,4 +1,4 @@
-function [r,v,p,up,numParticles] = cleanUpParticles(p,up,numParticles,r,L)
+function [r,v,p,up,numParticles] = cleanUpParticles(p,up,numParticles,r,v,L,R)
     newP = zeros(length(p),1);
     newNumParticles = 0;
     oldNumParticles = numParticles;
@@ -6,6 +6,7 @@ function [r,v,p,up,numParticles] = cleanUpParticles(p,up,numParticles,r,L)
     for ipart=1:oldNumParticles
        particleIndex = p(ipart);
        remove = false;
+       if(norm(r(particleIndex,2:3)) > R) remove = true; end
        if(r(particleIndex,1) > L) remove = true; end
        if(r(particleIndex,1) < 0) remove = true; end
        

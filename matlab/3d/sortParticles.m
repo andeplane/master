@@ -17,8 +17,8 @@ function sd = sortParticles(r,L,R,cells,sd,numParticles,p)
         rz = r(particleIndex,3);
         
         i = ceil(rx*cells/L);
-        j = ceil((ry-R)*cells/(2*R));
-        k = ceil((rz-R)*cells/(2*R));
+        j = ceil((ry+R)*cells/(2*R));
+        k = ceil((rz+R)*cells/(2*R));
         
         if(i < 1) i = 1; end
         if(i > cells) i = cells; end

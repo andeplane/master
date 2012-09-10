@@ -1,33 +1,45 @@
-function particles = mover(tau,dt,particles)
-%function [r,v] = mover(r,cells,v,tau,R,L,stddev,numParticles,p,dt,fn)
-    % particles = mover(cells,tau,R,L,sigma,dt,fn,particles); % Move and collide with walls
-    particleIndices = particles.indices(1:particles.count);
-    particles.r(particleIndices,:) = particles.r(particleIndices,:) + particles.v(particleIndices,:)*tau;
-    % particles.r(particleIndices,1) = mod(particles.r(particleIndices,1)+1000*L,L); %Periodic boundary conditions
+function [r,v] = mover(r,cells,v,tau,R,L,stddev,numParticles,p,dt,fn)
+    particleIndices = p(1:numParticles);
+    rold = r;
+    r(particleIndices,:) = r(particleIndices,:) + v(particleIndices,:)*tau;
     
-    particles = collideWithWalls(particleIndices,tau,dt,particles);
+    r(particleIndices,1) = mod(r(particleIndices,1)+1000*L,L); %Periodic boundary conditions
+    
+    [r,v] = collideWithWalls(r,cells,v,R,stddev,rold,p,numParticles,particleIndices,tau,dt,fn);
 end
 
-function particles = collideWithWalls(particleIndices,tau,dt,particles)
+function [r,v] = collideWithWalls(r,cells,v,R,stddev,rold,p,numParticles,particleIndices,tau,dt,fn)
+    cj = @(l) ceil((mod(l-1,cells*cells)+1)/cells);
+    an = @(x,y) mod((atan2(y,x) + 4*pi),2*pi); % Calculate angle
+    transform = @(vector,angle) ([cos(angle) -sin(angle); sin(angle) cos(angle)]*vector')';
+    specularWalls = false;
+    factor = sqrt(2)*stddev;
+    
     % Indices for the living particles only
-    aliveParticles = particles.r(particleIndices,:);
-    aliveParticlesVelocity = particles.v(particleIndices,:);
+    aliveParticles = r(particleIndices,:);
+    aliveParticlesVelocity = v(particleIndices,:);
     
     % Check which particles that are outside the volume
     [tetids, bcs] = pointLocation(dt, aliveParticles);
     % Index on those particles that are outside
     particlesOutside = find(isnan(tetids));
     
-    aliveParticles(particlesOutside,:) = aliveParticles(particlesOutside,:) - aliveParticlesVelocity(particlesOutside,:)*tau;
-    aliveParticlesVelocity(particlesOutside,:) = -aliveParticlesVelocity(particlesOutside,:);
+    aliveParticles(particlesOutside) = aliveParticles(particlesOutside) - aliveParticlesVelocity(particlesOutside)*tau;
+    aliveParticlesVelocity(particlesOutside) = -aliveParticlesVelocity(particlesOutside);
     
-    particles.r(particleIndices,:) = aliveParticles;
-    particles.v(particleIndices,:) = aliveParticlesVelocity;
+    r(particleIndices,:) = aliveParticles;
+    v(particleIndices,:) = aliveParticlesVelocity;
     
-    %sprintf('Particles outside before fix: %d',sum(isnan(tetids)))
-    %[tetids, bcs] = pointLocation(dt, aliveParticles);
-    %sprintf('Particles outside after fix: %d',sum(isnan(tetids)))
-    %pause
+    
+    
+    
+    
+    boolParticlesOutside = isnan(tetids);
+    sprintf('Particles outside before fix: %d',sum(boolParticlesOutside))
+    [tetids, bcs] = pointLocation(dt, aliveParticles);
+    boolParticlesOutside = isnan(tetids);
+    sprintf('Particles outside after fix: %d',sum(boolParticlesOutside))
+    pause();
     
 %     
 %     for ipart=1:numParticles

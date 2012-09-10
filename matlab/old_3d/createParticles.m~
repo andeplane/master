@@ -1,0 +1,38 @@
+function [numParticles,p,up,r,v] = createParticles(numParticles,p,up,r,v,sigma,newParticlesCount,dt,xrange,yrange,zrange)
+    newParticleIndices = zeros(1,newParticlesCount);
+    
+    for i=1:newParticlesCount
+       numParticles = numParticles + 1;
+       particleIndex = up(numParticles);
+       p(numParticles) = particleIndex;
+       newParticleIndices(i) = particleIndex;
+       
+       r(particleIndex,:) = [xrange(1)+rand()*(xrange(2) - xrange(1)),yrange(1)+rand()*(yrange(2) - yrange(1)),zrange(1)+rand()*(zrange(2) - zrange(1))];
+           
+       v(particleIndex,:) = normrnd(0,sigma,1,3); % Maxwell distribution
+       v(particleIndex,1) = v(particleIndex,1) + 3*sigma;
+    end
+    
+    [tetids, bcs] = pointLocation(dt, r(newParticleIndices,:));
+    particlesOutside = find(isnan(tetids));
+    
+    [r,v,p,up,numParticles] = removeParticles(p,up,numParticles,r,v,particlesOutside,newParticleIndices);
+    sprintf('Removing %d particles that are outside',sum(particlesOutside))
+    pause()
+end
+
+function [r,v,p,up,numParticles] = removeParticles(p,up,numParticles,r,v,indices,newParticleIndices)
+    sprintf('Removing %d particles',length(indices))
+    for i=1:length(indices)
+        sprintf('
+        particleIndex = newParticleIndices(indices(i)); % This is indices in the newParticleIndices-array
+        pidx = find(p==particleIndex);
+        up(numParticles) = particleIndex; % This particle is now unused
+        p(pidx) = []; % Removed
+        
+        numParticles = numParticles - 1;
+          
+        v(particleIndex,:) = [0 0 0];
+        r(particleIndex,:) = [0 0 0];
+    end
+end
