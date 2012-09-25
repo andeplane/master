@@ -8,8 +8,8 @@ CXXFLAGS =
 LIBS = -lm -larmadillo
 
 EXEC = dsmc
-SRC = dsmc.cpp Molecule.cpp System.cpp Collider.cpp Sorter.cpp lib.cpp Cell.cpp StatisticsSampler.cpp
-OBJ = dsmc.o Molecule.o System.o Collider.o Sorter.o lib.o Cell.o StatisticsSampler.o
+SRC = dsmc.cpp Molecule.cpp System.cpp Sorter.cpp lib.cpp Cell.cpp StatisticsSampler.cpp
+OBJ = dsmc.o Molecule.o System.o Sorter.o lib.o Cell.o StatisticsSampler.o
 
 $(SCR): 
 	$(CXX) $(CXXFLAGS) -c $(SRC)  

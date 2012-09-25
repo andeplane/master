@@ -4,8 +4,6 @@
 
 using namespace arma;
 
-static int steps = 0;
-
 StatisticsSampler::StatisticsSampler(System *system) {
 	this->system = system;
 	this->temperature = true;
@@ -21,32 +19,30 @@ StatisticsSampler::StatisticsSampler(System *system) {
 	// this->diffusionFile = fopen("diffusion.dat","w");
 }
 
-void StatisticsSampler::sample(double t) {
-	this->calculateTemperature(t);
-	this->calculateEnergy(t);
-	this->calculatePressure(t);
-	this->calculateVelocities(t);
-	this->calculateDiffusionConstant(t);
-
-	steps++;
+void StatisticsSampler::sample() {
+	this->calculateTemperature();
+	this->calculateEnergy();
+	this->calculatePressure();
+	this->calculateVelocities();
+	this->calculateDiffusionConstant();
 }
 
-void StatisticsSampler::calculateTemperature(double t) {
+void StatisticsSampler::calculateTemperature() {
 	if(!this->temperature) return;
 	int N = this->system->N;
-	double vsquared = 0;
+	double energy = 0;
 
 	Molecule **molecules = this->system->molecules;
 	for(int n=0;n<N;n++) {
-		vsquared += norm(molecules[n]->v,2);
+		energy += molecules[n]->mass*norm(molecules[n]->v,2);
 	}
 
-	vsquared/=(3*(N-1));
+	energy/=(3*(N-1));
 
-	fprintf(this->temperatureFile, "%f %f \n",t, vsquared);
+	fprintf(this->temperatureFile, "%f %f \n",this->system->t, energy);
 }
 
-void StatisticsSampler::calculateEnergy(double t) {
+void StatisticsSampler::calculateEnergy() {
 	if(!this->energy) return;
 
 	int N = this->system->N;
@@ -62,35 +58,35 @@ void StatisticsSampler::calculateEnergy(double t) {
 		E += Ek_temp + Ep_temp;
 	}
 
-	fprintf(this->energyFile, "%f %f %f %f \n",t,Ek,Ep,E);
+	fprintf(this->energyFile, "%f %f %f %f \n",this->system->t,Ek,Ep,E);
 }
 
-void StatisticsSampler::calculatePressure(double t) {
+void StatisticsSampler::calculatePressure() {
 	if(!this->pressure) return;
 
 	// fprintf(this->pressureFile, "%f %f \n",t, this->system->P);
 }
 
-void StatisticsSampler::calculateVelocities(double t) {
-	if(!this->printVelocities || steps % 50) return;
+void StatisticsSampler::calculateVelocities() {
+	if(!this->printVelocities || this->system->steps % 50) return;
 
 	int N = this->system->N;
 	
 	Molecule **molecules = this->system->molecules;
 	
-	if(!steps) fprintf(this->velocityFile, "%d %d %d\n",N,N,N);
+	if(!this->system->steps) fprintf(this->velocityFile, "%d %d %d\n",N,N,N);
 	Molecule *molecule;
 	double vsq = 0;
 
 	for(int n=0;n<N;n++) {
 		molecule = molecules[n];
 		
-		fprintf(this->velocityFile, "%f %f %f %f \n",t, molecule->v(0),molecule->v(1),molecule->v(2));
+		fprintf(this->velocityFile, "%f %f %f %f \n",this->system->t, molecule->v(0),molecule->v(1),molecule->v(2));
 	}
 }
 
-void StatisticsSampler::calculateDiffusionConstant(double t) {
-	if(!this->diffusionConstant || !t) return;
+void StatisticsSampler::calculateDiffusionConstant() {
+	if(!this->diffusionConstant || !this->system->t) return;
 
 /*
 	int N = this->system->N;

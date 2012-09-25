@@ -22,12 +22,12 @@ public:
 	FILE *diffusionFile;
 
 	StatisticsSampler(System *system);
-	void sample(double t);
-	void calculateTemperature(double t);
-	void calculatePressure(double t);
-	void calculateEnergy(double t);
-	void calculateVelocities(double t);
-	void calculateDiffusionConstant(double t);
+	void sample();
+	void calculateTemperature();
+	void calculatePressure();
+	void calculateEnergy();
+	void calculateVelocities();
+	void calculateDiffusionConstant();
 };
 
 #endif

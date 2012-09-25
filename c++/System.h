@@ -28,7 +28,13 @@ public:
 	int N; 			// Number of molecules
 	double L;
 	double volume;
-	double eff_num;  // Radius
+	double eff_num;
+	double mpv; 	// Most probable velocity
+	double vwall;
+	double tau;
+	double coeff;
+	double t;
+	double T;
 	int collisions;
 	int steps;
 

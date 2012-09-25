@@ -7,19 +7,14 @@
 
 const double pi = 3.141592654;
 const double boltz = 1.3806e-23;    // Boltzmann's constant (J/K)
-double mass = 6.63e-26;       // Mass of argon atom (kg)
-double diam = 3.66e-10;       // Effective diameter of argon atom (m)
-double T = 273;               // Temperature (K)
-double density = 1.78;    // Number density of argon at STP (m^-3)
-double t = 0;
+double mass = 6.63e-26;     	    // Mass of argon atom (kg)
+double diam = 3.66e-10;    	  	    // Effective diameter of argon atom (m)
+double density = 1.78;   			// Number density of argon at STP (m^-3)
 
-double mpv, vwall_m, vwall, tau, coeff;
 int ncell = 20;                       // Number of cells
-int colSum = 0;
 
 vec strikes, strikeSum, delv;
 
-int steps = 0;
 long idum = -1;
 
 double rand_gauss() {
@@ -30,6 +25,7 @@ double rand_gauss() {
 System::System(int N, double T, double density) {
 	this->N = N;
 	this->L = 1e-6;
+	this->T = T;
 	this->volume = L*L*L;
 	this->steps = 0;
 	this->initialize();
@@ -37,7 +33,7 @@ System::System(int N, double T, double density) {
 
 void System::move() {
   for(int n=0; n< this->N; n++ )
-  	this->molecules[n]->move(tau);
+  	this->molecules[n]->move(this->tau);
 
   //* Check each particle to see if it strikes a wall
   strikes.zeros();
@@ -47,8 +43,8 @@ void System::move() {
   vec direction = zeros<vec>(2,1);
 
   xwall(0) = 0;    xwall(1) = L;   // Positions of walls
-  vw(0) = -vwall;  vw(1) = vwall;  // Velocities of walls
-  double stdev = mpv/sqrt(2.);
+  vw(0) = -this->vwall;  vw(1) = this->vwall;  // Velocities of walls
+  double stdev = this->mpv/sqrt(2.);
   // Direction of particle leaving wall
   direction(0) = 1;  direction(1) = -1;
   Molecule *molecule;
@@ -68,12 +64,12 @@ void System::move() {
       double vyInitial = molecule->v(1);
       //* Reset velocity components as biased Maxwellian,
       //  Exponential dist. in x; Gaussian in y and z
-      molecule->v(0) = direction(flag-1)*sqrt(-log(1.-ran0(&idum))) * mpv;
+      molecule->v(0) = direction(flag-1)*sqrt(-log(1.-ran0(&idum))) * this->mpv;
       molecule->v(1) = stdev*rand_gauss() + vw(flag-1); // Add wall velocity
       molecule->v(2) = stdev*rand_gauss();
 
       // Time of flight after leaving wall
-      double dtr = tau*(molecule->r(0)-xwall(flag-1))/(molecule->r(0)-molecule->r_old(0));   
+      double dtr = this->tau*(molecule->r(0)-xwall(flag-1))/(molecule->r(0)-molecule->r_old(0));   
       //* Reset position after leaving wall
       molecule->r(0) = xwall(flag-1) + molecule->v(0)*dtr;
       //* Record velocity change for force measurement
@@ -102,7 +98,7 @@ int System::collide() {
 		//* Determine number of candidate collision pairs
 		//  to be selected in this cell
 
-		double select = coeff*particlesInCell*(particlesInCell-1)*cell->vr_max + cell->selxtra;
+		double select = this->coeff*particlesInCell*(particlesInCell-1)*cell->vr_max + cell->selxtra;
 
 		int nsel = (int)(select);      // Number of pairs to be selected
 		cell->selxtra = select-nsel;  // Carry over any left-over fraction
@@ -153,8 +149,8 @@ int System::collide() {
 }
 
 void System::step() {
-	steps += 1;
-	t += tau;
+	this->steps += 1;
+	this->t += 1;
 
 	//* Move all the particles
 	this->move();
@@ -173,35 +169,35 @@ void System::initialize() {
   	double mfp = this->volume/(sqrt(2.0)*pi*diam*diam*this->N*eff_num);
   	printf("System width is %f mean free paths\n",L/mfp);
 
-  	mpv = sqrt(2*boltz*T/mass);  // Most probable initial velocity
+  	this->mpv = sqrt(2*boltz*this->T/mass);  // Most probable initial velocity
 
   	cout << "Enter wall velocity as Mach number: ";
-	vwall_m; cin >> vwall_m;
+  	double vwall_m;
+	cin >> vwall_m;
 
-	vwall = vwall_m * sqrt(5./3. * boltz*T/mass);
-	cout << "Wall velocities are " << -vwall << " and " << vwall << " m/s" << endl;
+	this->vwall = vwall_m * sqrt(5./3. * boltz*this->T/mass);
+	cout << "Wall velocities are " << -this->vwall << " and " << this->vwall << " m/s" << endl;
 	this->initMolecules();
 	this->initCells();
 	this->collisions = 0;
 
-	tau = 0.2*(L/ncell)/mpv;       // Set timestep tau
+	this->tau = 0.2*(L/ncell)/this->mpv;       // Set timestep tau
 
-	coeff = 0.5*this->eff_num*pi*diam*diam*tau/(this->volume/ncell);
+	this->coeff = 0.5*this->eff_num*pi*diam*diam*this->tau/(this->volume/ncell);
 
 	this->sorter = new Sorter(ncell,this);
 	
 	strikes = zeros<vec>(2,1);
 	strikeSum = zeros<vec>(2,1);
 	delv = zeros<vec>(2,1);
-
-	printf("done\n");
+	this->t = 0;
 }
 
 void System::initCells() {
 	this->cells = new Cell*[ncell];
 	for(int n=0;n<ncell;n++) {
 		this->cells[n] = new Cell(this);
-		this->cells[n]->vr_max = 3*mpv;
+		this->cells[n]->vr_max = 3*this->mpv;
 	}
 }
 
@@ -209,6 +205,7 @@ void System::initMolecules() {
 	this->molecules = new Molecule*[this->N];
 	for(int n=0;n<this->N;n++) {
 		this->molecules[n] = new Molecule(this);
+		this->molecules[n]->mass = this->eff_num;
 	}
 
 	this->initPositions();
@@ -230,13 +227,13 @@ void System::initVelocities() {
 	for(int n=0; n<this->N; n++ ) {
 		molecule = this->molecules[n];
 
-		molecule->v(0) = sqrt(boltz*T/mass) * ran0(&idum);
-		molecule->v(1) = sqrt(boltz*T/mass) * ran0(&idum);
-		molecule->v(2) = sqrt(boltz*T/mass) * ran0(&idum);
+		molecule->v(0) = sqrt(boltz*this->T/mass) * ran0(&idum);
+		molecule->v(1) = sqrt(boltz*this->T/mass) * ran0(&idum);
+		molecule->v(2) = sqrt(boltz*this->T/mass) * ran0(&idum);
 
 		v_cm += molecule->v;
 
-		molecule->v(2) += vwall * 2*(molecule->r(0)/L - 0.5);
+		molecule->v(2) += this->vwall * 2*(molecule->r(0)/L - 0.5);
   	}
 
   	// Remove any center of mass momentum
