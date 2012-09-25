@@ -20,6 +20,7 @@ void Molecule::move(double tau) {
 
 	this->r_old = this->r;
 	this->r += this->v*tau;
+	
 	this->r(1) = fmod(this->r(1)+10*L,L);
-	this->r(2) = fmod(this->r(2)+10*L,L);
+	this->r(2) = fmod(this->r(2)+100*L,L);
 }

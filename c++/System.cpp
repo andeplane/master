@@ -27,6 +27,7 @@ System::System(int N, double T, double density) {
 	this->volume = L*L*L;
 	this->steps = 0;
 	this->initialize();
+	printf("System initialized.\n");
 }
 
 void System::move() {
@@ -155,15 +156,16 @@ void System::step() {
 	
 	//* Sort the particles into cells
 	this->sorter->sort();
-
+	
 	this->collisions += this->collide();
+	
 }
 
 void System::initialize() {
 	
 	this->eff_num = density/mass*this->volume/this->N;
-	this->ncell = 20*20*20;
-	
+	this->ncell = 5*5*5;
+
   	printf("Each particle represents %f atoms\n",this->eff_num);
   	double mfp = this->volume/(sqrt(2.0)*pi*diam*diam*this->N*eff_num);
   	printf("System width is %f mean free paths\n",L/mfp);

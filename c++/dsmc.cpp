@@ -22,20 +22,21 @@ int main(int args, char* argv[]) {
 
 	System *system = new System(N);
 	StatisticsSampler *sampler = new StatisticsSampler(system);
-
+	
 	FILE *positions = 0;
 	if(printPositions) positions = fopen("pos.xyz","w");
 	double t = 0;
 
 	if(printPositions) system->printPositionsToFile(positions);
-
+	
 	for(int i=0;i<timesteps;i++) {
 		if(!(i%(timesteps/100))) {
 			printf("%d%%..",(100*i)/timesteps);
 			fflush(stdout);
 		}
-
+		
 		system->step();
+
 		sampler->sample();
 
 		if(printPositions) system->printPositionsToFile(positions);
