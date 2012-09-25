@@ -162,7 +162,8 @@ void System::step() {
 void System::initialize() {
 	
 	this->eff_num = density/mass*this->volume/this->N;
-	this->ncell = 20;
+	this->ncell = 20*20*20;
+	
   	printf("Each particle represents %f atoms\n",this->eff_num);
   	double mfp = this->volume/(sqrt(2.0)*pi*diam*diam*this->N*eff_num);
   	printf("System width is %f mean free paths\n",L/mfp);

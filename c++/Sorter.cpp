@@ -16,6 +16,7 @@ void Sorter::sort() {
 	int N = this->system->N;
 	double L = this->system->L;
 	int jcell;
+	int ncell = this->ncell;
 
 	int *jx = new int[N];
 	for(int jcell=0;jcell<ncell;jcell++) 
@@ -25,7 +26,7 @@ void Sorter::sort() {
 	for(int n=0; n<N; n++ ) {
 		molecule = this->system->molecules[n];
 
-		int j = (int)(molecule->r(0)*this->ncell/L); // Cell index for this particle
+		int j = (int)(molecule->r(0)*ncell/L); // Cell index for this particle
 		jx[n] = ( j < ncell ) ? j : ncell-1; // Particle n is in cell j
 	}
 
