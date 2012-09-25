@@ -11,8 +11,6 @@ double mass = 6.63e-26;     	    // Mass of argon atom (kg)
 double diam = 3.66e-10;    	  	    // Effective diameter of argon atom (m)
 double density = 1.78;   			// Number density of argon at STP (m^-3)
 
-int ncell = 20;                       // Number of cells
-
 vec strikes, strikeSum, delv;
 
 long idum = -1;
@@ -88,7 +86,7 @@ int System::collide() {
 	Molecule *molecule1;
 	Molecule *molecule2;
 
-	for( jcell=0; jcell<ncell; jcell++ ) {
+	for( jcell=0; jcell<this->ncell; jcell++ ) {
 		//* Skip cells with only one particle
 		int particlesInCell = sorter->cell_n[jcell];
 		if( particlesInCell < 1 ) continue;  // Skip to the next cell
@@ -164,7 +162,7 @@ void System::step() {
 void System::initialize() {
 	
 	this->eff_num = density/mass*this->volume/this->N;
-
+	this->ncell = 20;
   	printf("Each particle represents %f atoms\n",this->eff_num);
   	double mfp = this->volume/(sqrt(2.0)*pi*diam*diam*this->N*eff_num);
   	printf("System width is %f mean free paths\n",L/mfp);
@@ -181,11 +179,11 @@ void System::initialize() {
 	this->initCells();
 	this->collisions = 0;
 
-	this->tau = 0.2*(L/ncell)/this->mpv;       // Set timestep tau
+	this->tau = 0.2*(this->L/this->ncell)/this->mpv;       // Set timestep tau
 
-	this->coeff = 0.5*this->eff_num*pi*diam*diam*this->tau/(this->volume/ncell);
+	this->coeff = 0.5*this->eff_num*pi*diam*diam*this->tau/(this->volume/this->ncell);
 
-	this->sorter = new Sorter(ncell,this);
+	this->sorter = new Sorter(this);
 	
 	strikes = zeros<vec>(2,1);
 	strikeSum = zeros<vec>(2,1);
@@ -194,8 +192,8 @@ void System::initialize() {
 }
 
 void System::initCells() {
-	this->cells = new Cell*[ncell];
-	for(int n=0;n<ncell;n++) {
+	this->cells = new Cell*[this->ncell];
+	for(int n=0;n<this->ncell;n++) {
 		this->cells[n] = new Cell(this);
 		this->cells[n]->vr_max = 3*this->mpv;
 	}

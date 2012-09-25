@@ -19,7 +19,7 @@ public:
     System *system;
 
     // Regular Constructor. 
-    Sorter(int ncell, System *system);
+    Sorter(System *system);
     void sort();
 };
 

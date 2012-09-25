@@ -1,12 +1,12 @@
 #include "Sorter.h"
 
-Sorter::Sorter(int ncell, System *system) {
+Sorter::Sorter(System *system) {
     this->system = system;
-    this->ncell = ncell;
+    this->ncell = system->ncell;
 
 
-    this->cell_n = new int[ncell];
-    this->index = new int[ncell];
+    this->cell_n = new int[this->ncell];
+    this->index = new int[this->ncell];
     this->Xref = new int[system->N];
 }
 

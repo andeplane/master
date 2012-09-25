@@ -35,6 +35,7 @@ public:
 	double coeff;
 	double t;
 	double T;
+	int ncell;
 	int collisions;
 	int steps;
 
