@@ -1,6 +1,12 @@
 function dsmc(timesteps)
     close all;
     format long;
+    filename = 'shrinktube.obj';
+    
+    [dt, points, fn] = triangulateObjFile(filename);
+    xrange = [min(points(:,1)) max(points(:,1))]
+    yrange = [min(points(:,2)) max(points(:,2))]
+    zrange = [min(points(:,3)) max(points(:,3))]
     
     particlesPerCell = 25;
     particleCount = 20000;
