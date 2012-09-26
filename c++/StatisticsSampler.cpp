@@ -1,6 +1,7 @@
 #include "StatisticsSampler.h"
 #include <armadillo>
 #include "Molecule.h"
+#include "Cell.h"
 
 using namespace arma;
 
@@ -63,6 +64,29 @@ void StatisticsSampler::calculateEnergy() {
 
 void StatisticsSampler::calculatePressure() {
 	if(!this->pressure) return;
+
+	Cell **cells = this->system->cells;
+	double density = 2.685e25;    // Number density of argon at STP (m^-3)
+	double boltz = 1.3806e-23;    // Boltzmann's constant (J/K)
+
+	double P = 0;
+
+	double delta_t;
+	double delta_v;
+	for(int n=0;n<this->system->ncell;n++) {
+		Cell *cell = cells[n];
+		delta_t = this->system->t - cell->timeForPressureReset;
+		delta_v = cell->delta_v;
+		P += delta_v/delta_t;
+		cell->resetPressureCalculation();
+	}
+
+	P *= this->system->molecules[0]->mass;
+	// P /= 3*this->system->volume;
+	P += density*boltz*this->system->T;
+
+	printf("I have pressure %f\n",P);
+
 
 	// fprintf(this->pressureFile, "%f %f \n",t, this->system->P);
 }

@@ -14,19 +14,20 @@ private:
 public:
 	int index;
 	int firstParticleIndex;
-	
+
 	double vr_max;
 	double selxtra;
 	System *system;
 
 	double timeForPressureReset;
-	double deltaP;
+	double delta_v;
 
 	int particlesInCell;
 
 	Cell(System *system);
 	void reset();
 	int collide();
+	void resetPressureCalculation();
 };
 
 #endif
