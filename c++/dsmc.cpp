@@ -15,6 +15,7 @@ int main(int args, char* argv[]) {
 		printf("\n");
 		return 0;
 	}
+
 	bool printPositions = args > 1 ? atoi(argv[1]) : false;
 	int N = args > 2 ? atoi(argv[2]) : 1000;
 	int T = args > 3 ? atof(argv[3]) : 30;
@@ -35,7 +36,6 @@ int main(int args, char* argv[]) {
 			printf("%d%%..",(100*i)/timesteps);
 			fflush(stdout);
 		}
-		
 		system->step();
 
 		sampler->sample();

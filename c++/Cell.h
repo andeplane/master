@@ -12,11 +12,17 @@ class Cell {
 private:
 	
 public:
+	int index;
 	double vr_max;
 	double selxtra;
 	System *system;
-	Cell(System *system);
+	
+	double timeForPressureReset;
+	int particlesInCell;
 
+	Cell(System *system);
+	void reset();
+	int collide();
 };
 
 #endif

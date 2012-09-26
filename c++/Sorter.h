@@ -10,7 +10,7 @@ class Sorter {
 
 public:
     // Class data (sorting lists)
-    int *cell_n;
+    // int *cell_n;
     int *index;
     int *Xref;
     

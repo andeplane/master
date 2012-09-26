@@ -38,6 +38,7 @@ public:
 	int ncell;
 	int collisions;
 	int steps;
+	long *idum;
 
 	Sorter *sorter;
 

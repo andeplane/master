@@ -13,14 +13,16 @@ double density = 1.78;   			// Number density of argon at STP (m^-3)
 
 vec strikes, strikeSum, delv;
 
-long idum = -1;
 
-double rand_gauss() {
-  return sqrt( -2.0*log(1.0 - ran0(&idum)) )
-	        * cos( 6.283185307 * ran0(&idum) );
+double rand_gauss(long *idum) {
+  return sqrt( -2.0*log(1.0 - ran0(idum)) )
+	        * cos( 6.283185307 * ran0(idum) );
 }
 
 System::System(int N, double T, double density) {
+	this->idum = new long[1];
+	*this->idum = -1;
+	
 	this->N = N;
 	this->L = 1e-6;
 	this->T = T;
@@ -65,9 +67,9 @@ void System::move() {
 		  double vyInitial = molecule->v(1);
 		  //* Reset velocity components as biased Maxwellian,
 		  //  Exponential dist. in x; Gaussian in y and z
-		  molecule->v(0) = direction(flag-1)*sqrt(-log(1.-ran0(&idum))) * this->mpv;
-		  molecule->v(1) = stdev*rand_gauss() + vw(flag-1); // Add wall velocity
-		  molecule->v(2) = stdev*rand_gauss();
+		  molecule->v(0) = direction(flag-1)*sqrt(-log(1.-ran0(this->idum))) * this->mpv;
+		  molecule->v(1) = stdev*rand_gauss(this->idum) + vw(flag-1); // Add wall velocity
+		  molecule->v(2) = stdev*rand_gauss(this->idum);
 
 		  // Time of flight after leaving wall
 		  double dtr = this->tau*(molecule->r(0)-xwall(flag-1))/(molecule->r(0)-molecule->r_old(0));   
@@ -84,74 +86,11 @@ int System::collide() {
 	
 	//* Loop over cells, processing collisions in each cell
 	int jcell;
-	Sorter *sorter = this->sorter;
-	Cell *cell;
-	Molecule *molecule1;
-	Molecule *molecule2;
-
-	for( jcell=0; jcell<this->ncell; jcell++ ) {
-		//* Skip cells with only one particle
-		int particlesInCell = sorter->cell_n[jcell];
-		if( particlesInCell < 1 ) continue;  // Skip to the next cell
-
-		cell = this->cells[jcell];
-
-		//* Determine number of candidate collision pairs
-		//  to be selected in this cell
-
-		double select = this->coeff*particlesInCell*(particlesInCell-1)*cell->vr_max + cell->selxtra;
-
-		int nsel = (int)(select);      // Number of pairs to be selected
-		cell->selxtra = select-nsel;  // Carry over any left-over fraction
-		double crm = cell->vr_max;     // Current maximum relative speed
-
-		//* Loop over total number of candidate collision pairs
-		int isel;
-		for( isel=0; isel<nsel; isel++ ) {
-
-		  //* Pick two particles at random out of this cell
-		  int k = (int)(ran0(&idum)*particlesInCell);
-		  int kk = ((int)(k+1+ran0(&idum)*(particlesInCell-1))) % particlesInCell;
-		  int ip1 = sorter->Xref[ k+sorter->index[jcell] ];      // First particle
-		  int ip2 = sorter->Xref[ kk+sorter->index[jcell] ];     // Second particle
-		  molecule1 = this->molecules[ip1];
-		  molecule2 = this->molecules[ip2];
-
-		  //* Calculate pair's relative speed
-		  double cr = norm(molecule1->v-molecule2->v,2);
-
-		  if( cr > crm )         // If relative speed larger than crm,
-		    crm = cr;            // then reset crm to larger value
-
-		  //* Accept or reject candidate pair according to relative speed
-		  if( cr/cell->vr_max > ran0(&idum) ) {
-		    //* If pair accepted, select post-collision velocities
-		    col++;                     // Collision counter
-		    vec vcm = zeros<vec>(3,1);
-		    vec vrel = zeros<vec>(3,1);
-
-		    int k;
-		    vcm = 0.5*(molecule1->v+molecule2->v);
-
-		    double cos_th = 1.0 - 2.0*ran0(&idum);      // Cosine and sine of
-		    double sin_th = sqrt(1.0 - cos_th*cos_th); // collision angle theta
-		    double phi = 2.0*pi*ran0(&idum);            // Collision angle phi
-		    vrel(0) = cr*cos_th;             // Compute post-collision
-		    vrel(1) = cr*sin_th*cos(phi);    // relative velocity
-		    vrel(2) = cr*sin_th*sin(phi);
-
-		    molecule1->v = vcm + 0.5*vrel;
-		    molecule2->v = vcm - 0.5*vrel;
-		    if(norm(molecule1->v,2) > 10000) {
-		    	cout << "Molecule velocities" << endl;
-		    	cout << molecule1->v << endl;
-		    	cout << molecule2->v << endl;
-		    }
-		  } // Loop over pairs
-		}
-
-		cell->vr_max = crm;
+	
+	for(int n=0; n<this->ncell; n++ ) {
+		col += this->cells[n]->collide();
 	}   // Loop over cells
+
 	return col;
 }
 
@@ -161,7 +100,6 @@ void System::step() {
 
 	//* Move all the particles
 	this->move();
-	
 	//* Sort the particles into cells
 	this->sorter->sort();
 	
@@ -206,6 +144,7 @@ void System::initCells() {
 	for(int n=0;n<this->ncell;n++) {
 		this->cells[n] = new Cell(this);
 		this->cells[n]->vr_max = 3*this->mpv;
+		this->cells[n]->index = n;
 	}
 }
 
@@ -222,9 +161,9 @@ void System::initMolecules() {
 
 void System::initPositions() {
 	for(int n=0; n<this->N; n++ ) {
-		this->molecules[n]->r(0) = L*ran0(&idum);
-		this->molecules[n]->r(1) = L*ran0(&idum);
-		this->molecules[n]->r(2) = L*ran0(&idum);
+		this->molecules[n]->r(0) = L*ran0(this->idum);
+		this->molecules[n]->r(1) = L*ran0(this->idum);
+		this->molecules[n]->r(2) = L*ran0(this->idum);
 	}
 }
 
@@ -234,15 +173,10 @@ void System::initVelocities() {
 
 	for(int n=0; n<this->N; n++ ) {
 		molecule = this->molecules[n];
-		/*
-		molecule->v(0) = sqrt(boltz*this->T/mass) * ran0(&idum);
-		molecule->v(1) = sqrt(boltz*this->T/mass) * ran0(&idum);
-		molecule->v(2) = sqrt(boltz*this->T/mass) * ran0(&idum);
-		*/
-
-		molecule->v(0) = rand_gauss()*sqrt(boltz*this->T/mass);
-		molecule->v(1) = rand_gauss()*sqrt(boltz*this->T/mass);
-		molecule->v(2) = rand_gauss()*sqrt(boltz*this->T/mass);
+		
+		molecule->v(0) = rand_gauss(this->idum)*sqrt(boltz*this->T/mass);
+		molecule->v(1) = rand_gauss(this->idum)*sqrt(boltz*this->T/mass);
+		molecule->v(2) = rand_gauss(this->idum)*sqrt(boltz*this->T/mass);
 
 		v_cm += molecule->v;
 		molecule->v(1) += this->vwall * 2*(molecule->r(0)/L - 0.5);

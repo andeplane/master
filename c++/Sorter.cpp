@@ -8,7 +8,7 @@ Sorter::Sorter(System *system) {
     this->system = system;
     this->ncell = system->ncell;
 
-    this->cell_n = new int[this->ncell];
+    // this->cell_n = new int[this->ncell];
     this->index = new int[this->ncell];
     this->Xref = new int[system->N];
 }
@@ -17,6 +17,8 @@ void Sorter::sort() {
 	//* Find the cell address for each particle
 	int N = this->system->N;
 	double L = this->system->L;
+	Cell **cells = this->system->cells;
+
 	int jcell;
 	int ncell = this->ncell;
 	int cellsPerDimension = pow(ncell,1.0/3);
@@ -36,7 +38,7 @@ void Sorter::sort() {
 
 	//* Count the number of particles in each cell
 	for(int n=0;n<ncell;n++)
-		this->cell_n[n] = 0;
+		cells[n]->reset();
 
 	for(int n=0; n<N; n++ ) {
 		molecule = this->system->molecules[n];
@@ -53,7 +55,8 @@ void Sorter::sort() {
 		jz[n] = k;
 
 		cell_index = calcCellIndex(i,j,k,cellsPerDimension);
-		this->cell_n[cell_index]++;
+		cells[cell_index]->particlesInCell++;
+		// this->cell_n[cell_index]++;
 	}
 	
 	//* Build index list as cumulative sum of the 
@@ -61,7 +64,8 @@ void Sorter::sort() {
 	int m=0;
 	for(jcell=0; jcell<ncell; jcell++ ) {
 		this->index[jcell] = m;
-		m += this->cell_n[jcell];
+		m += cells[jcell]->particlesInCell;
+		// m += this->cell_n[jcell];
 	}	
 
 	//* Build cross-reference list
