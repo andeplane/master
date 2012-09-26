@@ -13,11 +13,15 @@ private:
 	
 public:
 	int index;
+	int firstParticleIndex;
+	
 	double vr_max;
 	double selxtra;
 	System *system;
-	
+
 	double timeForPressureReset;
+	double deltaP;
+
 	int particlesInCell;
 
 	Cell(System *system);

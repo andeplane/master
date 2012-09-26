@@ -15,6 +15,7 @@ Cell::Cell(System *system) {
 
 void Cell::reset() {
 	this->particlesInCell = 0;
+	this->firstParticleIndex = 0;
 }
 
 int Cell::collide() {
@@ -42,8 +43,9 @@ int Cell::collide() {
 	  //* Pick two particles at random out of this cell
 	  int k = (int)(ran0(this->system->idum)*this->particlesInCell);
 	  int kk = ((int)(k+1+ran0(this->system->idum)*(this->particlesInCell-1))) % this->particlesInCell;
-	  int ip1 = sorter->Xref[ k+sorter->index[this->index] ];      // First particle
-	  int ip2 = sorter->Xref[ kk+sorter->index[this->index] ];     // Second particle
+	  
+	  int ip1 = sorter->Xref[ k+this->firstParticleIndex ];      // First particle
+	  int ip2 = sorter->Xref[ kk+this->firstParticleIndex ];     // Second particle
 	  molecule1 = molecules[ip1];
 	  molecule2 = molecules[ip2];
 

@@ -6,10 +6,6 @@ inline int calcCellIndex(int i, int j, int k, int cellsPerDimension) {
 
 Sorter::Sorter(System *system) {
     this->system = system;
-    this->ncell = system->ncell;
-
-    // this->cell_n = new int[this->ncell];
-    this->index = new int[this->ncell];
     this->Xref = new int[system->N];
 }
 
@@ -19,8 +15,7 @@ void Sorter::sort() {
 	double L = this->system->L;
 	Cell **cells = this->system->cells;
 
-	int jcell;
-	int ncell = this->ncell;
+	int ncell = this->system->ncell;
 	int cellsPerDimension = pow(ncell,1.0/3);
 	
 	int *jx = new int[N];
@@ -56,22 +51,20 @@ void Sorter::sort() {
 
 		cell_index = calcCellIndex(i,j,k,cellsPerDimension);
 		cells[cell_index]->particlesInCell++;
-		// this->cell_n[cell_index]++;
 	}
 	
 	//* Build index list as cumulative sum of the 
 	//  number of particles in each cell
 	int m=0;
-	for(jcell=0; jcell<ncell; jcell++ ) {
-		this->index[jcell] = m;
-		m += cells[jcell]->particlesInCell;
-		// m += this->cell_n[jcell];
+	for(int n=0; n<ncell; n++ ) {
+		cells[n]->firstParticleIndex = m;
+		m += cells[n]->particlesInCell;
 	}	
 
 	//* Build cross-reference list
 	int *temp = new int [ncell];	  // Temporary array
-	for(jcell=0; jcell<ncell; jcell++ )
-		temp[jcell] = 0;
+	for(int n=0; n<ncell; n++ )
+		temp[n] = 0;
 	
 	for(int n=0; n<N; n++ )	{
 		i = jx[n];
@@ -80,7 +73,7 @@ void Sorter::sort() {
 		
 		cell_index = calcCellIndex(i,j,k,cellsPerDimension);
 		
-		int idx = this->index[cell_index] + temp[cell_index];
+		int idx = cells[cell_index]->firstParticleIndex + temp[cell_index];
 		
 		this->Xref[idx] = n;
 		temp[cell_index] += 1;
