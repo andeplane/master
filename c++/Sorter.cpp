@@ -14,7 +14,6 @@ Sorter::Sorter(System *system) {
 }
 
 void Sorter::sort() {
-
 	//* Find the cell address for each particle
 	int N = this->system->N;
 	double L = this->system->L;
@@ -42,17 +41,16 @@ void Sorter::sort() {
 	for(int n=0; n<N; n++ ) {
 		molecule = this->system->molecules[n];
 
-		i = (int)(molecule->r(0)*cellsPerDimension/L); // Cell index for this particle
-		j = (int)(molecule->r(1)*cellsPerDimension/L); // Cell index for this particle
-		k = (int)(molecule->r(2)*cellsPerDimension/L); // Cell index for this particle
-		i = max(i,0);
-		j = max(j,0);
-		k = max(k,0);
-		
+		i = (int)(molecule->r(0)*cellsPerDimension/L);
+		j = (int)(molecule->r(1)*cellsPerDimension/L);
+		k = (int)(molecule->r(2)*cellsPerDimension/L);
+		i = min(max(i,0),cellsPerDimension-1); // ensure we are within the limits
+		j = min(max(j,0),cellsPerDimension-1);
+		k = min(max(k,0),cellsPerDimension-1);
 
-		jx[n] = ( i < ncell ) ? i : cellsPerDimension-1;
-		jy[n] = ( j < ncell ) ? j : cellsPerDimension-1;
-		jz[n] = ( k < ncell ) ? k : cellsPerDimension-1;
+		jx[n] = i;
+		jy[n] = j;
+		jz[n] = k;
 
 		cell_index = calcCellIndex(i,j,k,cellsPerDimension);
 		this->cell_n[cell_index]++;
@@ -64,7 +62,7 @@ void Sorter::sort() {
 	for(jcell=0; jcell<ncell; jcell++ ) {
 		this->index[jcell] = m;
 		m += this->cell_n[jcell];
-	}
+	}	
 
 	//* Build cross-reference list
 	int *temp = new int [ncell];	  // Temporary array

@@ -27,54 +27,56 @@ System::System(int N, double T, double density) {
 	this->volume = L*L*L;
 	this->steps = 0;
 	this->initialize();
+	
 	printf("System initialized.\n");
 }
 
 void System::move() {
-  for(int n=0; n< this->N; n++ )
-  	this->molecules[n]->move(this->tau);
+	for(int n=0; n< this->N; n++ )
+		this->molecules[n]->move(this->tau);
 
-  //* Check each particle to see if it strikes a wall
-  strikes.zeros();
-  delv.zeros();
-  vec xwall = zeros<vec>(2,1);
-  vec vw = zeros<vec>(2,1);
-  vec direction = zeros<vec>(2,1);
+	return;  
+	//* Check each particle to see if it strikes a wall
+	strikes.zeros();
+	delv.zeros();
+	vec xwall = zeros<vec>(2,1);
+	vec vw = zeros<vec>(2,1);
+	vec direction = zeros<vec>(2,1);
 
-  xwall(0) = 0;    xwall(1) = L;   // Positions of walls
-  vw(0) = -this->vwall;  vw(1) = this->vwall;  // Velocities of walls
-  double stdev = this->mpv/sqrt(2.);
-  // Direction of particle leaving wall
-  direction(0) = 1;  direction(1) = -1;
-  Molecule *molecule;
-  for(int n=0; n<this->N; n++) {
-  	molecule = this->molecules[n];
-    //* Test if particle strikes either wall
-	int flag = 0;
-    if( molecule->r(0) <= 0 )
-      flag=1;       // Particle strikes left wall
-    else if( molecule->r(0) >= L )
-      flag=2;       // Particle strikes right wall
+	xwall(0) = 0;    xwall(1) = L;   // Positions of walls
+	vw(0) = -this->vwall;  vw(1) = this->vwall;  // Velocities of walls
+	double stdev = this->mpv/sqrt(2.);
+	// Direction of particle leaving wall
+	direction(0) = 1;  direction(1) = -1;
+	Molecule *molecule;
+	for(int n=0; n<this->N; n++) {
+		molecule = this->molecules[n];
+		//* Test if particle strikes either wall
+		int flag = 0;
+		if( molecule->r(0) <= 0 )
+		  flag=1;       // Particle strikes left wall
+		else if( molecule->r(0) >= L )
+		  flag=2;       // Particle strikes right wall
 
-    //* If particle strikes a wall, reset its position
-    //  and velocity. Record velocity change.
-    if( flag > 0 )	{
-      strikes(flag-1)++;
-      double vyInitial = molecule->v(1);
-      //* Reset velocity components as biased Maxwellian,
-      //  Exponential dist. in x; Gaussian in y and z
-      molecule->v(0) = direction(flag-1)*sqrt(-log(1.-ran0(&idum))) * this->mpv;
-      molecule->v(1) = stdev*rand_gauss() + vw(flag-1); // Add wall velocity
-      molecule->v(2) = stdev*rand_gauss();
+		//* If particle strikes a wall, reset its position
+		//  and velocity. Record velocity change.
+		if( flag > 0 ) {
+		  strikes(flag-1)++;
+		  double vyInitial = molecule->v(1);
+		  //* Reset velocity components as biased Maxwellian,
+		  //  Exponential dist. in x; Gaussian in y and z
+		  molecule->v(0) = direction(flag-1)*sqrt(-log(1.-ran0(&idum))) * this->mpv;
+		  molecule->v(1) = stdev*rand_gauss() + vw(flag-1); // Add wall velocity
+		  molecule->v(2) = stdev*rand_gauss();
 
-      // Time of flight after leaving wall
-      double dtr = this->tau*(molecule->r(0)-xwall(flag-1))/(molecule->r(0)-molecule->r_old(0));   
-      //* Reset position after leaving wall
-      molecule->r(0) = xwall(flag-1) + molecule->v(0)*dtr;
-      //* Record velocity change for force measurement
-      delv(flag-1) += (molecule->v(1) - vyInitial);
-    }
-  }
+		  // Time of flight after leaving wall
+		  double dtr = this->tau*(molecule->r(0)-xwall(flag-1))/(molecule->r(0)-molecule->r_old(0));   
+		  //* Reset position after leaving wall
+		  molecule->r(0) = xwall(flag-1) + molecule->v(0)*dtr;
+		  //* Record velocity change for force measurement
+		  delv(flag-1) += (molecule->v(1) - vyInitial);
+		}
+	}
 }
 
 int System::collide() {
@@ -139,10 +141,16 @@ int System::collide() {
 		    vrel(2) = cr*sin_th*sin(phi);
 
 		    molecule1->v = vcm + 0.5*vrel;
-		    molecule1->v = vcm - 0.5*vrel;
+		    molecule2->v = vcm - 0.5*vrel;
+		    if(norm(molecule1->v,2) > 10000) {
+		    	cout << "Molecule velocities" << endl;
+		    	cout << molecule1->v << endl;
+		    	cout << molecule2->v << endl;
+		    }
 		  } // Loop over pairs
-		  cell->vr_max = crm;
 		}
+
+		cell->vr_max = crm;
 	}   // Loop over cells
 	return col;
 }
@@ -158,7 +166,6 @@ void System::step() {
 	this->sorter->sort();
 	
 	this->collisions += this->collide();
-	
 }
 
 void System::initialize() {
@@ -227,20 +234,29 @@ void System::initVelocities() {
 
 	for(int n=0; n<this->N; n++ ) {
 		molecule = this->molecules[n];
-
+		/*
 		molecule->v(0) = sqrt(boltz*this->T/mass) * ran0(&idum);
 		molecule->v(1) = sqrt(boltz*this->T/mass) * ran0(&idum);
 		molecule->v(2) = sqrt(boltz*this->T/mass) * ran0(&idum);
+		*/
+
+		molecule->v(0) = rand_gauss()*sqrt(boltz*this->T/mass);
+		molecule->v(1) = rand_gauss()*sqrt(boltz*this->T/mass);
+		molecule->v(2) = rand_gauss()*sqrt(boltz*this->T/mass);
 
 		v_cm += molecule->v;
-
-		molecule->v(2) += this->vwall * 2*(molecule->r(0)/L - 0.5);
+		molecule->v(1) += this->vwall * 2*(molecule->r(0)/L - 0.5);
   	}
+  	v_cm /= this->N;
+  	
+  	cout << "vcm=" << v_cm << endl;
 
   	// Remove any center of mass momentum
+  	/*
   	for(int n=0; n<this->N; n++ ) {
   		molecule->v -= v_cm;
   	}
+  	*/
 }
 
 void System::printPositionsToFile(FILE *file) {
