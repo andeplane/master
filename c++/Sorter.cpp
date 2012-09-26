@@ -48,6 +48,7 @@ void Sorter::sort() {
 		i = max(i,0);
 		j = max(j,0);
 		k = max(k,0);
+		
 
 		jx[n] = ( i < ncell ) ? i : cellsPerDimension-1;
 		jy[n] = ( j < ncell ) ? j : cellsPerDimension-1;
