@@ -14,6 +14,11 @@ public:
 	bool energy;
 	bool printVelocities;
 	bool diffusionConstant;
+	int *numberOfSamples;
+
+	// Viscosity sampling variables
+	vec delta_v_tot;
+	vec delta_v_err;
 
 	FILE *velocityFile;
 	FILE *temperatureFile;
@@ -28,6 +33,8 @@ public:
 	void calculateEnergy();
 	void calculateVelocities();
 	void calculateDiffusionConstant();
+	void calculateViscosity();
+	void printViscosity();
 };
 
 #endif

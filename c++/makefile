@@ -1,10 +1,10 @@
-CXX = c++
+CXX = g++
 # Flags for optimized execs
 CXXFLAGS = 
 # Flags for debugging
 # CXXFLAGS = -ftemplate-depth-30 -g -DBZ_DEBUG
 # OPTFLAG = -O3
-LIBS = -lm -larmadillo
+LIBS = -lm -larmadillo -fopenmp
 
 EXEC = dsmc
 SRC = dsmc.cpp Molecule.cpp System.cpp Sorter.cpp lib.cpp Cell.cpp StatisticsSampler.cpp

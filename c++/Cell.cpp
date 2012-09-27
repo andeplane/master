@@ -27,7 +27,7 @@ void Cell::resetPressureCalculation() {
 int Cell::collide() {
 	//* Skip cells with only one particle
 	if( this->particlesInCell < 1 ) return 0;  // Skip to the next cell
-
+	
 	Sorter *sorter = this->system->sorter;
 	Molecule **molecules = this->system->molecules;
 
@@ -46,7 +46,6 @@ int Cell::collide() {
 	vec v1;
 	vec v2;
 	for( isel=0; isel<nsel; isel++ ) {
-
 	  //* Pick two particles at random out of this cell
 	  int k = (int)(ran0(this->system->idum)*this->particlesInCell);
 	  int kk = ((int)(k+1+ran0(this->system->idum)*(this->particlesInCell-1))) % this->particlesInCell;
@@ -87,7 +86,7 @@ int Cell::collide() {
 	    molecule2->v = v2;
 	  } // Loop over pairs
 	}
-
+	
 	this->vr_max = crm;
 	return col;
 }

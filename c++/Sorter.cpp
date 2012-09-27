@@ -15,8 +15,8 @@ void Sorter::sort() {
 	double L = this->system->L;
 	Cell **cells = this->system->cells;
 
-	int ncell = this->system->ncell;
-	int cellsPerDimension = pow(ncell,1.0/3);
+	int numberOfCells = this->system->numberOfCells;
+	int cellsPerDimension = this->system->cellsPerDimension;
 	
 	int *jx = new int[N];
 	int *jy = new int[N];
@@ -32,7 +32,7 @@ void Sorter::sort() {
 	int i, j, k, cell_index;
 
 	//* Count the number of particles in each cell
-	for(int n=0;n<ncell;n++)
+	for(int n=0;n<numberOfCells;n++)
 		cells[n]->reset();
 
 	for(int n=0; n<N; n++ ) {
@@ -56,14 +56,14 @@ void Sorter::sort() {
 	//* Build index list as cumulative sum of the 
 	//  number of particles in each cell
 	int m=0;
-	for(int n=0; n<ncell; n++ ) {
+	for(int n=0; n<numberOfCells; n++ ) {
 		cells[n]->firstParticleIndex = m;
 		m += cells[n]->particlesInCell;
 	}	
 
 	//* Build cross-reference list
-	int *temp = new int [ncell];	  // Temporary array
-	for(int n=0; n<ncell; n++ )
+	int *temp = new int [numberOfCells];	  // Temporary array
+	for(int n=0; n<numberOfCells; n++ )
 		temp[n] = 0;
 	
 	for(int n=0; n<N; n++ )	{

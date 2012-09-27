@@ -30,14 +30,20 @@ public:
 	double volume;
 	double eff_num;
 	double mpv; 	// Most probable velocity
+	double mfp; 	// Mean free path
 	double vwall;
 	double tau;
 	double coeff;
 	double t;
 	double T;
-	int ncell;
+	int numberOfCells;
+	int cellsPerDimension;
 	int collisions;
 	int steps;
+
+	vec wallStrikes;
+	vec delta_v;
+	
 	long *idum;
 
 	Sorter *sorter;
@@ -45,7 +51,7 @@ public:
 	void printPositionsToFile(FILE *file);
 
 	void step();
-	System(int N=500, double T=300.0, double density=0.8);
+	System(int N=500, double T=300.0);
 
 };
 

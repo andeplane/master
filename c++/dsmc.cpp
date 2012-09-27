@@ -17,9 +17,9 @@ int main(int args, char* argv[]) {
 	}
 
 	bool printPositions = args > 1 ? atoi(argv[1]) : false;
-	int N = args > 2 ? atoi(argv[2]) : 1000;
-	int T = args > 3 ? atof(argv[3]) : 30;
-	int timesteps = args > 4 ? atof(argv[4]) : 2000;
+	int N = args > 2 ? atoi(argv[2]) : 10000;
+	int T = args > 3 ? atof(argv[3]) : 273;
+	int timesteps = args > 4 ? atof(argv[4]) : 1000;
 
 	System *system = new System(N);
 	StatisticsSampler *sampler = new StatisticsSampler(system);
@@ -42,6 +42,9 @@ int main(int args, char* argv[]) {
 
 		if(printPositions) system->printPositionsToFile(positions);
 	}
+	printf("Simulation finished\n");
+	printf("Collisions: %d\n",system->collisions);
+	sampler->calculateViscosity();
 
 	return 0;
 }
