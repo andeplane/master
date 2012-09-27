@@ -4,14 +4,17 @@
 
 using namespace std;
 
-const double pi = 3.141592654;
-
 Cell::Cell(System *system) {
 	this->system = system;
 	this->vr_max = 0;
 	this->selxtra = 0;
 	this->particlesInCell = 0;
 	this->resetPressureCalculation();
+	this->momentum = zeros<vec>(3,1);
+	this->energy = 0;
+	this->density = 0;
+	double cellLength = system->L / system->cellsPerDimension;
+	this->volume = cellLength*cellLength*cellLength;
 }
 
 void Cell::reset() {
@@ -22,6 +25,29 @@ void Cell::reset() {
 void Cell::resetPressureCalculation() {
 	this->delta_v = 0;
 	this->timeForPressureReset = this->system->t;
+}
+
+void Cell::sampleStatistics() {
+	double mass = 6.63e-26;     	    // Mass of argon atom (kg)
+
+
+	// Calculate energy
+	this->energy = 0;
+	this->density = 0;
+	this->momentum.zeros();
+	Molecule *molecule;
+
+	for(int i=0;i<this->particlesInCell;i++) {
+		molecule = this->system->molecules[this->firstParticleIndex+i];
+		
+		this->energy += 0.5*molecule->mass*dot(molecule->v,molecule->v);
+		this->momentum += molecule->mass*molecule->v;
+		this->density += molecule->mass;
+	}
+
+	this->energy /= this->volume/mass;
+	this->density /= this->volume/mass;
+	this->momentum /= this->volume/mass;
 }
 
 int Cell::collide() {
@@ -73,7 +99,7 @@ int Cell::collide() {
 
 	    double cos_th = 1.0 - 2.0*ran0(this->system->idum);      // Cosine and sine of
 	    double sin_th = sqrt(1.0 - cos_th*cos_th); // collision angle theta
-	    double phi = 2.0*pi*ran0(this->system->idum);            // Collision angle phi
+	    double phi = 2.0*M_PI*ran0(this->system->idum);            // Collision angle phi
 	    vrel(0) = cr*cos_th;             // Compute post-collision
 	    vrel(1) = cr*sin_th*cos(phi);    // relative velocity
 	    vrel(2) = cr*sin_th*sin(phi);

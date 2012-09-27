@@ -1,11 +1,11 @@
 #include <iostream>
-#include "math.h"
+#include <math.h>
 #include <fstream>
 #include "Molecule.h"
 #include "System.h"
 #include "lib.h"
 #include "omp.h"
-const double pi = 3.141592654;
+
 const double boltz = 1.3806e-23;    // Boltzmann's constant (J/K)
 double mass = 6.63e-26;     	    // Mass of argon atom (kg)
 double diam = 3.66e-10;    	  	    // Effective diameter of argon atom (m)
@@ -25,6 +25,17 @@ System::System(int N, double T) {
 	this->T = T;
 
 	this->initialize();
+	double E = 0;
+
+	for(int i=0;i<N;i++) {
+		E+= 0.5*this->molecules[i]->mass*dot(this->molecules[i]->v,this->molecules[i]->v);
+	}
+
+	E *= mass;
+	E /= this->volume/this->numberOfCells;
+
+	cout << "Energy = " << E << endl;
+	exit(0);
 	
 	printf("System initialized.\n");
 }
@@ -47,7 +58,6 @@ void System::move() {
 	Molecule *molecule;
 	this->delta_v.zeros();
 	
-	#pragma omp parallel for
 	for(int n=0; n<this->N; n++) {
 		molecule = this->molecules[n];
 		//* Test if particle strikes either wall
@@ -99,6 +109,21 @@ void System::step() {
 	//* Sort the particles into cells
 	this->sorter->sort();
 	
+	double E = 0;
+	vec p = zeros<vec>(3,1);
+	double density = 0;
+
+	for(int n=0;n<this->numberOfCells;n++) {
+		this->cells[n]->sampleStatistics();
+		E += this->cells[n]->energy;
+		p += this->cells[n]->momentum;
+		density += this->cells[n]->density;
+	}
+
+	// cout << "Energy: " << E << endl;
+	// cout << "Momentum: " << p << endl;
+	// cout << "Density: " << density << endl;
+
 	this->collisions += this->collide();
 }
 
@@ -108,33 +133,33 @@ void System::initialize() {
 
 	this->volume = pow(this->L,3);
 	this->steps = 0;
-	
 	this->eff_num = density*this->volume/this->N;
-	this->cellsPerDimension = 5;
+	this->cellsPerDimension = 15; // Approx number of mean free paths 
+
 	this->numberOfCells = this->cellsPerDimension*this->cellsPerDimension*this->cellsPerDimension;
+	this->mfp = this->volume/(sqrt(2.0)*M_PI*diam*diam*this->N*this->eff_num);
+	this->mpv = sqrt(2*boltz*this->T/mass);  // Most probable initial velocity
+	// Time step should be so most probable velocity runs through 1/5th of a cell during one timestep
+	this->tau = 0.2*(this->L/this->cellsPerDimension)/this->mpv;       // Set timestep tau
+	this->coeff = 0.5*this->eff_num*M_PI*diam*diam*this->tau/(this->volume/this->numberOfCells);
 
-  	printf("Each particle represents %d atoms\n",(int)this->eff_num);
-  	this->mfp = this->volume/(sqrt(2.0)*pi*diam*diam*this->N*this->eff_num);
-  	printf("System width is %.2f mean free paths\n",L/this->mfp);
 
-  	this->mpv = sqrt(2*boltz*this->T/mass);  // Most probable initial velocity
 
   	cout << "Enter wall velocity as Mach number: ";
   	double vwall_m;
 	cin >> vwall_m;
 
 	this->vwall = vwall_m * sqrt(5./3. * boltz*this->T/mass);
-	cout << "Wall velocities are " << -this->vwall << " and " << this->vwall << " m/s" << endl;
+	
 	this->initMolecules();
 	this->initCells();
 	this->collisions = 0;
 
-	// Time step should be so most probable velocity runs through 1/5th of a cell during one timestep
-	this->tau = 0.2*(this->L/this->cellsPerDimension)/this->mpv;       // Set timestep tau
-
+	printf("Each particle represents %d atoms\n",(int)this->eff_num);
+  	printf("System width is %.2f mean free paths\n",L/this->mfp);
+  	printf("Each cell contains approx. %d particles \n",this->N/this->numberOfCells);
+  	cout << "Wall velocities are " << -this->vwall << " and " << this->vwall << " m/s" << endl;
 	cout << "dt = " << this->tau*1e9 << " ns" << endl;
-
-	this->coeff = 0.5*this->eff_num*pi*diam*diam*this->tau/(this->volume/this->numberOfCells);
 
 	this->sorter = new Sorter(this);
 	
@@ -171,7 +196,6 @@ void System::initPositions() {
 
 void System::initVelocities() {
 	Molecule *molecule;
-	vec v_cm = zeros<vec>(3,1);
 
 	for(int n=0; n<this->N; n++ ) {
 		molecule = this->molecules[n];
@@ -180,20 +204,8 @@ void System::initVelocities() {
 		molecule->v(1) = rand_gauss(this->idum)*sqrt(boltz*this->T/mass);
 		molecule->v(2) = rand_gauss(this->idum)*sqrt(boltz*this->T/mass);
 
-		v_cm += molecule->v;
-		molecule->v(1) += this->vwall * 2*(molecule->r(0)/L - 0.5);
+		// molecule->v(1) += this->vwall * 2*(molecule->r(0)/L - 0.5);
   	}
-
-  	v_cm /= this->N;
-  	
-  	// cout << "vcm=" << v_cm << endl;
-
-  	// Remove any center of mass momentum
-  	/*
-  	for(int n=0; n<this->N; n++ ) {
-  		molecule->v -= v_cm;
-  	}
-  	*/
 }
 
 void System::printPositionsToFile(FILE *file) {

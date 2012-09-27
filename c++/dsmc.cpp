@@ -22,7 +22,7 @@ int main(int args, char* argv[]) {
 	int timesteps = args > 4 ? atof(argv[4]) : 1000;
 
 	System *system = new System(N);
-	StatisticsSampler *sampler = new StatisticsSampler(system);
+	StatisticsSampler *sampler = new StatisticsSampler(system, timesteps);
 	
 	FILE *positions = 0;
 	if(printPositions) positions = fopen("pos.xyz","w");
@@ -44,7 +44,7 @@ int main(int args, char* argv[]) {
 	}
 	printf("Simulation finished\n");
 	printf("Collisions: %d\n",system->collisions);
-	sampler->calculateViscosity();
+	sampler->printViscosity();
 
 	return 0;
 }

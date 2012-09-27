@@ -9,30 +9,16 @@ class StatisticsSampler {
 private:
 	System *system;
 public:
-	bool temperature;
-	bool pressure;
-	bool energy;
-	bool printVelocities;
-	bool diffusionConstant;
+	bool printTemperature;
 	int *numberOfSamples;
 
 	// Viscosity sampling variables
 	vec delta_v_tot;
 	vec delta_v_err;
-
-	FILE *velocityFile;
 	FILE *temperatureFile;
-	FILE *pressureFile;
-	FILE *energyFile;
-	FILE *diffusionFile;
-
-	StatisticsSampler(System *system);
+	StatisticsSampler(System *system, int timesteps);
 	void sample();
 	void calculateTemperature();
-	void calculatePressure();
-	void calculateEnergy();
-	void calculateVelocities();
-	void calculateDiffusionConstant();
 	void calculateViscosity();
 	void printViscosity();
 };
