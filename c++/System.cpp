@@ -33,9 +33,6 @@ System::System(int N, double T) {
 
 	E *= mass;
 	E /= this->volume/this->numberOfCells;
-
-	cout << "Energy = " << E << endl;
-	exit(0);
 	
 	printf("System initialized.\n");
 }
@@ -134,12 +131,23 @@ void System::initialize() {
 	this->volume = pow(this->L,3);
 	this->steps = 0;
 	this->eff_num = density*this->volume/this->N;
-	this->cellsPerDimension = 15; // Approx number of mean free paths 
-
-	this->numberOfCells = this->cellsPerDimension*this->cellsPerDimension*this->cellsPerDimension;
+	
 	this->mfp = this->volume/(sqrt(2.0)*M_PI*diam*diam*this->N*this->eff_num);
 	this->mpv = sqrt(2*boltz*this->T/mass);  // Most probable initial velocity
 	// Time step should be so most probable velocity runs through 1/5th of a cell during one timestep
+
+	
+	this->cellsPerDimension = 3*this->L/this->mfp;
+	this->numberOfCells = this->cellsPerDimension*this->cellsPerDimension*this->cellsPerDimension;
+	
+	while(this->N/this->numberOfCells < 20) {
+		this->cellsPerDimension--;
+		this->numberOfCells = this->cellsPerDimension*this->cellsPerDimension*this->cellsPerDimension;
+	}
+
+	// this->cellsPerDimension = 15; // Approx number of mean free paths 
+	
+
 	this->tau = 0.2*(this->L/this->cellsPerDimension)/this->mpv;       // Set timestep tau
 	this->coeff = 0.5*this->eff_num*M_PI*diam*diam*this->tau/(this->volume/this->numberOfCells);
 
@@ -156,7 +164,8 @@ void System::initialize() {
 	this->collisions = 0;
 
 	printf("Each particle represents %d atoms\n",(int)this->eff_num);
-  	printf("System width is %.2f mean free paths\n",L/this->mfp);
+  	printf("System width is %.2f mean free paths\n",this->L/this->mfp);
+  	printf("The system consists of %d cells in each dimension\n",this->cellsPerDimension);
   	printf("Each cell contains approx. %d particles \n",this->N/this->numberOfCells);
   	cout << "Wall velocities are " << -this->vwall << " and " << this->vwall << " m/s" << endl;
 	cout << "dt = " << this->tau*1e9 << " ns" << endl;
