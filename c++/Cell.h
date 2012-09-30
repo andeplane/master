@@ -36,6 +36,7 @@ public:
 	int collide();
 	void resetPressureCalculation();
 	void sampleStatistics();
+	void test();
 };
 
 #endif

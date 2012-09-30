@@ -36,6 +36,7 @@ public:
 	double coeff;
 	double t;
 	double T;
+	double *time_consumption;
 	int numberOfCells;
 	int cellsPerDimension;
 	int collisions;
@@ -45,6 +46,7 @@ public:
 	vec delta_v;
 	
 	long *idum;
+	long **idums;
 
 	Sorter *sorter;
 

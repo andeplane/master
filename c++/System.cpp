@@ -5,6 +5,8 @@
 #include "System.h"
 #include "lib.h"
 #include "omp.h"
+#include <time.h>
+#include "defines.h"
 
 const double boltz = 1.3806e-23;    // Boltzmann's constant (J/K)
 double mass = 6.63e-26;     	    // Mass of argon atom (kg)
@@ -17,8 +19,13 @@ double rand_gauss(long *idum) {
 }
 
 System::System(int N, double T) {
-	this->idum = new long[1];
-	*this->idum = -1;
+	this->idums = new long*[4];
+	for(int i=0;i<4;i++) {
+		this->idums[i] = new long[1];
+		*this->idums[i] = -(i+1);
+	}
+	
+	this->idum = this->idums[0];
 
 	this->N = N;
 	this->L = 1e-6;
@@ -38,24 +45,35 @@ System::System(int N, double T) {
 }
 
 void System::move() {
+#pragma omp parallel for
 	for(int n=0; n< this->N; n++ )
 		this->molecules[n]->move(this->tau);
  
 	//* Check each particle to see if it strikes a wall
 	
+	this->delta_v.zeros();
+	
+#pragma omp parallel
+{
 	vec xwall = zeros<vec>(2,1);
 	vec vw = zeros<vec>(2,1);
 	vec direction = zeros<vec>(2,1);
-	
+	vec delta_v = zeros<vec>(2,1);
+	vec wall_strikes = zeros<vec>(2,1);
+
+	double tau = this->tau;
 	xwall(0) = 0;    xwall(1) = L;   // Positions of walls
 	vw(0) = -this->vwall;  vw(1) = this->vwall;  // Velocities of walls
 	double stdev = this->mpv/sqrt(2.);
 	// Direction of particle leaving wall
 	direction(0) = 1;  direction(1) = -1;
+	int particleCount = this->N;
+	long *idum = this->idums[omp_get_thread_num()];
 	Molecule *molecule;
-	this->delta_v.zeros();
-	
-	for(int n=0; n<this->N; n++) {
+	double vyInitial;
+
+#pragma omp for
+	for(int n=0; n<particleCount; n++) {
 		molecule = this->molecules[n];
 		//* Test if particle strikes either wall
 		int flag = 0;
@@ -67,22 +85,26 @@ void System::move() {
 		//* If particle strikes a wall, reset its position
 		//  and velocity. Record velocity change.
 		if( flag > 0 ) {
-			this->wallStrikes(flag-1)++;
-			double vyInitial = molecule->v(1);
+			wall_strikes(flag-1)++;
+			vyInitial = molecule->v(1);
 			//* Reset velocity components as biased Maxwellian,
 			//  Exponential dist. in x; Gaussian in y and z
-			molecule->v(0) = direction(flag-1)*sqrt(-log(1.-ran0(this->idum))) * this->mpv;
-			molecule->v(1) = stdev*rand_gauss(this->idum) + vw(flag-1); // Add wall velocity
-			molecule->v(2) = stdev*rand_gauss(this->idum);
+			molecule->v(0) = direction(flag-1)*sqrt(-log(1.-ran0(idum))) * this->mpv;
+			molecule->v(1) = stdev*rand_gauss(idum) + vw(flag-1); // Add wall velocity
+			molecule->v(2) = stdev*rand_gauss(idum);
 
 			// Time of flight after leaving wall
-			double dtr = this->tau*(molecule->r(0)-xwall(flag-1))/(molecule->r(0)-molecule->r_old(0));   
+			double dtr = tau*(molecule->r(0)-xwall(flag-1))/(molecule->r(0)-molecule->r_old(0));   
 			//* Reset position after leaving wall
 			molecule->r(0) = xwall(flag-1) + molecule->v(0)*dtr;
 			//* Record velocity change for force measurement
-			this->delta_v(flag-1) += (molecule->v(1) - vyInitial);
+			delta_v(flag-1) += (molecule->v(1) - vyInitial);
 		}
 	}
+	// Update 'global' variables
+	this->wallStrikes += wall_strikes;
+	this->delta_v += delta_v;
+}
 }
 
 int System::collide() {
@@ -90,26 +112,43 @@ int System::collide() {
 	
 	//* Loop over cells and process collisions in each cell
 	int jcell;
-	for(int n=0; n<this->numberOfCells; n++ ) {
-		col += this->cells[n]->collide();
+	int numCells = this->numberOfCells;
+	
+	System *system = this;
+	int n;
+	
+	#pragma omp parallel for
+	for(n=0; n<numCells; n++ ) {
+		this->cells[n]->collide();
 	}
 
 	return col;
 }
 
 void System::step() {
+	time_t t0;
+
 	this->steps += 1;
 	this->t += 1;
 
 	//* Move all the particles
+	t0 = clock();
 	this->move();
+	this->time_consumption[MOVE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
+
 	//* Sort the particles into cells
+	t0 = clock();
 	this->sorter->sort();
-	
+	this->time_consumption[SORT] += ((double)clock()-t0)/CLOCKS_PER_SEC;
+	int cellsWithZero = 0;
+
+	t0 = clock();
+
 	double E = 0;
 	vec p = zeros<vec>(3,1);
 	double density = 0;
 
+	#pragma omp parallel for
 	for(int n=0;n<this->numberOfCells;n++) {
 		this->cells[n]->sampleStatistics();
 		E += this->cells[n]->energy;
@@ -117,14 +156,21 @@ void System::step() {
 		density += this->cells[n]->density;
 	}
 
+	this->time_consumption[SAMPLE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
+
 	// cout << "Energy: " << E << endl;
 	// cout << "Momentum: " << p << endl;
 	// cout << "Density: " << density << endl;
-
+	t0 = clock();
 	this->collisions += this->collide();
+	this->time_consumption[COLLIDE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
 }
 
 void System::initialize() {
+	this->time_consumption = new double[4];
+	for(int i=0;i<4;i++)
+		this->time_consumption[i] = 0;
+
 	this->wallStrikes = zeros<vec>(2,1);
 	this->delta_v = zeros<vec>(2,1);
 

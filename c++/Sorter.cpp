@@ -1,12 +1,16 @@
 #include "Sorter.h"
 
 inline int calcCellIndex(int i, int j, int k, int cellsPerDimension) {
-	return k*cellsPerDimension^2 + j*cellsPerDimension + i;
+	return k*cellsPerDimension*cellsPerDimension + j*cellsPerDimension + i;
 }
 
 Sorter::Sorter(System *system) {
     this->system = system;
     this->Xref = new int[system->N];
+    this->cellCount = new int[system->numberOfCells];
+    for(int n=0;n<system->numberOfCells;n++) {
+    	this->cellCount[n] = 0;	
+    }
 }
 
 void Sorter::sort() {
@@ -35,12 +39,13 @@ void Sorter::sort() {
 	for(int n=0;n<numberOfCells;n++)
 		cells[n]->reset();
 
+	int k_max = 0;
+	int cell_index_max = 0;
 	for(int n=0; n<N; n++ ) {
 		molecule = this->system->molecules[n];
-
-		i = (int)(molecule->r(0)*cellsPerDimension/L);
-		j = (int)(molecule->r(1)*cellsPerDimension/L);
-		k = (int)(molecule->r(2)*cellsPerDimension/L);
+		i = (int)((molecule->r(0)/L)*cellsPerDimension);
+		j = (int)((molecule->r(1)/L)*cellsPerDimension);
+		k = (int)((molecule->r(2)/L)*cellsPerDimension);
 		i = min(max(i,0),cellsPerDimension-1); // ensure we are within the limits
 		j = min(max(j,0),cellsPerDimension-1);
 		k = min(max(k,0),cellsPerDimension-1);
@@ -50,9 +55,12 @@ void Sorter::sort() {
 		jz[n] = k;
 
 		cell_index = calcCellIndex(i,j,k,cellsPerDimension);
+
+		this->cellCount[cell_index]++;
+
 		cells[cell_index]->particlesInCell++;
 	}
-	
+
 	//* Build index list as cumulative sum of the 
 	//  number of particles in each cell
 	int m=0;

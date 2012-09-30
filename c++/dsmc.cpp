@@ -5,6 +5,8 @@
 #include <fstream>
 #include "System.h"
 #include "StatisticsSampler.h"
+#include <omp.h>
+#include "defines.h"
 
 using namespace std;
 
@@ -30,6 +32,7 @@ int main(int args, char* argv[]) {
 
 	if(printPositions) system->printPositionsToFile(positions);
 	
+	time_t t0 = clock();
 	for(int i=0;i<timesteps;i++) {
 
 		if(timesteps >= 100 && !(i%(timesteps/100))) {
@@ -42,9 +45,14 @@ int main(int args, char* argv[]) {
 
 		if(printPositions) system->printPositionsToFile(positions);
 	}
-	printf("Simulation finished\n");
+
+	printf("Simulation finished after %.2f seconds\n",((double)clock()-t0)/CLOCKS_PER_SEC);
+	printf("%.2f seconds on moving\n",system->time_consumption[MOVE]);
+	printf("%.2f seconds on sorting\n",system->time_consumption[SORT]);
+	printf("%.2f seconds on sampling\n",system->time_consumption[SAMPLE]);
+	printf("%.2f seconds on colliding\n",system->time_consumption[COLLIDE]);
 	printf("Collisions: %d\n",system->collisions);
 	sampler->printViscosity();
-
+	
 	return 0;
 }

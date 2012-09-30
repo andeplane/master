@@ -11,6 +11,7 @@ class Sorter {
 public:
     int *Xref;
     System *system;
+    int *cellCount;
 
     // Regular Constructor. 
     Sorter(System *system);
