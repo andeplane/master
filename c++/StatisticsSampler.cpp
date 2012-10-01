@@ -52,18 +52,7 @@ void StatisticsSampler::printViscosity() {
 
 	force = system->eff_num*mass*this->delta_v_tot/(t*L*L);
 	f_err = system->eff_num*mass*this->delta_v_err/(t*L*L);
-	/*
-	cout << "L=" << L << endl;
-	cout << "tau=" << system->tau << endl;
-	cout << "t=" << t << endl;
-	cout << "force(0)=" << force(0) << endl;
-	cout << "force(1)=" << force(1) << endl;
-	cout << "wwall=" << system->vwall;
-
-	cout << "Force per unit area is" << endl;
-	cout << "Left wall:  " << force(0) << " +/- " << f_err(0) << endl;
-	cout << "Right wall: " << force(1) << " +/- " << f_err(1) << endl;
-	*/
+	
 	double vgrad = 2*system->vwall/L;    // Velocity gradient
 
 	double visc = 0.5*(-force(0)+force(1))/vgrad;  // Average viscosity
@@ -91,16 +80,16 @@ void StatisticsSampler::calculateTemperature() {
 	double mass = 6.63e-26;
 	double boltz = 1.3806e-23;
 
-	int N = this->system->N;
+	long N = this->system->N;
 	double energy = 0;
 
 	Molecule **molecules = this->system->molecules;
 	for(int n=0;n<N;n++) {
-		energy += molecules[n]->mass*norm(molecules[n]->v,2);
+		energy += molecules[n]->mass*dot(molecules[n]->v,molecules[n]->v);
 	}
 
 	// energy/=(3*(N-1));
-	double T = 2*energy*mass/(3*N*N*boltz);
-
+	double T = energy*mass/(3*N*boltz);
+	
 	fprintf(this->temperatureFile, "%f %f \n",this->system->t, T);
 }

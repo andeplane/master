@@ -3,7 +3,7 @@ CXX = g++
 CXXFLAGS = 
 # Flags for debugging
 # CXXFLAGS = -ftemplate-depth-30 -g -DBZ_DEBUG
-# OPTFLAG = -O3
+OPTFLAG = -O3
 LIBS = -lm -larmadillo -fopenmp
 
 EXEC = dsmc
@@ -11,10 +11,10 @@ SRC = dsmc.cpp Molecule.cpp System.cpp Sorter.cpp lib.cpp Cell.cpp StatisticsSam
 OBJ = dsmc.o Molecule.o System.o Sorter.o lib.o Cell.o StatisticsSampler.o
 
 $(EXEC): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(EXEC) $(OBJ) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(OPTFLAG) -o $(EXEC) $(OBJ) $(LIBS)
 
-$(OBJ): $(SRC)
-	$(CXX) $(CXXFLAGS) -c $(SRC) -fopenmp
+$(OBJ):
+	$(CXX) $(CXXFLAGS) $(OPTFLAG) -c $(SRC) -fopenmp
 
 
 

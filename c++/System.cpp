@@ -61,44 +61,44 @@ void System::move() {
 	vec delta_v = zeros<vec>(2,1);
 	vec wall_strikes = zeros<vec>(2,1);
 
-	double tau = this->tau;
 	xwall(0) = 0;    xwall(1) = L;   // Positions of walls
 	vw(0) = -this->vwall;  vw(1) = this->vwall;  // Velocities of walls
-	double stdev = this->mpv/sqrt(2.);
-	// Direction of particle leaving wall
+	
 	direction(0) = 1;  direction(1) = -1;
 	int particleCount = this->N;
 	long *idum = this->idums[omp_get_thread_num()];
 	Molecule *molecule;
-	double vyInitial;
+
+	double stdev = this->mpv/sqrt(2.);
+	double tau = this->tau;
+	double vyInitial,dtr;
 
 #pragma omp for
 	for(int n=0; n<particleCount; n++) {
 		molecule = this->molecules[n];
 		//* Test if particle strikes either wall
-		int flag = 0;
-		if( molecule->r(0) <= 0 )
-			flag=1;       // Particle strikes left wall
-		else if( molecule->r(0) >= L )
-			flag=2;       // Particle strikes right wall
-
+		int flag = -1;
+		
+		if( molecule->r(0) <= 0 ) flag=0; // Particle strikes left wall
+		else if( molecule->r(0) >= L ) flag=1;       // Particle strikes right wall
+		
 		//* If particle strikes a wall, reset its position
 		//  and velocity. Record velocity change.
-		if( flag > 0 ) {
-			wall_strikes(flag-1)++;
+		if( flag >= 0 ) {
+			wall_strikes(flag)++;
 			vyInitial = molecule->v(1);
 			//* Reset velocity components as biased Maxwellian,
 			//  Exponential dist. in x; Gaussian in y and z
-			molecule->v(0) = direction(flag-1)*sqrt(-log(1.-ran0(idum))) * this->mpv;
-			molecule->v(1) = stdev*rand_gauss(idum) + vw(flag-1); // Add wall velocity
+			molecule->v(0) = direction(flag)*sqrt(-log(1.-ran0(idum))) * this->mpv;
+			molecule->v(1) = stdev*rand_gauss(idum) + vw(flag); // Add wall velocity
 			molecule->v(2) = stdev*rand_gauss(idum);
 
 			// Time of flight after leaving wall
-			double dtr = tau*(molecule->r(0)-xwall(flag-1))/(molecule->r(0)-molecule->r_old(0));   
+			dtr = tau*(molecule->r(0)-xwall(flag))/(molecule->r(0)-molecule->r_old(0));   
 			//* Reset position after leaving wall
-			molecule->r(0) = xwall(flag-1) + molecule->v(0)*dtr;
+			molecule->r(0) = xwall(flag) + molecule->v(0)*dtr;
 			//* Record velocity change for force measurement
-			delta_v(flag-1) += (molecule->v(1) - vyInitial);
+			delta_v(flag) += (molecule->v(1) - vyInitial);
 		}
 	}
 	// Update 'global' variables
@@ -116,11 +116,17 @@ int System::collide() {
 	
 	System *system = this;
 	int n;
-	
-	#pragma omp parallel for
+#pragma omp parallel
+{
+	int local_col = 0;
+	#pragma omp for
 	for(n=0; n<numCells; n++ ) {
-		this->cells[n]->collide();
+		local_col += this->cells[n]->collide();
 	}
+
+	col += local_col;
+}
+	
 
 	return col;
 }
