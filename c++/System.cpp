@@ -35,9 +35,10 @@ System::System(int N, double T) {
 	this->initialize();
 	printf("done.\n\n");
 	printf("%d atoms per molecule\n",(int)this->eff_num);
-  	printf("%.2f mean free paths (system width)\n",this->L/this->mfp);
   	printf("%d cells in each dimension\n",this->cellsPerDimension);
   	printf("%d particles in each cell \n",this->N/this->numberOfCells);
+  	printf("%.2f mean free paths (system width)\n",this->L/this->mfp);
+  	printf("%.2f mean free paths (cell width)\n",this->L/(this->cellsPerDimension*this->mfp));
   	printf("dt = %f\n\n",this->dt);
 }
 
