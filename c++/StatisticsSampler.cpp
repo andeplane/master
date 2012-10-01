@@ -85,11 +85,11 @@ void StatisticsSampler::calculateTemperature() {
 
 	Molecule **molecules = this->system->molecules;
 	for(int n=0;n<N;n++) {
-		energy += molecules[n]->mass*dot(molecules[n]->v,molecules[n]->v);
+		energy += dot(molecules[n]->v,molecules[n]->v);
 	}
-
-	// energy/=(3*(N-1));
-	double T = energy*mass/(3*N*boltz);
+	double average = energy/N;
+	
+	double T = average*mass/(3*boltz);
 	
 	fprintf(this->temperatureFile, "%f %f \n",this->system->t, T);
 }
