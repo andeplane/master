@@ -12,17 +12,16 @@ using namespace std;
 class Molecule {
 public:
 	char   type;
-	double mass;
+	int    atoms;
 
 	vec r;
-	vec r_old;
 	vec v;
 
 	System *system;
 	
 	Molecule(System *system);
 	void addR(vec dr);
-	void move(double tau);
+	void move(double dt);
 };
 
 #endif

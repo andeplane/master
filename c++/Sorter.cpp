@@ -58,7 +58,7 @@ void Sorter::sort() {
 
 		this->cellCount[cell_index]++;
 
-		cells[cell_index]->particlesInCell++;
+		cells[cell_index]->particles++;
 	}
 
 	//* Build index list as cumulative sum of the 
@@ -66,7 +66,7 @@ void Sorter::sort() {
 	int m=0;
 	for(int n=0; n<numberOfCells; n++ ) {
 		cells[n]->firstParticleIndex = m;
-		m += cells[n]->particlesInCell;
+		m += cells[n]->particles;
 	}	
 
 	//* Build cross-reference list

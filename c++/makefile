@@ -14,7 +14,7 @@ $(EXEC): $(OBJ)
 	$(CXX) $(CXXFLAGS) $(OPTFLAG) -o $(EXEC) $(OBJ) $(LIBS)
 
 $(OBJ):
-	$(CXX) $(CXXFLAGS) $(OPTFLAG) -c $(SRC) -fopenmp
+	$(CXX) $(CXXFLAGS) $(OPTFLAG) -c $(SRC) #-fopenmp
 
 
 

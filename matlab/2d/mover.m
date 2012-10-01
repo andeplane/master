@@ -30,10 +30,10 @@ function [r,v] = collideWithWalls(r,sd,cells,v,tau,L,mpv,yold)
        j = cj(jcell);
        
        if j == 1 || j == cells % close to the walls
-           particlesInCell = sd(jcell,1);
+           particles = sd(jcell,1);
            
            % Loop through all particles and see if they are colliding
-           for ipart = 1:particlesInCell; 
+           for ipart = 1:particles; 
                
               ip1 = sd(ipart+sd(jcell,2)-1,3); % Actual particle index
               flag = 0;

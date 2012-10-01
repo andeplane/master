@@ -31,8 +31,7 @@ public:
 	double eff_num;
 	double mpv; 	// Most probable velocity
 	double mfp; 	// Mean free path
-	double vwall;
-	double tau;
+	double dt;
 	double coeff;
 	double t;
 	double T;
@@ -41,9 +40,6 @@ public:
 	int cellsPerDimension;
 	int collisions;
 	int steps;
-
-	vec wallStrikes;
-	vec delta_v;
 	
 	long *idum;
 	long **idums;
@@ -53,8 +49,7 @@ public:
 	void printPositionsToFile(FILE *file);
 
 	void step();
-	System(int N=500, double T=300.0);
-
+	System(int N, double T);
 };
 
 

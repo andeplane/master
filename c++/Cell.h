@@ -19,24 +19,19 @@ public:
 	double volume;
 
 	double vr_max;
-	double selxtra;
 	System *system;
-
-	double timeForPressureReset;
-	double delta_v;
 
 	double energy;
 	double density;
 	vec momentum;
 
-	int particlesInCell;
+	int particles;
 
 	Cell(System *system);
 	void reset();
 	int collide();
 	void resetPressureCalculation();
 	void sampleStatistics();
-	void test();
 };
 
 #endif
