@@ -251,7 +251,7 @@ void System::initVelocities() {
 		molecule->v(1) = rand_gauss(this->idum)*sqrt(boltz*this->T/mass);
 		molecule->v(2) = rand_gauss(this->idum)*sqrt(boltz*this->T/mass);
 
-		// molecule->v(1) += this->vwall * 2*(molecule->r(0)/L - 0.5);
+		molecule->v(1) += this->vwall * 2*(molecule->r(0)/L - 0.5);
   	}
 }
 
