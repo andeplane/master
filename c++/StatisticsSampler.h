@@ -13,10 +13,17 @@ public:
 	int  temperatureSamples;
 	double temperatureSum;
 
+	bool printVelocityProfile;
+	int  velocityProfileSamples;
+	
+	FILE *velocityFile;
 	FILE *temperatureFile;
+
 	StatisticsSampler(System *system, int timesteps);
 	void sample();
 	void calculateTemperature();
+	void calculateVelocityProfile();
+	void finish();
 };
 
 #endif

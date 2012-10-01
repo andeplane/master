@@ -82,6 +82,14 @@ int System::collide() {
 	return col;
 }
 
+void System::accelerate() {
+	double a = 5;
+
+	for(int n=0;n<this->N;n++) {
+		this->molecules[n]->v(0) += a*this->dt;
+	}
+}
+
 void System::step() {
 	time_t t0;
 
@@ -118,7 +126,7 @@ void System::step() {
 	t0 = clock();
 	this->collisions += this->collide();
 	this->time_consumption[COLLIDE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
-
+	this->accelerate();
 }
 
 void System::initialize() {
@@ -193,7 +201,7 @@ void System::initVelocities() {
 	for(int n=0; n<this->N; n++ ) {
 		molecule = this->molecules[n];
 		
-		molecule->v(0) = rand_gauss(this->idum)*sqrt(3.0/2*this->T) + 3*this->mpv;
+		molecule->v(0) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
 		molecule->v(1) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
   	}
 }

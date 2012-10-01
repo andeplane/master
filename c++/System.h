@@ -25,6 +25,7 @@ private:
 	void initWalls();
 	void move();
 	int  collide();
+	void accelerate();
 public:
 	Molecule **molecules;
 	Cell **cells;

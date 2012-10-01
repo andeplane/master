@@ -44,6 +44,9 @@ int main(int args, char* argv[]) {
 
 		if(printPositions) system->printPositionsToFile(positions);
 	}
+
+	sampler->finish();
+
 	printf("100%%\n\n");
 	printf("Summary:\n");
 	printf("Collisions: %d\n",system->collisions);
