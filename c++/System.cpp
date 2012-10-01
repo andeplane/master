@@ -8,10 +8,10 @@
 #include <time.h>
 #include "defines.h"
 
-const double boltz = 1.3806e-23;    // Boltzmann's constant (J/K)
-double mass = 6.63e-26;     	    // Mass of argon atom (kg)
-double diam = 3.66e-10;    	  	    // Effective diameter of argon atom (m)
-double density = 2.685e25;		    // Number density of argon at STP (m^-3)
+const double boltz = 1.0;    // Boltzmann's constant (J/K)
+double mass = 1.0;     	    // Mass of argon atom (kg)
+double diam = 3.66e-4;    	  	    // Effective diameter of argon atom (m)
+double density = 26850000;		    // Number density of argon at STP (m^-3)
 
 double rand_gauss(long *idum) {
   return sqrt( -2.0*log(1.0 - ran0(idum)) )
@@ -28,18 +28,10 @@ System::System(int N, double T) {
 	this->idum = this->idums[0];
 
 	this->N = N;
-	this->L = 1e-6;
+	this->L = 1.0;
 	this->T = T;
-
+	
 	this->initialize();
-	double E = 0;
-
-	for(int i=0;i<N;i++) {
-		E+= 0.5*this->molecules[i]->mass*dot(this->molecules[i]->v,this->molecules[i]->v);
-	}
-
-	E *= mass;
-	E /= this->volume/this->numberOfCells;
 	
 	printf("System initialized.\n");
 }
@@ -183,12 +175,11 @@ void System::initialize() {
 	this->volume = pow(this->L,3);
 	this->steps = 0;
 	this->eff_num = density*this->volume/this->N;
-	
+
 	this->mfp = this->volume/(sqrt(2.0)*M_PI*diam*diam*this->N*this->eff_num);
 	this->mpv = sqrt(2*boltz*this->T/mass);  // Most probable initial velocity
 	// Time step should be so most probable velocity runs through 1/5th of a cell during one timestep
 
-	
 	this->cellsPerDimension = 3*this->L/this->mfp;
 	this->numberOfCells = this->cellsPerDimension*this->cellsPerDimension*this->cellsPerDimension;
 	
@@ -197,13 +188,8 @@ void System::initialize() {
 		this->numberOfCells = this->cellsPerDimension*this->cellsPerDimension*this->cellsPerDimension;
 	}
 
-	// this->cellsPerDimension = 15; // Approx number of mean free paths 
-	
-
 	this->tau = 0.2*(this->L/this->cellsPerDimension)/this->mpv;       // Set timestep tau
 	this->coeff = 0.5*this->eff_num*M_PI*diam*diam*this->tau/(this->volume/this->numberOfCells);
-
-
 
   	cout << "Enter wall velocity as Mach number: ";
   	double vwall_m;
@@ -220,7 +206,7 @@ void System::initialize() {
   	printf("The system consists of %d cells in each dimension\n",this->cellsPerDimension);
   	printf("Each cell contains approx. %d particles \n",this->N/this->numberOfCells);
   	cout << "Wall velocities are " << -this->vwall << " and " << this->vwall << " m/s" << endl;
-	cout << "dt = " << this->tau*1e9 << " ns" << endl;
+	cout << "dt = " << this->tau << " units" << endl;
 
 	this->sorter = new Sorter(this);
 	
@@ -274,7 +260,7 @@ void System::printPositionsToFile(FILE *file) {
 	fprintf(file,"Random comment that must be here\n");
 	
 	for(int n=0;n<this->N;n++) {
-		fprintf(file,"H %f %f %f\n",1000000*this->molecules[n]->r(0),1000000*this->molecules[n]->r(1),1000000*this->molecules[n]->r(2));
+		fprintf(file,"H %f %f %f\n",this->molecules[n]->r(0),this->molecules[n]->r(1),this->molecules[n]->r(2));
 	}
 	
 }

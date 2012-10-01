@@ -20,7 +20,7 @@ int main(int args, char* argv[]) {
 
 	bool printPositions = args > 1 ? atoi(argv[1]) : false;
 	int N = args > 2 ? atoi(argv[2]) : 10000;
-	int T = args > 3 ? atof(argv[3]) : 300;
+	int T = args > 3 ? atof(argv[3]) : 3;
 	int timesteps = args > 4 ? atof(argv[4]) : 1000;
 
 	System *system = new System(N,T);
