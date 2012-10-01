@@ -4,11 +4,13 @@
 class Molecule;
 class Cell;
 class Sorter;
+class Wall;
 
 #include <fstream>
 #include "Molecule.h"
 #include "Cell.h"
 #include "Sorter.h"
+#include "Wall.h"
 
 using namespace std;
 using namespace arma;
@@ -20,11 +22,14 @@ private:
 	void initVelocities();
 	void initMolecules();
 	void initCells();
+	void initWalls();
 	void move();
 	int  collide();
 public:
 	Molecule **molecules;
 	Cell **cells;
+	Wall **walls;
+
 	int N; 			// Number of molecules
 	double L;
 	double volume;
@@ -49,6 +54,7 @@ public:
 	void printPositionsToFile(FILE *file);
 
 	void step();
+	double rand_gauss(long *idum);
 	System(int N, double T);
 };
 

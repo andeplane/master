@@ -7,13 +7,14 @@
 #include "omp.h"
 #include <time.h>
 #include "defines.h"
+#include "Wall.h"
 
 const double boltz = 1.0;    // Boltzmann's constant (J/K)
 double mass = 1.0;     	    // Mass of argon atom (kg)
 double diam = 3.66e-4;    	  	    // Effective diameter of argon atom (m)
 double density = 26850000;		    // Number density of argon at STP (L^-3)
 
-double rand_gauss(long *idum) {
+double System::rand_gauss(long *idum) {
   return sqrt( -2.0*log(1.0 - ran0(idum)) )
 	        * cos( 6.283185307 * ran0(idum) );
 }
@@ -131,16 +132,23 @@ void System::initialize() {
 		this->numberOfCells = this->cellsPerDimension*this->cellsPerDimension;
 	}
 
-	this->dt = 0.2*(this->L/this->cellsPerDimension)/this->mpv;       // Set timestep dt
+	this->dt = 0.05*0.2*(this->L/this->cellsPerDimension)/this->mpv;       // Set timestep dt
 	this->coeff = 0.5*this->eff_num*M_PI*diam*diam*this->dt/(this->volume/this->numberOfCells);
 	
 	this->initMolecules();
 	this->initCells();
+	this->initWalls();
 	this->collisions = 0;
 
 	this->sorter = new Sorter(this);
 	
 	this->t = 0;
+}
+
+void System::initWalls() {
+	this->walls = new Wall*[2];
+	this->walls[0] = new Wall(0,this->T,false);
+	this->walls[1] = new Wall(L,this->T,true);
 }
 
 void System::initCells() {
@@ -176,8 +184,8 @@ void System::initVelocities() {
 	for(int n=0; n<this->N; n++ ) {
 		molecule = this->molecules[n];
 		
-		molecule->v(0) = rand_gauss(this->idum)*sqrt(3.0/2*boltz*this->T/mass);
-		molecule->v(1) = rand_gauss(this->idum)*sqrt(3.0/2*boltz*this->T/mass);
+		molecule->v(0) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
+		molecule->v(1) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
   	}
 }
 
