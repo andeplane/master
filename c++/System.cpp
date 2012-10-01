@@ -47,6 +47,15 @@ void System::move() {
 #pragma omp parallel for
 	for(int n=0; n< this->N; n++ )
 		this->molecules[n]->move(this->dt);
+	/*
+	Molecule *molecule;
+	for(int n=0; n<this->N; n++ ) {
+		molecule = this->molecules[n];
+		
+		molecule->v(0) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
+		molecule->v(1) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
+  	}
+  	*/
 }
 
 int System::collide() {
@@ -122,7 +131,7 @@ void System::initialize() {
 	this->eff_num = density*this->volume/this->N;
 
 	this->mfp = this->volume/(sqrt(2.0)*M_PI*diam*diam*this->N*this->eff_num);
-	this->mpv = sqrt(boltz*this->T/mass);  // Most probable initial velocity
+	this->mpv = sqrt(this->T);  // Most probable initial velocity
 	
 	this->cellsPerDimension = 3*this->L/this->mfp;
 	this->numberOfCells = this->cellsPerDimension*this->cellsPerDimension;
@@ -132,7 +141,7 @@ void System::initialize() {
 		this->numberOfCells = this->cellsPerDimension*this->cellsPerDimension;
 	}
 
-	this->dt = 0.05*0.2*(this->L/this->cellsPerDimension)/this->mpv;       // Set timestep dt
+	this->dt = 0.2*(this->L/this->cellsPerDimension)/this->mpv;       // Set timestep dt
 	this->coeff = 0.5*this->eff_num*M_PI*diam*diam*this->dt/(this->volume/this->numberOfCells);
 	
 	this->initMolecules();
@@ -184,7 +193,7 @@ void System::initVelocities() {
 	for(int n=0; n<this->N; n++ ) {
 		molecule = this->molecules[n];
 		
-		molecule->v(0) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
+		molecule->v(0) = rand_gauss(this->idum)*sqrt(3.0/2*this->T) + 3*this->mpv;
 		molecule->v(1) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
   	}
 }

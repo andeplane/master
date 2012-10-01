@@ -24,5 +24,8 @@ plot(temperature(:,1),temperature(:,2));
 legend('Temperature');
 xlabel('Time')
 ylabel('Temperature')
+hold on
+x = zeros(length(temperature(:,1)))+3;
+plot(x,'r');
     
 end

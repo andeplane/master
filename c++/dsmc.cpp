@@ -47,7 +47,7 @@ int main(int args, char* argv[]) {
 	printf("100%%\n\n");
 	printf("Summary:\n");
 	printf("Collisions: %d\n",system->collisions);
-	printf("Average temperature: %.2f\n",sampler->temperatureSum/sampler->temperatureSamples);
+	printf("Average temperature: %.3f\n",sampler->temperatureSum/sampler->temperatureSamples);
 	
 	return 0;
 }

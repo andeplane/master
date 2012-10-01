@@ -41,9 +41,10 @@ void Molecule::move(double dt) {
 		tau = wall->timeUntilCollision(y_old,v(1));
 		
 		r += v*(tau-dt);
+		double v_temp = this->system->rand_gauss(idum)*sqrt(3.0/2*wall->T);
 		
-		v(0) = sqrt(3.0/2*wall->T)*system->rand_gauss(idum) + wall->v_x; // Add wall velocity
-      	v(1) = direction*sqrt(-3.0/2*wall->T*log(ran0(idum)));
+		v(0) = sqrt(3.0/2*wall->T)*system->rand_gauss(idum) + wall->v_x;
+		v(1) = direction*sqrt(-6.0/2*wall->T*log(ran0(idum)));
 
       	this->r += v*(dt-tau);
 	}
