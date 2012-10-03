@@ -4,7 +4,6 @@
 #include "Molecule.h"
 #include "System.h"
 #include "lib.h"
-#include "omp.h"
 #include <time.h>
 #include "defines.h"
 #include "CollisionObject.h"
@@ -44,7 +43,6 @@ System::System(int N, double T) {
 }
 
 void System::move() {
-#pragma omp parallel for
 	for(int n=0; n< this->N; n++ )
 		this->molecules[n]->move(this->dt);
 	/*
@@ -67,17 +65,17 @@ int System::collide() {
 	
 	System *system = this;
 	int n;
-#pragma omp parallel
-{
+// #pragma omp parallel
+// {
 	int local_col = 0;
-	#pragma omp for
+    // #pragma omp for
 	for(n=0; n<numCells; n++ ) {
 		local_col += this->cells[n]->collide();
 	}
 
 	col += local_col;
-}
-	
+// }
+
 
 	return col;
 }
@@ -113,7 +111,7 @@ void System::step() {
 	vec p = zeros<vec>(3,1);
 	double density = 0;
 
-	#pragma omp parallel for
+   //  #pragma omp parallel for
 	for(int n=0;n<this->numberOfCells;n++) {
 		this->cells[n]->sampleStatistics();
 		E += this->cells[n]->energy;

@@ -23,7 +23,7 @@ bool Box::collide(Molecule *molecule, double dt) {
 	vec local = molecule->r-this->center;
 	if(abs(local(0)) > this->width/2 || abs(local(1)) > this->height/2) {
 		if(!this->active) return true;
-		long *idum = this->system->idums[omp_get_thread_num()];
+        long *idum = this->system->idums[0];
 
 		// We did collide
 		molecule->r -= molecule->v*dt;

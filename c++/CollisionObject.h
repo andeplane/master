@@ -13,7 +13,7 @@ private:
 	
 public:
 	CollisionObject() { }
-	virtual bool collide(Molecule *molecule, double dt) { return false; }
+    virtual bool collide(Molecule *molecule, double dt) = 0;
 };
 
 class Box : public CollisionObject {

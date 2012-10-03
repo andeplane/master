@@ -32,7 +32,7 @@ void Molecule::move(double dt) {
 	double tau = 1;
 
 	if(outsideWallIndex) {
-		long *idum = this->system->idums[omp_get_thread_num()];
+        long *idum = this->system->idums[0];
 
 		Wall *wall = this->system->walls[--outsideWallIndex]; // Decrease from [1,2] to [0,1] first
 		int direction = wall->upper ? -1 : 1;

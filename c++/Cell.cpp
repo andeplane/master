@@ -2,7 +2,6 @@
 #include <math.h>
 #include "lib.h"
 #include <time.h>
-#include "omp.h"
 
 using namespace std;
 
@@ -45,7 +44,7 @@ int Cell::collide() {
 	//* Skip cells with only one particle
 	if( this->particles < 1 ) return 0;  // Skip to the next cell
 
-	long *idum = system->idums[omp_get_thread_num()];
+    long *idum = system->idums[0];
 	
 	Sorter *sorter = this->system->sorter;
 	Molecule **molecules = this->system->molecules;
