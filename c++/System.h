@@ -5,12 +5,14 @@ class Molecule;
 class Cell;
 class Sorter;
 class Wall;
+class CollisionObject;
 
 #include <fstream>
 #include "Molecule.h"
 #include "Cell.h"
 #include "Sorter.h"
 #include "Wall.h"
+#include "CollisionObject.h"
 
 using namespace std;
 using namespace arma;
@@ -23,6 +25,7 @@ private:
 	void initMolecules();
 	void initCells();
 	void initWalls();
+	void initObjects();
 	void move();
 	int  collide();
 	void accelerate();
@@ -30,6 +33,7 @@ public:
 	Molecule **molecules;
 	Cell **cells;
 	Wall **walls;
+	CollisionObject **objects;
 
 	int N; 			// Number of molecules
 	double L;

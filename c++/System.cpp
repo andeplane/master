@@ -7,7 +7,7 @@
 #include "omp.h"
 #include <time.h>
 #include "defines.h"
-#include "Wall.h"
+#include "CollisionObject.h"
 
 const double boltz = 1.0;    // Boltzmann's constant (J/K)
 double mass = 1.0;     	    // Mass of argon atom (kg)
@@ -25,7 +25,7 @@ System::System(int N, double T) {
 		this->idums[i] = new long[1];
 		*this->idums[i] = -(i+2);
 	}
-	
+
 	this->idum = this->idums[0];
 
 	this->N = N;
@@ -155,11 +155,21 @@ void System::initialize() {
 	this->initMolecules();
 	this->initCells();
 	this->initWalls();
+	this->initObjects();
 	this->collisions = 0;
 
 	this->sorter = new Sorter(this);
 	
 	this->t = 0;
+}
+
+void System::initObjects() {
+	this->objects = new CollisionObject*[1];
+	vec center = zeros<vec>(2,1);
+	center(0) = this->L/2;
+	center(1) = this->L/2;
+
+	this->objects[0] = new Box(this, center, this->L/3, this->L/3, this->T);
 }
 
 void System::initWalls() {
