@@ -16,10 +16,10 @@ int main(int args, char* argv[]) {
         return 0;
     }
 
-    bool printPositions = args > 1 ? atoi(argv[1]) : true;
+    bool printPositions = args > 1 ? atoi(argv[1]) : false;
     int N = args > 2 ? atoi(argv[2]) : 10000;
     int T = args > 3 ? atof(argv[3]) : 3;
-    int timesteps = args > 4 ? atof(argv[4]) : 2000;
+    int timesteps = args > 4 ? atof(argv[4]) : 1000;
 
     System *system = new System(N,T);
     StatisticsSampler *sampler = new StatisticsSampler(system, timesteps);

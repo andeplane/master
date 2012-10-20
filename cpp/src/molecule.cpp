@@ -5,13 +5,13 @@
 #include "omp.h"
 using namespace std;
 
-Molecule::Molecule(System *system) {
-	this->r = zeros<vec> (3,1);
-	this->v = zeros<vec> (3,1);
+Molecule::Molecule(System *_system) {
+    r = zeros<vec> (3,1);
+    v = zeros<vec> (3,1);
 
-	this->atoms = 1;
-	this->type = 0;
-	this->system = system;
+    atoms = 1;
+    type = 0;
+    system = _system;
 }
 
 inline int sign(double a) {
@@ -20,17 +20,16 @@ inline int sign(double a) {
 
 void Molecule::move(double dt, Random *rnd) {
 
-	double L = this->system->L;
-	
-	vec v = this->v;
-	double y_old = this->r(1);
-	this->r += v*dt;
+    double L = system->L;
 
-	int outsideWallIndex = this->system->walls[0]->isMoleculeOutside(this) + 2*this->system->walls[1]->isMoleculeOutside(this);
+    double y_old = r(1);
+    r += v*dt;
+
+    int outsideWallIndex = system->walls[0]->isMoleculeOutside(this) + 2*system->walls[1]->isMoleculeOutside(this);
 	double tau = 1;
 
 	if(outsideWallIndex) {
-        Wall *wall = this->system->walls[--outsideWallIndex]; // Decrease from [1,2] to [0,1] first
+        Wall *wall = system->walls[--outsideWallIndex]; // Decrease from [1,2] to [0,1] first
 		int direction = wall->upper ? -1 : 1;
 
 		// We are outside the box
@@ -41,10 +40,9 @@ void Molecule::move(double dt, Random *rnd) {
         v(0) = sqrt(3.0/2*wall->T)*rnd->nextGauss() + wall->v_x;
         v(1) = direction*sqrt(-6.0/2*wall->T*log(rnd->nextDouble()));
 
-        this->r += v*(dt-tau);
+        r += v*(dt-tau);
 	}
 
-	this->v = v;
-	this->r(0) = fmod(this->r(0)+10*L,L);
-    this->r(1) = fmod(this->r(1)+10*L,L);
+    r(0) = fmod(r(0)+10*L,L);
+    r(1) = fmod(r(1)+10*L,L);
 }

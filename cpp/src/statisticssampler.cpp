@@ -7,17 +7,17 @@
 
 using namespace arma;
 
-StatisticsSampler::StatisticsSampler(System *system, int timesteps) {
-	this->system = system;
-	this->printTemperature = true;
-	this->temperatureSamples = 0;
-	this->temperatureSum = 0;
-	this->temperatureFile = fopen("temperature.dat","w");
+StatisticsSampler::StatisticsSampler(System *_system, int _timesteps) {
+    system = _system;
+    printTemperature = true;
+    temperatureSamples = 0;
+    temperatureSum = 0;
+    temperatureFile = fopen("temperature.dat","w");
 
-	this->printVelocityProfile = true;
-	this->velocityProfileSamples = 0;
+    printVelocityProfile = true;
+    velocityProfileSamples = 0;
 	
-	this->velocityFile = fopen("velocity.dat","w");
+    velocityFile = fopen("velocity.dat","w");
 }
 
 void StatisticsSampler::finish() {
@@ -25,27 +25,27 @@ void StatisticsSampler::finish() {
 }
 
 void StatisticsSampler::sample() {
-	this->calculateTemperature();
-	this->calculateVelocityProfile();
+    calculateTemperature();
+    calculateVelocityProfile();
 }
 
 void StatisticsSampler::calculateTemperature() {
-	if(!this->printTemperature) return;
-	this->temperatureSamples++;
+    if(!printTemperature) return;
+    temperatureSamples++;
 
-	long N = this->system->N;
+    long N = system->N;
 	double energy = 0;
 	
-	Molecule **molecules = this->system->molecules;
+    Molecule **molecules = system->molecules;
 	for(int n=0;n<N;n++) {
 		energy += dot(molecules[n]->v,molecules[n]->v);
 	}
 
     double T = energy/(3*N);
 
-	this->temperatureSum += T;
+    temperatureSum += T;
 	
-	fprintf(this->temperatureFile, "%f %f \n",this->system->t, T);
+    fprintf(temperatureFile, "%f %f \n",system->t, T);
 }
 
 inline int calcCellIndex(int i, int j, int k, int cellsPerDimension) {
@@ -53,8 +53,8 @@ inline int calcCellIndex(int i, int j, int k, int cellsPerDimension) {
 }
 
 void StatisticsSampler::calculateVelocityProfile() {
-	this->velocityProfileSamples++;
-	if(this->velocityProfileSamples % 5) return;
+    velocityProfileSamples++;
+    if(velocityProfileSamples % 5) return;
 
 	int N = 1000;
 	Molecule *molecule;
@@ -64,15 +64,15 @@ void StatisticsSampler::calculateVelocityProfile() {
 
 	int n;
 	for(int i=0;i<this->system->N;i++) {
-		molecule = this->system->molecules[i];
-		n = N*molecule->r(1)/this->system->L;
+        molecule = system->molecules[i];
+        n = N*molecule->r(1)/system->L;
 		velocities[n] += molecule->v(0);
 	}
 	
 	for(int n=0;n<N;n++) 
-		fprintf(this->velocityFile,"%f ",velocities[n]);
+        fprintf(velocityFile,"%f ",velocities[n]);
 
-	fprintf(this->velocityFile,"\n");
+    fprintf(velocityFile,"\n");
 }
 
 

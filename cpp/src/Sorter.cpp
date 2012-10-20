@@ -4,23 +4,23 @@ inline int calcCellIndex(int i, int j, int k, int cellsPerDimension) {
 	return k*cellsPerDimension*cellsPerDimension + j*cellsPerDimension + i;
 }
 
-Sorter::Sorter(System *system) {
-    this->system = system;
-    this->Xref = new int[system->N];
-    this->cellCount = new int[system->numberOfCells];
+Sorter::Sorter(System *_system) {
+    system = _system;
+    Xref = new int[system->N];
+    cellCount = new int[system->numberOfCells];
     for(int n=0;n<system->numberOfCells;n++) {
-    	this->cellCount[n] = 0;	
+        cellCount[n] = 0;
     }
 }
 
 void Sorter::sort() {
 	//* Find the cell address for each particle
-	int N = this->system->N;
-	double L = this->system->L;
-	Cell **cells = this->system->cells;
+    int N = system->N;
+    double L = system->L;
+    Cell **cells = system->cells;
 
-	int numberOfCells = this->system->numberOfCells;
-	int cellsPerDimension = this->system->cellsPerDimension;
+    int numberOfCells = system->numberOfCells;
+    int cellsPerDimension = system->cellsPerDimension;
 	
 	int *jx = new int[N];
 	int *jy = new int[N];
@@ -39,10 +39,9 @@ void Sorter::sort() {
 	for(int n=0;n<numberOfCells;n++)
 		cells[n]->reset();
 
-	int k_max = 0;
-	int cell_index_max = 0;
+
 	for(int n=0; n<N; n++ ) {
-		molecule = this->system->molecules[n];
+        molecule = system->molecules[n];
 		i = (int)((molecule->r(0)/L)*cellsPerDimension);
 		j = (int)((molecule->r(1)/L)*cellsPerDimension);
 		k = (int)((molecule->r(2)/L)*cellsPerDimension);
@@ -56,7 +55,7 @@ void Sorter::sort() {
 
 		cell_index = calcCellIndex(i,j,k,cellsPerDimension);
 
-		this->cellCount[cell_index]++;
+        cellCount[cell_index]++;
 
 		cells[cell_index]->particles++;
 	}
@@ -83,7 +82,7 @@ void Sorter::sort() {
 		
 		int idx = cells[cell_index]->firstParticleIndex + temp[cell_index];
 		
-		this->Xref[idx] = n;
+        Xref[idx] = n;
 		temp[cell_index] += 1;
 	}
 	
