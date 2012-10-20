@@ -22,6 +22,7 @@ inline int sign(double a) {
 }
 
 void Molecule::move(double dt) {
+
 	double L = this->system->L;
 	
 	vec v = this->v;
@@ -40,14 +41,14 @@ void Molecule::move(double dt) {
 		// We are outside the box
 		tau = wall->timeUntilCollision(y_old,v(1));
 		
-		r += v*(tau-dt);
-		
-		v(0) = sqrt(3.0/2*wall->T)*system->rand_gauss(idum) + wall->v_x;
-		v(1) = direction*sqrt(-6.0/2*wall->T*log(ran0(idum)));
+        r += v*(tau-dt);
 
-      	this->r += v*(dt-tau);
+        v(0) = sqrt(3.0/2*wall->T)*system->rand_gauss(idum) + wall->v_x;
+        v(1) = direction*sqrt(-6.0/2*wall->T*log(ran0(idum)));
+
+        this->r += v*(dt-tau);
 	}
 
 	this->v = v;
 	this->r(0) = fmod(this->r(0)+10*L,L);
-}
+    this->r(1) = fmod(this->r(1)+10*L,L);}

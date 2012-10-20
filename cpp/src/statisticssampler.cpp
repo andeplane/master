@@ -41,7 +41,7 @@ void StatisticsSampler::calculateTemperature() {
 		energy += dot(molecules[n]->v,molecules[n]->v);
 	}
 
-	double T = energy/(3*N);
+    double T = energy/(3*N);
 
 	this->temperatureSum += T;
 	

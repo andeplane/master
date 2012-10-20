@@ -12,15 +12,14 @@ using namespace std;
 int main(int args, char* argv[]) {
     if(args == 2 && atoi(argv[1]) == -1) {
         printf("Run with:\n\n");
-        printf("dsmc printPositions[0|1] N[int] T[double] timesteps[int]\n");
-        printf("\n");
+        printf("dsmc printPositions[0|1] N[int] T[double] timesteps[int]\n\n");
         return 0;
     }
 
     bool printPositions = args > 1 ? atoi(argv[1]) : false;
     int N = args > 2 ? atoi(argv[2]) : 10000;
     int T = args > 3 ? atof(argv[3]) : 3;
-    int timesteps = args > 4 ? atof(argv[4]) : 1000;
+    int timesteps = args > 4 ? atof(argv[4]) : 2000;
 
     System *system = new System(N,T);
     StatisticsSampler *sampler = new StatisticsSampler(system, timesteps);

@@ -22,7 +22,7 @@ System::System(int N, double T) {
 	this->idums = new long*[4];
 	for(int i=0;i<4;i++) {
 		this->idums[i] = new long[1];
-		*this->idums[i] = -(i+2);
+        *this->idums[i] = -(i+20);
 	}
 
 	this->idum = this->idums[0];
@@ -81,7 +81,8 @@ int System::collide() {
 }
 
 void System::accelerate() {
-	double a = 5;
+    return;
+    double a = 0.1;
 
 	for(int n=0;n<this->N;n++) {
 		this->molecules[n]->v(0) += a*this->dt;
@@ -217,9 +218,9 @@ void System::initVelocities() {
 void System::printPositionsToFile(FILE *file) {
 	fprintf(file,"%d\n",this->N);
 	fprintf(file,"Random comment that must be here\n");
-	
+
 	for(int n=0;n<this->N;n++) {
-		fprintf(file,"H %f %f %f\n",this->molecules[n]->r(0),this->molecules[n]->r(1),this->molecules[n]->r(2));
-	}
+        fprintf(file,"H %.10f %.10f 0\n",this->molecules[n]->r(0),this->molecules[n]->r(1));
+    }
 	
 }
