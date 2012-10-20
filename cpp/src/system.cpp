@@ -3,7 +3,6 @@
 #include <fstream>
 #include "Molecule.h"
 #include "System.h"
-#include "lib.h"
 #include <time.h>
 #include "defines.h"
 #include "CollisionObject.h"
@@ -13,20 +12,8 @@ double mass = 1.0;     	    // Mass of argon atom (kg)
 double diam = 3.66e-4;    	  	    // Effective diameter of argon atom (m)
 double density = 26850000;		    // Number density of argon at STP (L^-3)
 
-double System::rand_gauss(long *idum) {
-  return sqrt( -2.0*log(1.0 - ran0(idum)) )
-	        * cos( 6.283185307 * ran0(idum) );
-}
 
 System::System(int N, double T) {
-	this->idums = new long*[4];
-	for(int i=0;i<4;i++) {
-		this->idums[i] = new long[1];
-        *this->idums[i] = -(i+20);
-	}
-
-	this->idum = this->idums[0];
-
 	this->N = N;
 	this->L = 1.0;
 	this->T = T;
@@ -44,33 +31,23 @@ System::System(int N, double T) {
 
 void System::move() {
 	for(int n=0; n< this->N; n++ )
-		this->molecules[n]->move(this->dt);
-	/*
-	Molecule *molecule;
-	for(int n=0; n<this->N; n++ ) {
-		molecule = this->molecules[n];
-		
-		molecule->v(0) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
-		molecule->v(1) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
-  	}
-  	*/
+        this->molecules[n]->move(this->dt,randoms[0]);
 }
 
 int System::collide() {
 	int col = 0;          // Count number of collisions
 	
 	//* Loop over cells and process collisions in each cell
-	int jcell;
+
 	int numCells = this->numberOfCells;
-	
-	System *system = this;
+
 	int n;
 // #pragma omp parallel
 // {
 	int local_col = 0;
     // #pragma omp for
 	for(n=0; n<numCells; n++ ) {
-		local_col += this->cells[n]->collide();
+        local_col += this->cells[n]->collide(randoms[0]);
 	}
 
 	col += local_col;
@@ -81,8 +58,7 @@ int System::collide() {
 }
 
 void System::accelerate() {
-    return;
-    double a = 0.1;
+    double a = 1;
 
 	for(int n=0;n<this->N;n++) {
 		this->molecules[n]->v(0) += a*this->dt;
@@ -104,7 +80,6 @@ void System::step() {
 	t0 = clock();
 	this->sorter->sort();
 	this->time_consumption[SORT] += ((double)clock()-t0)/CLOCKS_PER_SEC;
-	int cellsWithZero = 0;
 
 	t0 = clock();
 
@@ -133,9 +108,9 @@ void System::initialize() {
 	for(int i=0;i<4;i++)
 		this->time_consumption[i] = 0;
 
-	this->volume = pow(this->L,2);
+    this->volume = pow(this->L,2);
 	this->steps = 0;
-	this->eff_num = density*this->volume/this->N;
+    this->eff_num = density*this->volume/this->N;
 
 	this->mfp = this->volume/(sqrt(2.0)*M_PI*diam*diam*this->N*this->eff_num);
 	this->mpv = sqrt(this->T);  // Most probable initial velocity
@@ -150,6 +125,10 @@ void System::initialize() {
 
 	this->dt = 0.2*(this->L/this->cellsPerDimension)/this->mpv;       // Set timestep dt
 	this->coeff = 0.5*this->eff_num*M_PI*diam*diam*this->dt/(this->volume/this->numberOfCells);
+
+    this->randoms = new Random*[16];
+    for(int i=0;i<16;i++)
+        this->randoms[i] = new Random(-(i+1));
 	
 	this->initMolecules();
 	this->initCells();
@@ -163,12 +142,15 @@ void System::initialize() {
 }
 
 void System::initObjects() {
+    return;
+/*
 	this->objects = new CollisionObject*[1];
 	vec center = zeros<vec>(2,1);
 	center(0) = this->L/2;
 	center(1) = this->L/2;
 
 	this->objects[0] = new Box(this, center, this->L/3, this->L/3, this->T);
+    */
 }
 
 void System::initWalls() {
@@ -198,9 +180,10 @@ void System::initMolecules() {
 }
 
 void System::initPositions() {
+
 	for(int n=0; n<this->N; n++ ) {
-		this->molecules[n]->r(0) = L*ran0(this->idum);
-		this->molecules[n]->r(1) = L*ran0(this->idum);
+        this->molecules[n]->r(0) = L*randoms[0]->nextDouble();
+        this->molecules[n]->r(1) = L*randoms[0]->nextDouble();
 	}
 }
 
@@ -209,9 +192,9 @@ void System::initVelocities() {
 
 	for(int n=0; n<this->N; n++ ) {
 		molecule = this->molecules[n];
-		
-		molecule->v(0) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
-		molecule->v(1) = rand_gauss(this->idum)*sqrt(3.0/2*this->T);
+
+        molecule->v(0) = randoms[0]->nextGauss()*sqrt(3.0/2*this->T);
+        molecule->v(1) = randoms[0]->nextGauss()*sqrt(3.0/2*this->T);
   	}
 }
 

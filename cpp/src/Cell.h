@@ -1,8 +1,7 @@
-#ifndef CELL_H
-#define CELL_H
+#pragma once
 
 class System;
-
+#include <Random.h>
 #include "Molecule.h"
 #include "System.h"
 #include <armadillo>
@@ -29,9 +28,7 @@ public:
 
 	Cell(System *system);
 	void reset();
-	int collide();
+    int collide(Random *rnd);
 	void resetPressureCalculation();
 	void sampleStatistics();
 };
-
-#endif

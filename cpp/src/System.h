@@ -13,6 +13,7 @@ class CollisionObject;
 #include "Sorter.h"
 #include "Wall.h"
 #include "CollisionObject.h"
+#include "Random.h"
 
 using namespace std;
 using namespace arma;
@@ -34,6 +35,7 @@ public:
 	Cell **cells;
 	Wall **walls;
 	CollisionObject **objects;
+    Random **randoms;
 
 	int N; 			// Number of molecules
 	double L;
@@ -50,9 +52,6 @@ public:
 	int cellsPerDimension;
 	int collisions;
 	int steps;
-	
-	long *idum;
-	long **idums;
 
 	Sorter *sorter;
 

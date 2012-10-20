@@ -16,7 +16,7 @@ int main(int args, char* argv[]) {
         return 0;
     }
 
-    bool printPositions = args > 1 ? atoi(argv[1]) : false;
+    bool printPositions = args > 1 ? atoi(argv[1]) : true;
     int N = args > 2 ? atoi(argv[2]) : 10000;
     int T = args > 3 ? atof(argv[3]) : 3;
     int timesteps = args > 4 ? atof(argv[4]) : 2000;

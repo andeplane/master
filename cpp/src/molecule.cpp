@@ -1,7 +1,6 @@
 #include "Molecule.h"
 #include <iostream>
 #include <math.h>
-#include "lib.h"
 #include "Wall.h"
 #include "omp.h"
 using namespace std;
@@ -15,13 +14,11 @@ Molecule::Molecule(System *system) {
 	this->system = system;
 }
 
-static int fuck = 0;
-
 inline int sign(double a) {
 	return a >= 0 ? 1 : -1;
 }
 
-void Molecule::move(double dt) {
+void Molecule::move(double dt, Random *rnd) {
 
 	double L = this->system->L;
 	
@@ -33,9 +30,7 @@ void Molecule::move(double dt) {
 	double tau = 1;
 
 	if(outsideWallIndex) {
-        long *idum = this->system->idums[0];
-
-		Wall *wall = this->system->walls[--outsideWallIndex]; // Decrease from [1,2] to [0,1] first
+        Wall *wall = this->system->walls[--outsideWallIndex]; // Decrease from [1,2] to [0,1] first
 		int direction = wall->upper ? -1 : 1;
 
 		// We are outside the box
@@ -43,12 +38,13 @@ void Molecule::move(double dt) {
 		
         r += v*(tau-dt);
 
-        v(0) = sqrt(3.0/2*wall->T)*system->rand_gauss(idum) + wall->v_x;
-        v(1) = direction*sqrt(-6.0/2*wall->T*log(ran0(idum)));
+        v(0) = sqrt(3.0/2*wall->T)*rnd->nextGauss() + wall->v_x;
+        v(1) = direction*sqrt(-6.0/2*wall->T*log(rnd->nextDouble()));
 
         this->r += v*(dt-tau);
 	}
 
 	this->v = v;
 	this->r(0) = fmod(this->r(0)+10*L,L);
-    this->r(1) = fmod(this->r(1)+10*L,L);}
+    this->r(1) = fmod(this->r(1)+10*L,L);
+}

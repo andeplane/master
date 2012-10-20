@@ -2,7 +2,6 @@
 #include "System.h"
 #include "Molecule.h"
 #include "omp.h"
-#include "lib.h"
 
 Box::Box(System *system, vec center, double width, double height, double T)  {
 	this->system = system;
@@ -20,10 +19,10 @@ Box::Box(System *system, vec center, double width, double height, double T)  {
 }
 
 bool Box::collide(Molecule *molecule, double dt) { 
+    /*
 	vec local = molecule->r-this->center;
 	if(abs(local(0)) > this->width/2 || abs(local(1)) > this->height/2) {
 		if(!this->active) return true;
-        long *idum = this->system->idums[0];
 
 		// We did collide
 		molecule->r -= molecule->v*dt;
@@ -51,6 +50,6 @@ bool Box::collide(Molecule *molecule, double dt) {
 
   		return true;
 	}
-
+*/
 	return false;
 }

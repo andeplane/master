@@ -10,7 +10,8 @@ SOURCES += main.cpp \
     molecule.cpp \
     sorter.cpp \
     statisticssampler.cpp \
-    wall.cpp
+    wall.cpp \
+    Random.cpp
 
 HEADERS += \
     system.h \
@@ -19,5 +20,6 @@ HEADERS += \
     molecule.h \
     sorter.h \
     statisticssampler.h \
-    wall.h
+    wall.h \
+    Random.h
 

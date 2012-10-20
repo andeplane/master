@@ -5,6 +5,7 @@ class System;
 #include <iostream>
 #include <armadillo>
 #include "System.h"
+#include <Random.h>
 
 using namespace arma;
 using namespace std;
@@ -21,7 +22,7 @@ public:
 	
 	Molecule(System *system);
 	void addR(vec dr);
-	void move(double dt);
+    void move(double dt, Random *rnd);
 };
 
 #endif
