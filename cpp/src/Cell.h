@@ -10,24 +10,24 @@ using namespace arma;
 using namespace std;
 
 class Cell {
-private:
-	
 public:
-	int index;
-	int firstParticleIndex;
 	double volume;
 
 	double vr_max;
-	System *system;
+    System *system;
 
 	double energy;
 	double density;
 	vec momentum;
 
 	int particles;
+    int particle_capacity;
+    unsigned int *particle_indices;
 
-	Cell(System *system);
+
+    Cell(System *system);
 	void reset();
+    void resize(int n);
     int collide(Random *rnd);
 	void resetPressureCalculation();
 	void sampleStatistics();

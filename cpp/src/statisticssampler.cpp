@@ -65,7 +65,7 @@ void StatisticsSampler::calculateVelocityProfile() {
 	int n;
 	for(int i=0;i<this->system->N;i++) {
         molecule = system->molecules[i];
-        n = N*molecule->r(1)/system->L;
+        n = N*molecule->r(1)/system->width;
 		velocities[n] += molecule->v(0);
 	}
 	

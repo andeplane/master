@@ -18,9 +18,9 @@ public:
 	vec r;
 	vec v;
 
-	System *system;
-	
-	Molecule(System *system);
+    System *system;
+
+    Molecule(System *system);
 	void addR(vec dr);
     void move(double dt, Random *rnd);
 };

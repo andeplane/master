@@ -13,6 +13,7 @@ class Wall;
 #include "Wall.h"
 #include "Random.h"
 #include <vector>
+#include <CIniFile.h>
 
 using namespace std;
 using namespace arma;
@@ -28,9 +29,9 @@ private:
 	int  collide();
 	void accelerate();
 public:
-
     Molecule **molecules;
-    Cell **cells;
+    Cell ***cells;
+
 	Wall **walls;
     Random **randoms;
 
@@ -49,15 +50,17 @@ public:
 	double T;
 	double *time_consumption;
 	int numberOfCells;
-	int cellsPerDimension;
     int threads;
 	int collisions;
 	int steps;
 
+    int cells_x;
+    int cells_y;
+
 	Sorter *sorter;
 
 	void printPositionsToFile(FILE *file);
-    void initialize(int N, double T, int threads);
+    void initialize(CIniFile &ini);
 	void step();
 	double rand_gauss(long *idum);
     System() { }

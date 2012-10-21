@@ -11,13 +11,19 @@ Cell::Cell(System *_system) {
     momentum = zeros<vec>(3,1);
     energy = 0;
     density = 0;
-	double cellLength = system->L / system->cellsPerDimension;
-    volume = cellLength*cellLength;
+    particle_capacity = 100;
+    particle_indices = new unsigned int[particle_capacity];
+
+    volume = system->width*system->height/(system->cells_x*system->cells_y);
+}
+void Cell::resize(int n) {
+    delete [] particle_indices;
+    particle_capacity = n;
+    particle_indices = new unsigned int[n];
 }
 
 void Cell::reset() {
     particles = 0;
-    firstParticleIndex = 0;
 }
 
 void Cell::sampleStatistics() {
@@ -26,8 +32,10 @@ void Cell::sampleStatistics() {
     density = 0;
     momentum.zeros();
 	Molecule *molecule;
+    int particleIndex;
     for(int i=0;i<particles;i++) {
-        molecule = system->molecules[firstParticleIndex+i];
+        particleIndex = particle_indices[i];
+        molecule = system->molecules[particleIndex];
 		
         energy   += 0.5*molecule->atoms*dot(molecule->v,molecule->v);
         momentum += molecule->atoms*molecule->v;
@@ -64,9 +72,10 @@ int Cell::collide(Random *rnd) {
 		//* Pick two particles at random out of this cell
         int k = (int)(rnd->nextDouble()*particles);
         int kk = ((int)(k+1+rnd->nextDouble()*(particles-1))) % particles;
-
-        int ip1 = sorter->Xref[ k+firstParticleIndex ];      // First particle index
-        int ip2 = sorter->Xref[ kk+firstParticleIndex ];     // Second particle index
+        int ip1 = particle_indices[k];
+        int ip2 = particle_indices[kk];
+        // int ip1 = sorter->Xref[ k+firstParticleIndex ];      // First particle index
+        // int ip2 = sorter->Xref[ kk+firstParticleIndex ];     // Second particle index
 		molecule1 = molecules[ip1];
 		molecule2 = molecules[ip2];
 

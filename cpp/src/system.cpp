@@ -6,20 +6,16 @@
 #include <time.h>
 #include <omp.h>
 #include <defines.h>
+
 const double boltz = 1.0;    // Boltzmann's constant (J/K)
 double mass = 1.0;     	    // Mass of argon atom (kg)
 double diam = 3.66e-4;    	  	    // Effective diameter of argon atom (m)
 double density = 26850000;		    // Number density of argon at STP (L^-3)
 
 void System::move() {
-#pragma omp parallel num_threads(threads)
-    {
-        int thread_id = omp_get_thread_num();
-        Random *rnd = randoms[thread_id];
-        #pragma omp for
-        for(int n=0; n< N; n++ )
-            molecules[n]->move(dt,rnd);
-    }
+    Random *rnd = randoms[0];
+    for(int n=0; n< N; n++ )
+        molecules[n]->move(dt,rnd);
 }
 
 int System::collide() {
@@ -27,35 +23,18 @@ int System::collide() {
 	
 	//* Loop over cells and process collisions in each cell
 
-    int numCells = numberOfCells;
-
-#pragma omp parallel num_threads(threads)
-{
-	int local_col = 0;
-    int thread_id = omp_get_thread_num();
-
-    Random *rnd = randoms[thread_id];
-    #pragma omp for
-    for(int n=0; n<numCells; n++ ) {
-        local_col += cells[n]->collide(rnd);
-	}
-
-    #pragma omp critical
-    {
-        col += local_col;
-    }
-}
-
+    Random *rnd = randoms[0];
+    for(int i=0;i<cells_x;i++)
+        for(int j=0;j<cells_y;j++)
+        col += cells[i][j]->collide(rnd);
 
 	return col;
 }
 
 void System::accelerate() {
-    double a = 1;
-
-    for(int n=0;n<N;n++) {
+    double a = 10;
+    for(int n=0;n<N;n++)
         molecules[n]->v(0) += a*dt;
-	}
 }
 
 void System::step() {
@@ -81,11 +60,14 @@ void System::step() {
 	double density = 0;
 
    //  #pragma omp parallel for
-    for(int n=0;n<numberOfCells;n++) {
-        cells[n]->sampleStatistics();
-        E += cells[n]->energy;
-        p += cells[n]->momentum;
-        density += cells[n]->density;
+    Cell *c;
+    for(int i=0;i<cells_x;i++)
+        for(int j=0;j<cells_y;j++) {
+            c = cells[i][j];
+            c->sampleStatistics();
+            E += c->energy;
+            p += c->momentum;
+            density += c->density;
 	}
 
     time_consumption[SAMPLE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
@@ -96,14 +78,14 @@ void System::step() {
     accelerate();
 }
 
-void System::initialize(int _N, double _T, int _threads) {
-    N = _N;
-
-    width = 20.0;
-    height = 1;
-
-    T = _T;
-    threads = _threads;
+void System::initialize(CIniFile &ini) {
+    N       = ini.getint("N");
+    width   = ini.getdouble("width");
+    height  = ini.getdouble("height");
+    cells_x = ini.getint("cells_x");
+    cells_y = ini.getint("cells_y");
+    T       = ini.getdouble("T");
+    threads = ini.getdouble("threads");
 
     printf("Initializing system...");
     time_consumption = new double[4];
@@ -112,20 +94,17 @@ void System::initialize(int _N, double _T, int _threads) {
 
     volume = width*height;
     steps = 0;
+    collisions = 0;
+    t = 0;
     eff_num = density*volume/N;
 
     mfp = volume/(sqrt(2.0)*M_PI*diam*diam*N*eff_num);
     mpv = sqrt(T);  // Most probable initial velocity
-	
-    cellsPerDimension = 3*L/mfp;
-    numberOfCells = cellsPerDimension*cellsPerDimension;
 
-    while(N/numberOfCells < 20) {
-        cellsPerDimension--;
-        numberOfCells = cellsPerDimension*cellsPerDimension;
-	}
+    numberOfCells = cells_x*cells_y;
+    double cell_size = width/cells_x;
 
-    dt = 0.2*(L/cellsPerDimension)/mpv;       // Set timestep dt
+    dt = 0.2*cell_size/mpv;       // Set timestep dt
     coeff = 0.5*eff_num*M_PI*diam*diam*dt/(volume/numberOfCells);
 
     randoms = new Random*[16];
@@ -135,38 +114,37 @@ void System::initialize(int _N, double _T, int _threads) {
     initMolecules();
     initCells();
     initWalls();
-    collisions = 0;
 
     sorter = new Sorter(this);
-	
-    t = 0;
 
     printf("done.\n\n");
     printf("%d atoms per molecule\n",(int)eff_num);
-    printf("%d cells in each dimension\n",cellsPerDimension);
     printf("%d particles in each cell \n",N/numberOfCells);
-    printf("%.2f mean free paths (system width)\n",L/mfp);
-    printf("%.2f mean free paths (cell width)\n",L/(cellsPerDimension*mfp));
     printf("dt = %f\n\n",dt);
 }
 
 void System::initWalls() {
     walls = new Wall*[2];
     walls[0] = new Wall(0,T,false);
-    walls[1] = new Wall(L,T,true);
+    walls[1] = new Wall(height,T,true);
 }
 
 void System::initCells() {
-    cells = new Cell*[numberOfCells];
-    for(int n=0;n<numberOfCells;n++) {
-        cells[n] = new Cell(this);
-        cells[n]->vr_max = 3*mpv;
-        cells[n]->index = n;
+    cells = new Cell**[cells_x];
+
+    for(int i=0;i<cells_x;i++) {
+        cells[i] = new Cell*[cells_y];
+
+        for(int j=0;j<cells_y;j++) {
+            cells[i][j] = new Cell(this);
+            cells[i][j]->vr_max = 3*mpv;
+        }
 	}
 }
 
 void System::initMolecules() {
     molecules = new Molecule*[N];
+
     for(int n=0;n<N;n++) {
         molecules[n] = new Molecule(this);
         molecules[n]->atoms = eff_num;
@@ -177,21 +155,21 @@ void System::initMolecules() {
 }
 
 void System::initPositions() {
-
+    Molecule *m;
     for(int n=0; n<N; n++ ) {
-        molecules[n]->r(0) = L*randoms[0]->nextDouble();
-        molecules[n]->r(1) = L*randoms[0]->nextDouble();
+        m = molecules[n];
+        m->r(0) = width*randoms[0]->nextDouble();
+        m->r(1) = height*randoms[0]->nextDouble();
 	}
 }
 
 void System::initVelocities() {
-	Molecule *molecule;
-
+    Molecule *m;
     for(int n=0; n<N; n++ ) {
-        molecule = molecules[n];
+        m = molecules[n];
 
-        molecule->v(0) = randoms[0]->nextGauss()*sqrt(3.0/2*T);
-        molecule->v(1) = randoms[0]->nextGauss()*sqrt(3.0/2*T);
+        m->v(0) = randoms[0]->nextGauss()*sqrt(3.0/2*T);
+        m->v(1) = randoms[0]->nextGauss()*sqrt(3.0/2*T);
   	}
 }
 

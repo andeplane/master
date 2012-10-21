@@ -16,17 +16,10 @@ int main(int args, char* argv[]) {
 
     ini.load("dsmc.ini");
     bool printPositions = ini.getbool("printPositions");
-
-
-    int N = ini.getint("N");
-    double T = ini.getdouble("T");
     int timesteps = ini.getint("timesteps");
-    int threads = ini.getint("threads");
-
-
 
     System system;
-    system.initialize(N,T,threads);
+    system.initialize(ini);
 
     StatisticsSampler *sampler = new StatisticsSampler(&system, timesteps);
 

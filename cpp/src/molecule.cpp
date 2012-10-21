@@ -19,9 +19,6 @@ inline int sign(double a) {
 }
 
 void Molecule::move(double dt, Random *rnd) {
-
-    double L = system->L;
-
     double y_old = r(1);
     r += v*dt;
 
@@ -43,6 +40,6 @@ void Molecule::move(double dt, Random *rnd) {
         r += v*(dt-tau);
 	}
 
-    r(0) = fmod(r(0)+10*L,L);
-    r(1) = fmod(r(1)+10*L,L);
+    r(0) = fmod(r(0)+10*system->width,system->width);
+    r(1) = fmod(r(1)+10*system->height,system->height);
 }
