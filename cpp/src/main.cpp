@@ -3,31 +3,37 @@
 #include "time.h"
 #include <armadillo>
 #include <fstream>
-#include "System.h"
-#include "StatisticsSampler.h"
-#include "defines.h"
+#include <System.h>
+#include <StatisticsSampler.h>
+#include <defines.h>
+#include <CIniFile.h>
 
 using namespace std;
 
 int main(int args, char* argv[]) {
-    if(args == 2 && atoi(argv[1]) == -1) {
-        printf("Run with:\n\n");
-        printf("dsmc printPositions[0|1] N[int] T[double] timesteps[int]\n\n");
-        return 0;
-    }
 
-    bool printPositions = args > 1 ? atoi(argv[1]) : false;
-    int N = args > 2 ? atoi(argv[2]) : 10000;
-    int T = args > 3 ? atof(argv[3]) : 3;
-    int timesteps = args > 4 ? atof(argv[4]) : 1000;
+    CIniFile ini;
 
-    System *system = new System(N,T);
-    StatisticsSampler *sampler = new StatisticsSampler(system, timesteps);
+    ini.load("dsmc.ini");
+    bool printPositions = ini.getbool("printPositions");
+
+
+    int N = ini.getint("N");
+    double T = ini.getdouble("T");
+    int timesteps = ini.getint("timesteps");
+    int threads = ini.getint("threads");
+
+
+
+    System system;
+    system.initialize(N,T,threads);
+
+    StatisticsSampler *sampler = new StatisticsSampler(&system, timesteps);
 
     FILE *positions = 0;
     if(printPositions) {
         positions = fopen("pos.xyz","w");
-        system->printPositionsToFile(positions);
+        system.printPositionsToFile(positions);
     }
 
     for(int i=0;i<timesteps;i++) {
@@ -35,19 +41,25 @@ int main(int args, char* argv[]) {
             printf("%d%%..",(100*i)/timesteps);
             fflush(stdout);
         }
-        system->step();
+        system.step();
 
         sampler->sample();
 
-        if(printPositions) system->printPositionsToFile(positions);
+        if(printPositions) system.printPositionsToFile(positions);
     }
 
     sampler->finish();
 
     printf("100%%\n\n");
+    printf("Time consumption: \n");
+    printf("Sorting: %.2f s\n",system.time_consumption[SORT]);
+    printf("Moving: %.2f s\n",system.time_consumption[MOVE]);
+    printf("Collisions: %.2f s\n",system.time_consumption[COLLIDE]);
+    printf("Sampling: %.2f s\n",system.time_consumption[SAMPLE]);
     printf("Summary:\n");
-    printf("Collisions: %d\n",system->collisions);
+    printf("Collisions: %d\n",system.collisions);
     printf("Average temperature: %.3f\n",sampler->temperatureSum/sampler->temperatureSamples);
+
 
     return 0;
 }

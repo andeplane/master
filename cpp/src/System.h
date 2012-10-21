@@ -5,40 +5,40 @@ class Molecule;
 class Cell;
 class Sorter;
 class Wall;
-class CollisionObject;
 
 #include <fstream>
 #include "Molecule.h"
 #include "Cell.h"
 #include "Sorter.h"
 #include "Wall.h"
-#include "CollisionObject.h"
 #include "Random.h"
+#include <vector>
 
 using namespace std;
 using namespace arma;
 
 class System {
 private:
-	void initialize();
 	void initPositions();
 	void initVelocities();
 	void initMolecules();
 	void initCells();
 	void initWalls();
-	void initObjects();
 	void move();
 	int  collide();
 	void accelerate();
 public:
-	Molecule **molecules;
-	Cell **cells;
+
+    Molecule **molecules;
+    Cell **cells;
 	Wall **walls;
-	CollisionObject **objects;
     Random **randoms;
 
 	int N; 			// Number of molecules
-	double L;
+
+    double width;
+    double height;
+
 	double volume;
 	double eff_num;
 	double mpv; 	// Most probable velocity
@@ -50,16 +50,17 @@ public:
 	double *time_consumption;
 	int numberOfCells;
 	int cellsPerDimension;
+    int threads;
 	int collisions;
 	int steps;
 
 	Sorter *sorter;
 
 	void printPositionsToFile(FILE *file);
-
+    void initialize(int N, double T, int threads);
 	void step();
 	double rand_gauss(long *idum);
-	System(int N, double T);
+    System() { }
 };
 
 

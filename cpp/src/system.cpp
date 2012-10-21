@@ -1,37 +1,25 @@
 #include <iostream>
 #include <math.h>
 #include <fstream>
-#include "Molecule.h"
-#include "System.h"
+#include <Molecule.h>
+#include <System.h>
 #include <time.h>
-#include "defines.h"
-#include "CollisionObject.h"
-
+#include <omp.h>
+#include <defines.h>
 const double boltz = 1.0;    // Boltzmann's constant (J/K)
 double mass = 1.0;     	    // Mass of argon atom (kg)
 double diam = 3.66e-4;    	  	    // Effective diameter of argon atom (m)
 double density = 26850000;		    // Number density of argon at STP (L^-3)
 
-
-System::System(int _N, double _T) {
-    N = _N;
-    L = 1.0;
-    T = _T;
-	
-	printf("Initializing system...");
-    initialize();
-	printf("done.\n\n");
-    printf("%d atoms per molecule\n",(int)eff_num);
-    printf("%d cells in each dimension\n",cellsPerDimension);
-    printf("%d particles in each cell \n",N/numberOfCells);
-    printf("%.2f mean free paths (system width)\n",L/mfp);
-    printf("%.2f mean free paths (cell width)\n",L/(cellsPerDimension*mfp));
-    printf("dt = %f\n\n",dt);
-}
-
 void System::move() {
-    for(int n=0; n< N; n++ )
-        molecules[n]->move(dt,randoms[0]);
+#pragma omp parallel num_threads(threads)
+    {
+        int thread_id = omp_get_thread_num();
+        Random *rnd = randoms[thread_id];
+        #pragma omp for
+        for(int n=0; n< N; n++ )
+            molecules[n]->move(dt,rnd);
+    }
 }
 
 int System::collide() {
@@ -41,17 +29,22 @@ int System::collide() {
 
     int numCells = numberOfCells;
 
-	int n;
-// #pragma omp parallel
-// {
+#pragma omp parallel num_threads(threads)
+{
 	int local_col = 0;
-    // #pragma omp for
-	for(n=0; n<numCells; n++ ) {
-        local_col += cells[n]->collide(randoms[0]);
+    int thread_id = omp_get_thread_num();
+
+    Random *rnd = randoms[thread_id];
+    #pragma omp for
+    for(int n=0; n<numCells; n++ ) {
+        local_col += cells[n]->collide(rnd);
 	}
 
-	col += local_col;
-// }
+    #pragma omp critical
+    {
+        col += local_col;
+    }
+}
 
 
 	return col;
@@ -103,12 +96,21 @@ void System::step() {
     accelerate();
 }
 
-void System::initialize() {
+void System::initialize(int _N, double _T, int _threads) {
+    N = _N;
+
+    width = 20.0;
+    height = 1;
+
+    T = _T;
+    threads = _threads;
+
+    printf("Initializing system...");
     time_consumption = new double[4];
 	for(int i=0;i<4;i++)
         time_consumption[i] = 0;
 
-    volume = pow(L,2);
+    volume = width*height;
     steps = 0;
     eff_num = density*volume/N;
 
@@ -133,24 +135,19 @@ void System::initialize() {
     initMolecules();
     initCells();
     initWalls();
-    initObjects();
     collisions = 0;
 
     sorter = new Sorter(this);
 	
     t = 0;
-}
 
-void System::initObjects() {
-    return;
-/*
-    objects = new CollisionObject*[1];
-	vec center = zeros<vec>(2,1);
-    center(0) = L/2;
-    center(1) = L/2;
-
-    objects[0] = new Box(this, center, L/3, L/3, T);
-    */
+    printf("done.\n\n");
+    printf("%d atoms per molecule\n",(int)eff_num);
+    printf("%d cells in each dimension\n",cellsPerDimension);
+    printf("%d particles in each cell \n",N/numberOfCells);
+    printf("%.2f mean free paths (system width)\n",L/mfp);
+    printf("%.2f mean free paths (cell width)\n",L/(cellsPerDimension*mfp));
+    printf("dt = %f\n\n",dt);
 }
 
 void System::initWalls() {

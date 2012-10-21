@@ -4,53 +4,53 @@
 
 using namespace std;
 
-Cell::Cell(System *system) {
-    this->system = system;
-    this->vr_max = 0;
-    this->particles = 0;
-    this->momentum = zeros<vec>(3,1);
-    this->energy = 0;
-    this->density = 0;
+Cell::Cell(System *_system) {
+    system = _system;
+    vr_max = 0;
+    particles = 0;
+    momentum = zeros<vec>(3,1);
+    energy = 0;
+    density = 0;
 	double cellLength = system->L / system->cellsPerDimension;
-    this->volume = cellLength*cellLength;
+    volume = cellLength*cellLength;
 }
 
 void Cell::reset() {
-    this->particles = 0;
-    this->firstParticleIndex = 0;
+    particles = 0;
+    firstParticleIndex = 0;
 }
 
 void Cell::sampleStatistics() {
 	// Calculate energy
-    this->energy = 0;
-    this->density = 0;
-    this->momentum.zeros();
+    energy = 0;
+    density = 0;
+    momentum.zeros();
 	Molecule *molecule;
-    for(int i=0;i<this->particles;i++) {
-        molecule = this->system->molecules[this->firstParticleIndex+i];
+    for(int i=0;i<particles;i++) {
+        molecule = system->molecules[firstParticleIndex+i];
 		
-        this->energy   += 0.5*molecule->atoms*dot(molecule->v,molecule->v);
-        this->momentum += molecule->atoms*molecule->v;
-        this->density  += molecule->atoms;
+        energy   += 0.5*molecule->atoms*dot(molecule->v,molecule->v);
+        momentum += molecule->atoms*molecule->v;
+        density  += molecule->atoms;
 	}
 
-    this->energy /= this->volume;
-    this->density /= this->volume;
-    this->momentum /= this->volume;
+    energy /= volume;
+    density /= volume;
+    momentum /= volume;
 }
 
 int Cell::collide(Random *rnd) {
 	//* Skip cells with only one particle
-    if( this->particles < 1 ) return 0;  // Skip to the next cell
+    if( particles < 1 ) return 0;  // Skip to the next cell
 
-    Sorter *sorter = this->system->sorter;
-    Molecule **molecules = this->system->molecules;
+    Sorter *sorter = system->sorter;
+    Molecule **molecules = system->molecules;
 
 	//* Determine number of candidate collision pairs to be selected in this cell
-    double select = this->system->coeff*this->particles*(this->particles-1)*this->vr_max;
+    double select = system->coeff*particles*(particles-1)*vr_max;
 
 	int nsel = round(select);      // Number of pairs to be selected
-    double crm = this->vr_max;     // Current maximum relative speed
+    double crm = vr_max;     // Current maximum relative speed
 
 	//* Loop over total number of candidate collision pairs
 	int isel, collisions = 0;
@@ -62,11 +62,11 @@ int Cell::collide(Random *rnd) {
 
 	for( isel=0; isel<nsel; isel++ ) {
 		//* Pick two particles at random out of this cell
-        int k = (int)(rnd->nextDouble()*this->particles);
-        int kk = ((int)(k+1+rnd->nextDouble()*(this->particles-1))) % this->particles;
+        int k = (int)(rnd->nextDouble()*particles);
+        int kk = ((int)(k+1+rnd->nextDouble()*(particles-1))) % particles;
 
-        int ip1 = sorter->Xref[ k+this->firstParticleIndex ];      // First particle index
-        int ip2 = sorter->Xref[ kk+this->firstParticleIndex ];     // Second particle index
+        int ip1 = sorter->Xref[ k+firstParticleIndex ];      // First particle index
+        int ip2 = sorter->Xref[ kk+firstParticleIndex ];     // Second particle index
 		molecule1 = molecules[ip1];
 		molecule2 = molecules[ip2];
 
@@ -77,7 +77,7 @@ int Cell::collide(Random *rnd) {
 		crm = cr;            // then reset crm to larger value
 
 		//* Accept or reject candidate pair according to relative speed
-        if( cr > rnd->nextDouble()*this->vr_max ) {
+        if( cr > rnd->nextDouble()*vr_max ) {
 			//* If pair accepted, select post-collision velocities
 			collisions++;
 
@@ -94,7 +94,7 @@ int Cell::collide(Random *rnd) {
 		} // Loop over pairs
 	}
 	
-    this->vr_max = crm;
+    vr_max = crm;
 
 	return collisions;
 }
