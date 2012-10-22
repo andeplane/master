@@ -1,10 +1,10 @@
 TEMPLATE = app
 CONFIG += console
 CONFIG -= qt
-LIBS   += -larmadillo -fopenmp
-INCLUDEPATH += -fopenmp
-QMAKE_CXXFLAGS += -fopenmp
-QMAKE_LFLAGS += -fopenmp
+LIBS   += -larmadillo -openmp
+INCLUDEPATH += -openmp
+QMAKE_CXXFLAGS += -openmp
+QMAKE_LFLAGS += -openmp
 
 SOURCES += main.cpp \
     system.cpp \
@@ -14,6 +14,7 @@ SOURCES += main.cpp \
     statisticssampler.cpp \
     wall.cpp \
     Random.cpp \
+    grid.cpp
 
 HEADERS += \
     system.h \
@@ -22,7 +23,8 @@ HEADERS += \
     sorter.h \
     statisticssampler.h \
     wall.h \
-    Random.h
+    Random.h \
+    grid.h
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../CiRIOBase/release/ -lCiRIOBase
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../CiRIOBase/debug/ -lCiRIOBase

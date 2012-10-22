@@ -22,7 +22,8 @@ public:
 
     Molecule(System *system);
 	void addR(vec dr);
-    void move(double dt, Random *rnd);
+    void move(double dt, Random *rnd, int depth = 0);
+    void move_old(double dt, Random *rnd);
 };
 
 #endif

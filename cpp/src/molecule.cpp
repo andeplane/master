@@ -18,7 +18,52 @@ inline int sign(double a) {
 	return a >= 0 ? 1 : -1;
 }
 
-void Molecule::move(double dt, Random *rnd) {
+void Molecule::move(double dt, Random *rnd, int depth) {
+    move_old(dt,rnd);
+    return;
+
+    int resolution = 5;
+
+    double tau = dt;
+    r += v*dt;
+
+    bool didCollide = system->world_grid->get_grid_point(r(0),r(1));
+
+    // We have to calculate time until collision
+    if(didCollide) {
+        for(int d=1;d<resolution;d++) {
+            // Go back in time, try with another timestep
+            r -= v*tau;
+            tau = d*dt/resolution;
+            r += v*tau;
+
+            didCollide = system->world_grid->get_grid_point(r(0),r(1));
+            if(didCollide) {
+                r -= v*tau;
+                tau = (d-1)*dt/resolution;
+                r += v*tau;
+
+                break;
+            }
+        }
+        /*
+        int sign = 2*(v(0)*v(1)) - 1;
+        double theta = -3*sign*M_PI/2;
+        v(0) = v(0)*cos(theta) - v(1)*sin(theta);
+        v(1) = v(0)*sin(theta) + v(1)*cos(theta);
+        */
+        v = -v;
+    }
+    if(dt-tau > 1e-8)
+        move(dt-tau,rnd,depth+1);
+
+    if(depth == 0) {
+        r(0) = fmod(r(0)+10*system->width,system->width);
+        r(1) = fmod(r(1)+10*system->height,system->height);
+    }
+}
+
+void Molecule::move_old(double dt, Random *rnd) {
     double y_old = r(1);
     r += v*dt;
 

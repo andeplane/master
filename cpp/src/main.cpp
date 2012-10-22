@@ -11,7 +11,6 @@
 using namespace std;
 
 int main(int args, char* argv[]) {
-
     CIniFile ini;
 
     ini.load("dsmc.ini");

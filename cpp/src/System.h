@@ -1,10 +1,10 @@
-#ifndef SYSTEM_H
-#define SYSTEM_H
+#pragma once
 
 class Molecule;
 class Cell;
 class Sorter;
 class Wall;
+class Grid;
 
 #include <fstream>
 #include "Molecule.h"
@@ -14,6 +14,7 @@ class Wall;
 #include "Random.h"
 #include <vector>
 #include <CIniFile.h>
+#include <grid.h>
 
 using namespace std;
 using namespace arma;
@@ -31,6 +32,7 @@ private:
 public:
     Molecule **molecules;
     Cell ***cells;
+    Grid *world_grid;
 
 	Wall **walls;
     Random **randoms;
@@ -39,7 +41,7 @@ public:
 
     double width;
     double height;
-
+    double acceleration;
 	double volume;
 	double eff_num;
 	double mpv; 	// Most probable velocity
@@ -65,6 +67,3 @@ public:
 	double rand_gauss(long *idum);
     System() { }
 };
-
-
-#endif

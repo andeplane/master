@@ -1,0 +1,215 @@
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/30/trunk/CiRIOBase/source
+END
+CBass.h
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/23/trunk/CiRIOBase/source/CBass.h
+END
+CMath.h
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/21/trunk/CiRIOBase/source/CMath.h
+END
+CShaders.h
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/30/trunk/CiRIOBase/source/CShaders.h
+END
+CTentacle.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/28/trunk/CiRIOBase/source/CTentacle.cpp
+END
+CGeometry.h
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/21/trunk/CiRIOBase/source/CGeometry.h
+END
+CApplication.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/27/trunk/CiRIOBase/source/CApplication.cpp
+END
+CTexture.h
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/13/trunk/CiRIOBase/source/CTexture.h
+END
+CVector.h
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/28/trunk/CiRIOBase/source/CVector.h
+END
+CDots.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/27/trunk/CiRIOBase/source/CDots.cpp
+END
+C2DField.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/27/trunk/CiRIOBase/source/C2DField.cpp
+END
+CMatrix.h
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/12/trunk/CiRIOBase/source/CMatrix.h
+END
+OGLShader.h
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/30/trunk/CiRIOBase/source/OGLShader.h
+END
+CBitMap.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/28/trunk/CiRIOBase/source/CBitMap.cpp
+END
+CUtil.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/28/trunk/CiRIOBase/source/CUtil.cpp
+END
+VoronoiDiagramGenerator.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/24/trunk/CiRIOBase/source/VoronoiDiagramGenerator.cpp
+END
+CIniFile.h
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/20/trunk/CiRIOBase/source/CIniFile.h
+END
+CMath.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/27/trunk/CiRIOBase/source/CMath.cpp
+END
+CShaders.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/30/trunk/CiRIOBase/source/CShaders.cpp
+END
+COpenGL.h
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/28/trunk/CiRIOBase/source/COpenGL.h
+END
+CTextureMachine.h
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/20/trunk/CiRIOBase/source/CTextureMachine.h
+END
+CGeometry.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/27/trunk/CiRIOBase/source/CGeometry.cpp
+END
+CMisc.h
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/20/trunk/CiRIOBase/source/CMisc.h
+END
+CTexture.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/24/trunk/CiRIOBase/source/CTexture.cpp
+END
+CVector.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/27/trunk/CiRIOBase/source/CVector.cpp
+END
+CTentacle.h
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/23/trunk/CiRIOBase/source/CTentacle.h
+END
+OGLShader.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/30/trunk/CiRIOBase/source/OGLShader.cpp
+END
+CApplication.h
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/24/trunk/CiRIOBase/source/CApplication.h
+END
+CDots.h
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/20/trunk/CiRIOBase/source/CDots.h
+END
+C2DField.h
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/27/trunk/CiRIOBase/source/C2DField.h
+END
+#OGLShader.h#
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/12/trunk/CiRIOBase/source/%23OGLShader.h%23
+END
+CBitMap.h
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/24/trunk/CiRIOBase/source/CBitMap.h
+END
+CUtil.h
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/27/trunk/CiRIOBase/source/CUtil.h
+END
+COpenGL.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/27/trunk/CiRIOBase/source/COpenGL.cpp
+END
+CTextureMachine.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/27/trunk/CiRIOBase/source/CTextureMachine.cpp
+END
+VoronoiDiagramGenerator.h
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/19/trunk/CiRIOBase/source/VoronoiDiagramGenerator.h
+END
