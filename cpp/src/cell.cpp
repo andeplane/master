@@ -1,6 +1,7 @@
 #include "Cell.h"
 #include <math.h>
 #include <time.h>
+#include <molecule.h>
 
 using namespace std;
 
@@ -31,13 +32,15 @@ void Cell::sampleStatistics() {
     energy = 0;
     density = 0;
     momentum.zeros();
+
 	Molecule *molecule;
     int particleIndex;
     for(int i=0;i<particles;i++) {
         particleIndex = particle_indices[i];
         molecule = system->molecules[particleIndex];
-		
+
         energy   += 0.5*molecule->atoms*dot(molecule->v,molecule->v);
+
         momentum += molecule->atoms*molecule->v;
         density  += molecule->atoms;
 	}

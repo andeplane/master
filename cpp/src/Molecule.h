@@ -14,9 +14,10 @@ class Molecule {
 public:
 	char   type;
 	int    atoms;
+    int    index;
 
-	vec r;
-	vec v;
+    vec r;
+    vec v;
 
     System *system;
 

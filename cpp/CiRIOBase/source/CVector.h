@@ -138,7 +138,8 @@ class CVector  {
   inline CVector Normalize() const {
     double length = Length();
     if (length!=0)
-      return *this/length;
+        return *this/length;
+    else return CVector();
   }
   
   inline double Dot( const CVector& o) const {

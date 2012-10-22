@@ -38,7 +38,8 @@ void StatisticsSampler::calculateTemperature() {
 	
     Molecule **molecules = system->molecules;
 	for(int n=0;n<N;n++) {
-		energy += dot(molecules[n]->v,molecules[n]->v);
+
+        energy += dot(molecules[n]->v,molecules[n]->v);
 	}
 
     double T = energy/(3*N);
@@ -46,10 +47,6 @@ void StatisticsSampler::calculateTemperature() {
     temperatureSum += T;
 	
     fprintf(temperatureFile, "%f %f \n",system->t, T);
-}
-
-inline int calcCellIndex(int i, int j, int k, int cellsPerDimension) {
-	return k*cellsPerDimension*cellsPerDimension + j*cellsPerDimension + i;
 }
 
 void StatisticsSampler::calculateVelocityProfile() {
@@ -65,8 +62,8 @@ void StatisticsSampler::calculateVelocityProfile() {
 	int n;
 	for(int i=0;i<this->system->N;i++) {
         molecule = system->molecules[i];
-        n = N*molecule->r(1)/system->width;
-		velocities[n] += molecule->v(0);
+        n = N*molecule->r(1)/system->height;
+        velocities[n] += molecule->v(0);
 	}
 	
 	for(int n=0;n<N;n++) 

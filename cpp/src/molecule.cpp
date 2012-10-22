@@ -3,6 +3,7 @@
 #include <math.h>
 #include "Wall.h"
 #include "omp.h"
+#include <CVector.h>
 using namespace std;
 
 Molecule::Molecule(System *_system) {
@@ -19,43 +20,81 @@ inline int sign(double a) {
 }
 
 void Molecule::move(double dt, Random *rnd, int depth) {
-    move_old(dt,rnd);
-    return;
-
-    int resolution = 5;
-
     double tau = dt;
-    r += v*dt;
+    // cout << "i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << endl;
 
-    bool didCollide = system->world_grid->get_grid_point(r(0),r(1));
+    r += v*dt;
+    // cout << "moved, i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << endl;
+
+    GridPoint *point = system->world_grid->get_grid_point(r);
 
     // We have to calculate time until collision
-    if(didCollide) {
-        for(int d=1;d<resolution;d++) {
-            // Go back in time, try with another timestep
-            r -= v*tau;
-            tau = d*dt/resolution;
-            r += v*tau;
+    if(point->is_wall) {
+        // cout << "Is wall: " << point->i << ", " << point->j << endl<< endl<< endl<< endl;
+        // cout << "Is boundary? " << point->is_wall_boundary << endl;
+        if(!point->is_wall_boundary) {
+            int count = 0;
+            while(true) {
+                point = system->world_grid->get_grid_point(r);
+                // cout << "I am now at " << point->i << ", " << point->j << "is boundary: " << point->is_wall_boundary << endl;
 
-            didCollide = system->world_grid->get_grid_point(r(0),r(1));
-            if(didCollide) {
-                r -= v*tau;
-                tau = (d-1)*dt/resolution;
+                if(point->is_wall_boundary) {
+                    dt -= tau;
+
+                    while(system->world_grid->get_grid_point(r)->is_wall) {
+                        dt += 0.1*tau;
+                        r -= 0.1*v*tau;
+                    }
+                    // cout<< "I did break here" << endl;
+                    break;
+                }
+
+                if(point->is_wall) {
+                    r -= v*tau;
+                    tau /= 2;
+                    // cout << "is wall, moved back to: i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << endl;
+                }
+                else {
+                    // cout << "is not wall, moving forward" << endl;
+                    dt -= tau;
+                }
+
+                if(++count > 100) {
+                    cout << "Damn, we screwed up at " << point->i << " , " << point->j << endl;
+                    exit(1);
+                }
+
                 r += v*tau;
-
-                break;
             }
         }
-        /*
-        int sign = 2*(v(0)*v(1)) - 1;
-        double theta = -3*sign*M_PI/2;
-        v(0) = v(0)*cos(theta) - v(1)*sin(theta);
-        v(1) = v(0)*sin(theta) + v(1)*cos(theta);
-        */
-        v = -v;
+        else {
+            // This was actually the boundary
+            while(system->world_grid->get_grid_point(r)->is_wall) {
+                dt += 0.1*tau;
+                r -= 0.1*v*tau;
+            }
+        }
+
+        double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
+        double v_tangent = sqrt(3.0/2*point->T)*rnd->nextGauss();
+
+        v(0) = v_normal*point->normal.x + v_tangent*point->tangent.x;
+        v(1) = v_normal*point->normal.y + v_tangent*point->tangent.y;
+
     }
-    if(dt-tau > 1e-8)
-        move(dt-tau,rnd,depth+1);
+    else dt = 0;
+
+    r += v*dt;
+
+    if(system->world_grid->get_grid_point(r)->is_wall) {
+        GridPoint *p = system->world_grid->get_grid_point(r);
+
+        cout << "OMFG, WE CAN'T WORK LIKE THIS!" << endl;
+        cout << "Sorry, I suck at " << p->i << ", " << p->j << endl;
+        cout << "Normal vector: " << endl << p->normal << endl;
+        cout << "Tangent vector: " << endl << p->tangent << endl;
+        exit(1);
+    }
 
     if(depth == 0) {
         r(0) = fmod(r(0)+10*system->width,system->width);

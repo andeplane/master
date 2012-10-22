@@ -1,21 +1,22 @@
 function testNorm()
     %r = rand(3,3);
     %m = r>0.5
-    m = [1 1 1;
-         1 1 1;
-         0 0 0]
+    m = [1.0000   1.0000   1.0000;
+         1.0000   1.0000   1.0000;
+         1        1        1]
+     
     v = [0 0];
     
     for i=1:3
         for j=1:3
-           if (i==j && i == 2)
-              continue; 
-           end
-           v(1) = v(1)-m(i,j)*(j-2);
-           v(2) = v(2)+m(i,j)*(i-2);
+           k = i-2;
+           l = j-2;
+           
+           v(1) = v(1)-m(i,j)*k;
+           v(2) = v(2)+m(i,j)*l;
         end
     end
-    v = v/norm(v);
+    v = v/norm(v)
     
     figure
     subplot(2,2,1)

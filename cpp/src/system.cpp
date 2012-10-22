@@ -22,9 +22,7 @@ void System::initialize(CIniFile &ini) {
     T       = ini.getdouble("T");
     threads = ini.getint("threads");
     mat world   = readBMP((char*)ini.getstring("world").c_str());
-
-    world_grid = new Grid(world);
-
+    world_grid = new Grid(world,this);
     acceleration = ini.getdouble("acceleration");
 
     printf("Initializing system...");
@@ -45,16 +43,16 @@ void System::initialize(CIniFile &ini) {
     double cell_size = width/cells_x;
 
     dt = 0.2*cell_size/mpv;       // Set timestep dt
+    dt *= ini.getdouble("dt_factor");
+
     coeff = 0.5*eff_num*M_PI*diam*diam*dt/(volume/numberOfCells);
 
     randoms = new Random*[16];
     for(int i=0;i<16;i++)
         randoms[i] = new Random(-(i+1));
-
     initMolecules();
     initCells();
     initWalls();
-
     sorter = new Sorter(this);
 
     printf("done.\n\n");
@@ -89,7 +87,8 @@ void System::step() {
     t0 = clock();
 
     double E = 0;
-    vec p = zeros<vec>(3,1);
+    vec p(3,1);
+
     double density = 0;
 
    //  #pragma omp parallel for
@@ -98,9 +97,10 @@ void System::step() {
         for(int j=0;j<cells_y;j++) {
             c = cells[i][j];
             c->sampleStatistics();
-            E += c->energy;
-            p += c->momentum;
-            density += c->density;
+            // E += c->energy;
+            // p += c->momentum;
+
+            // density += c->density;
     }
 
     time_consumption[SAMPLE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
@@ -158,19 +158,18 @@ void System::initCells() {
 
 void System::initMolecules() {
     molecules = new Molecule*[N];
-
     for(int n=0;n<N;n++) {
         molecules[n] = new Molecule(this);
         molecules[n]->atoms = eff_num;
+        molecules[n]->index = n;
 	}
-
     initPositions();
     initVelocities();
 }
 
 void System::initPositions() {
     Molecule *m;
-    int w_x,w_y;
+
     bool didCollide;
 
     for(int n=0; n<N; n++ ) {
@@ -179,10 +178,8 @@ void System::initPositions() {
         while(didCollide) {
             m->r(0) = width*randoms[0]->nextDouble();
             m->r(1) = height*randoms[0]->nextDouble();
-            w_x = (int)(m->r(0)/width*world_grid->cols);
-            w_y = (int)(m->r(1)/height*world_grid->rows);
 
-            didCollide = world_grid->get_grid_point(w_x,w_y)->is_wall;
+            didCollide = world_grid->get_grid_point(m->r(0),m->r(1))->is_wall;
         }
 	}
 }

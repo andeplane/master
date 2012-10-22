@@ -5,6 +5,7 @@ class System;
 #include "Molecule.h"
 #include "System.h"
 #include <armadillo>
+#include <CVector.h>
 
 using namespace arma;
 using namespace std;
@@ -18,7 +19,7 @@ public:
 
 	double energy;
 	double density;
-	vec momentum;
+    vec momentum;
 
 	int particles;
     int particle_capacity;
