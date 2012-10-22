@@ -13,6 +13,7 @@ Molecule::Molecule(System *_system) {
     atoms = 1;
     type = 0;
     system = _system;
+    active = true;
 }
 
 inline int sign(double a) {
@@ -20,6 +21,8 @@ inline int sign(double a) {
 }
 
 void Molecule::move(double dt, Random *rnd, int depth) {
+    if(!active) return;
+    GridPoint *p0 = system->world_grid->get_grid_point(r);
     double tau = dt;
     // cout << "i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << endl;
 
@@ -30,7 +33,8 @@ void Molecule::move(double dt, Random *rnd, int depth) {
 
     // We have to calculate time until collision
     if(point->is_wall) {
-        // cout << "Is wall: " << point->i << ", " << point->j << endl<< endl<< endl<< endl;
+        // cout << endl<< endl<< endl << "Particle " << index << " started at " << p0->i << ", " << p0->j << " boundary: " << p0->is_wall_boundary << " wall: " << p0->is_wall << endl;
+        // cout <<  "Is wall: " << point->i << ", " << point->j << endl;
         // cout << "Is boundary? " << point->is_wall_boundary << endl;
         if(!point->is_wall_boundary) {
             int count = 0;
@@ -45,22 +49,25 @@ void Molecule::move(double dt, Random *rnd, int depth) {
                         dt += 0.1*tau;
                         r -= 0.1*v*tau;
                     }
-                    // cout<< "I did break here" << endl;
+                    // cout<< "I did break here, dt left: " << dt << endl;
                     break;
                 }
 
                 if(point->is_wall) {
                     r -= v*tau;
                     tau /= 2;
-                    // cout << "is wall, moved back to: i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << endl;
+                    // cout << "is wall, moved back to: i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << " is wall: " << system->world_grid->get_grid_point(r)->is_wall << endl;
                 }
                 else {
-                    // cout << "is not wall, moving forward" << endl;
+                     // cout << "is not wall, moving forward" << endl;
                     dt -= tau;
                 }
 
                 if(++count > 100) {
-                    cout << "Damn, we screwed up at " << point->i << " , " << point->j << endl;
+                    // cout << "Damn, we screwed up at " << point->i << " , " << point->j << endl;
+                    active = false;
+                    r.zeros();
+                    cout << "Trouble at " << point->i << ", " << point->j << endl;
                     exit(1);
                 }
 
@@ -69,10 +76,21 @@ void Molecule::move(double dt, Random *rnd, int depth) {
         }
         else {
             // This was actually the boundary
+            // cout << "Particle " << index << " is at the boundary!" << endl;
+            int count = 0;
             while(system->world_grid->get_grid_point(r)->is_wall) {
                 dt += 0.1*tau;
                 r -= 0.1*v*tau;
+                if(++count > 100) {
+                    active = false;
+                    r.zeros();
+                    cout << "Trouble at " << point->i << ", " << point->j << endl;
+                    return;
+                }
             }
+
+            // cout << "Particle " << index << " is now at index " << system->world_grid->get_grid_point(r)->i << ", " << system->world_grid->get_grid_point(r)->j << " is wall: " << system->world_grid->get_grid_point(r)->is_wall << endl;
+
         }
 
         double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
@@ -84,15 +102,16 @@ void Molecule::move(double dt, Random *rnd, int depth) {
     }
     else dt = 0;
 
-    r += v*dt;
+    if(dt > 1e-10 && depth < 10)
+        move(dt,rnd,depth+1);
+        // r += v*dt;
 
     if(system->world_grid->get_grid_point(r)->is_wall) {
         GridPoint *p = system->world_grid->get_grid_point(r);
 
-        cout << "OMFG, WE CAN'T WORK LIKE THIS!" << endl;
-        cout << "Sorry, I suck at " << p->i << ", " << p->j << endl;
-        cout << "Normal vector: " << endl << p->normal << endl;
-        cout << "Tangent vector: " << endl << p->tangent << endl;
+        cout << "Sorry, particle " << index << " suck at " << p->i << ", " << p->j << endl;
+        cout << p->i << ", " << p->j << " normal vector: " << endl << p->normal << endl;
+        cout << p->i << ", " << p->j << " Tangent vector: " << endl << p->tangent << endl;
         exit(1);
     }
 

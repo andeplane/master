@@ -46,12 +46,12 @@ GridPoint* Grid::get_grid_point(const vec r) {
     return get_grid_point(i,j);
 }
 
-// #define DEBUG
+#define DEBUG
 
 void Grid::calculate_normals() {
 #ifdef DEBUG
-    int t_i = 45;
-    int t_j = 502;
+    int t_i = 524;
+    int t_j = 293;
     mat m(3,3);
 #endif
     for(int i=0;i<cols;i++)

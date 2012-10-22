@@ -15,6 +15,7 @@ public:
 	char   type;
 	int    atoms;
     int    index;
+    bool   active;
 
     vec r;
     vec v;

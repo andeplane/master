@@ -179,7 +179,11 @@ void System::initPositions() {
             m->r(0) = width*randoms[0]->nextDouble();
             m->r(1) = height*randoms[0]->nextDouble();
 
-            didCollide = world_grid->get_grid_point(m->r(0),m->r(1))->is_wall;
+            didCollide = world_grid->get_grid_point(m->r)->is_wall;
+        }
+
+        if(n == 290) {
+        //     cout << "290 at " << world_grid->get_grid_point(m->r)->i << ", " << world_grid->get_grid_point(m->r)->j << " wall: " << world_grid->get_grid_point(m->r)->is_wall << endl;
         }
 	}
 }
@@ -240,7 +244,7 @@ mat readBMP(char* filename)
         int b = data[pixelIndex];
 
         double avg = 1.0*(r+g+b)/3.0/255.0; // If we have black/white only, the average is 0 (black) to 255 (white)
-        img(col,height-row-1) = avg;
+        img(col,row) = avg;
 
         pixelCount++;
         pixelIndex+=3; // Each pixel has 3 bytes, RGB

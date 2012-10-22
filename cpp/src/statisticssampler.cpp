@@ -53,7 +53,7 @@ void StatisticsSampler::calculateVelocityProfile() {
     velocityProfileSamples++;
     if(velocityProfileSamples % 5) return;
 
-	int N = 1000;
+    int N = 100;
 	Molecule *molecule;
 	double *velocities = new double[100];
 	for(int n=0;n<N;n++) 
