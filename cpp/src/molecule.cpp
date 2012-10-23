@@ -20,6 +20,8 @@ inline int sign(double a) {
 	return a >= 0 ? 1 : -1;
 }
 
+// #define DEBUG
+
 void Molecule::move(double dt, Random *rnd, int depth) {
     if(!active) return;
     GridPoint *p0 = system->world_grid->get_grid_point(r);
@@ -33,15 +35,20 @@ void Molecule::move(double dt, Random *rnd, int depth) {
 
     // We have to calculate time until collision
     if(point->is_wall) {
-        // cout << endl<< endl<< endl << "Particle " << index << " started at " << p0->i << ", " << p0->j << " boundary: " << p0->is_wall_boundary << " wall: " << p0->is_wall << endl;
-        // cout <<  "Is wall: " << point->i << ", " << point->j << endl;
-        // cout << "Is boundary? " << point->is_wall_boundary << endl;
+#ifdef DEBUG
+        cout << endl << endl << endl <<  "Timestep: " << system->steps << endl;
+        cout << "Particle " << index << " started at " << p0->i << ", " << p0->j << " boundary: " << p0->is_wall_boundary << " wall: " << p0->is_wall << endl;
+        cout <<  "Is wall: " << point->i << ", " << point->j << endl;
+        cout << "Is boundary? " << point->is_wall_boundary << endl;
+#endif
         if(!point->is_wall_boundary) {
             int count = 0;
             while(true) {
                 point = system->world_grid->get_grid_point(r);
-                // cout << "I am now at " << point->i << ", " << point->j << "is boundary: " << point->is_wall_boundary << endl;
-
+#ifdef DEBUG
+                cout << endl << "I am now at " << point->i << ", " << point->j << endl;
+                cout << "Is boundary: " << point->is_wall_boundary << endl;
+#endif
                 if(point->is_wall_boundary) {
                     dt -= tau;
 
@@ -49,25 +56,31 @@ void Molecule::move(double dt, Random *rnd, int depth) {
                         dt += 0.1*tau;
                         r -= 0.1*v*tau;
                     }
-                    // cout<< "I did break here, dt left: " << dt << endl;
+#ifdef DEBUG
+                    cout<< "I did break here, dt left: " << dt << endl;
+#endif
                     break;
                 }
 
                 if(point->is_wall) {
                     r -= v*tau;
                     tau /= 2;
-                    // cout << "is wall, moved back to: i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << " is wall: " << system->world_grid->get_grid_point(r)->is_wall << endl;
+#ifdef DEBUG
+                    cout << "Moved back to: i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << ". Is wall: " << system->world_grid->get_grid_point(r)->is_wall << endl;
+#endif
                 }
                 else {
-                     // cout << "is not wall, moving forward" << endl;
+#ifdef DEBUG
+                    cout << "is not wall, moving forward" << endl;
+#endif
                     dt -= tau;
                 }
 
                 if(++count > 100) {
-                    // cout << "Damn, we screwed up at " << point->i << " , " << point->j << endl;
                     active = false;
                     r.zeros();
                     cout << "Trouble at " << point->i << ", " << point->j << endl;
+
                     exit(1);
                 }
 
@@ -84,7 +97,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
                 if(++count > 100) {
                     active = false;
                     r.zeros();
-                    cout << "Trouble at " << point->i << ", " << point->j << endl;
+                    cout << "Another kind of trouble at " << point->i << ", " << point->j << endl;
                     return;
                 }
             }
@@ -106,6 +119,14 @@ void Molecule::move(double dt, Random *rnd, int depth) {
         move(dt,rnd,depth+1);
         // r += v*dt;
 
+    if(false && index == 594 && depth == 0) {
+        GridPoint *p = system->world_grid->get_grid_point(r);
+
+        cout << index << " is at " << endl;
+        cout << r << endl;
+        cout << "i,j=" << p->i << ", " << p->j << endl << endl;
+    }
+
     if(system->world_grid->get_grid_point(r)->is_wall) {
         GridPoint *p = system->world_grid->get_grid_point(r);
 
@@ -120,6 +141,8 @@ void Molecule::move(double dt, Random *rnd, int depth) {
         r(1) = fmod(r(1)+10*system->height,system->height);
     }
 }
+
+#undef DEBUG
 
 void Molecule::move_old(double dt, Random *rnd) {
     double y_old = r(1);

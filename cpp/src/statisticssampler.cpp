@@ -1,23 +1,25 @@
-#include "StatisticsSampler.h"
+#include <StatisticsSampler.h>
 #include <armadillo>
-#include "Molecule.h"
-#include "Cell.h"
+#include <Molecule.h>
+#include <Cell.h>
 #include <math.h>
-#include "Sorter.h"
-
+#include <Sorter.h>
+#include <CInIFile.h>
 using namespace arma;
 
-StatisticsSampler::StatisticsSampler(System *_system, int _timesteps) {
+StatisticsSampler::StatisticsSampler(System *_system, CIniFile &ini) {
     system = _system;
-    printTemperature = true;
-    temperatureSamples = 0;
-    temperatureSum = 0;
-    temperatureFile = fopen("temperature.dat","w");
+    print_temperature = ini.getbool("print_temperature");
+    print_velocity_profile = ini.getbool("print_velocity_profile");
 
-    printVelocityProfile = true;
-    velocityProfileSamples = 0;
+    temperature_samples = 0;
+    temperature_sum = 0;
+
+    temperature_file = fopen("temperature.dat","w");
+
+    velocity_profile_samples = 0;
 	
-    velocityFile = fopen("velocity.dat","w");
+    velocity_file = fopen("velocity.dat","w");
 }
 
 void StatisticsSampler::finish() {
@@ -30,28 +32,27 @@ void StatisticsSampler::sample() {
 }
 
 void StatisticsSampler::calculateTemperature() {
-    if(!printTemperature) return;
-    temperatureSamples++;
+    if(!print_temperature) return;
+    if(++temperature_samples % 5) return;
 
     long N = system->N;
 	double energy = 0;
 	
     Molecule **molecules = system->molecules;
 	for(int n=0;n<N;n++) {
-
         energy += dot(molecules[n]->v,molecules[n]->v);
 	}
 
     double T = energy/(3*N);
 
-    temperatureSum += T;
+    temperature_sum += T;
 	
-    fprintf(temperatureFile, "%f %f \n",system->t, T);
+    fprintf(temperature_file, "%f %f \n",system->t, T);
 }
 
 void StatisticsSampler::calculateVelocityProfile() {
-    velocityProfileSamples++;
-    if(velocityProfileSamples % 5) return;
+    if(!print_velocity_profile) return;
+    if(++velocity_profile_samples % 5) return;
 
     int N = 100;
 	Molecule *molecule;
@@ -67,18 +68,7 @@ void StatisticsSampler::calculateVelocityProfile() {
 	}
 	
 	for(int n=0;n<N;n++) 
-        fprintf(velocityFile,"%f ",velocities[n]);
+        fprintf(velocity_file,"%f ",velocities[n]);
 
-    fprintf(velocityFile,"\n");
+    fprintf(velocity_file,"\n");
 }
-
-
-
-
-
-
-
-
-
-
-

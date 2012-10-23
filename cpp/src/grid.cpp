@@ -39,7 +39,11 @@ GridPoint* Grid::get_grid_point(const double x, const double y) {
     return get_grid_point(i,j);
 }
 
-GridPoint* Grid::get_grid_point(const vec r) {
+GridPoint* Grid::get_grid_point(const vec r, const int idx) {
+    if(idx==594) {
+        // cout << "YEAH" << endl;
+    }
+
     int i =  clamp((int)(r(0)/system->width*cols),0,cols-1);
     int j =  clamp((int)(r(1)/system->height*rows),0,rows-1);
 

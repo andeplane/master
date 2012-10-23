@@ -22,7 +22,11 @@ void System::initialize(CIniFile &ini) {
     T       = ini.getdouble("T");
     threads = ini.getint("threads");
     mat world   = readBMP((char*)ini.getstring("world").c_str());
+    mat initial_world = readBMP((char*)ini.getstring("initial_world").c_str());
+
     world_grid = new Grid(world,this);
+    initial_world_grid = new Grid(initial_world,this);
+
     acceleration = ini.getdouble("acceleration");
 
     printf("Initializing system...");
@@ -162,7 +166,7 @@ void System::initMolecules() {
         molecules[n] = new Molecule(this);
         molecules[n]->atoms = eff_num;
         molecules[n]->index = n;
-	}
+    }
     initPositions();
     initVelocities();
 }
@@ -179,11 +183,11 @@ void System::initPositions() {
             m->r(0) = width*randoms[0]->nextDouble();
             m->r(1) = height*randoms[0]->nextDouble();
 
-            didCollide = world_grid->get_grid_point(m->r)->is_wall;
+            didCollide = initial_world_grid->get_grid_point(m->r)->is_wall;
         }
 
-        if(n == 290) {
-        //     cout << "290 at " << world_grid->get_grid_point(m->r)->i << ", " << world_grid->get_grid_point(m->r)->j << " wall: " << world_grid->get_grid_point(m->r)->is_wall << endl;
+        if(n == 594) {
+             // cout << "290 at " << world_grid->get_grid_point(m->r)->i << ", " << world_grid->get_grid_point(m->r)->j << " wall: " << world_grid->get_grid_point(m->r)->is_wall << endl;
         }
 	}
 }

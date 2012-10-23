@@ -34,7 +34,7 @@ public:
     Grid(mat M, System *_system);
     GridPoint *get_grid_point(const int i, const int j);
     GridPoint *get_grid_point(const double x, const double y);
-    GridPoint *get_grid_point(const vec r);
+    GridPoint *get_grid_point(const vec r, const int idx=-1);
     void calculate_inner_points();
     void calculate_normals();
     void calculate_tangents();

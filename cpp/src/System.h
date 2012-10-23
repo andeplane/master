@@ -33,6 +33,7 @@ public:
     Molecule **molecules;
     Cell ***cells;
     Grid *world_grid;
+    Grid *initial_world_grid;
 
 	Wall **walls;
     Random **randoms;

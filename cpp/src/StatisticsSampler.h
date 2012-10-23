@@ -2,24 +2,24 @@
 #define STATISTICSSAMPLER_H
 
 #include <stdio.h>
-#include "System.h"
+#include <System.h>
 #include <fstream>
-
+#include <CIniFile.h>
 class StatisticsSampler {
 private:
 	System *system;
 public:
-	bool printTemperature;
-	int  temperatureSamples;
-	double temperatureSum;
+    bool print_temperature;
+    int  temperature_samples;
+    double temperature_sum;
 
-	bool printVelocityProfile;
-	int  velocityProfileSamples;
+    bool print_velocity_profile;
+    int  velocity_profile_samples;
 	
-	FILE *velocityFile;
-	FILE *temperatureFile;
+    FILE *velocity_file;
+    FILE *temperature_file;
 
-	StatisticsSampler(System *system, int timesteps);
+    StatisticsSampler(System *system, CIniFile &ini);
 	void sample();
 	void calculateTemperature();
 	void calculateVelocityProfile();

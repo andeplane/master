@@ -14,16 +14,16 @@ int main(int args, char* argv[]) {
     CIniFile ini;
 
     ini.load("dsmc.ini");
-    bool printPositions = ini.getbool("printPositions");
+    bool print_positions = ini.getbool("print_positions");
     int timesteps = ini.getint("timesteps");
 
     System system;
     system.initialize(ini);
-
-    StatisticsSampler *sampler = new StatisticsSampler(&system, timesteps);
+    StatisticsSampler sampler(&system, ini);
+    // StatisticsSampler *sampler = new StatisticsSampler(&system, timesteps);
 
     FILE *positions = 0;
-    if(printPositions) {
+    if(print_positions) {
         positions = fopen("pos.xyz","w");
         system.printPositionsToFile(positions);
     }
@@ -35,12 +35,12 @@ int main(int args, char* argv[]) {
         }
         system.step();
 
-        sampler->sample();
+        sampler.sample();
 
-        if(printPositions) system.printPositionsToFile(positions);
+        if(print_positions) system.printPositionsToFile(positions);
     }
 
-    sampler->finish();
+    sampler.finish();
 
     printf("100%%\n\n");
     printf("Time consumption: \n");
@@ -50,7 +50,8 @@ int main(int args, char* argv[]) {
     printf("Sampling: %.2f s\n",system.time_consumption[SAMPLE]);
     printf("Summary:\n");
     printf("Collisions: %d\n",system.collisions);
-    printf("Average temperature: %.3f\n",sampler->temperatureSum/sampler->temperatureSamples);
+    if(ini.getbool("print_temperature"))
+        printf("Average temperature: %.3f\n",sampler.temperature_sum/sampler.temperature_samples);
 
 
     return 0;
