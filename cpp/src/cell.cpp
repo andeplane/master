@@ -94,6 +94,7 @@ int Cell::collide(Random *rnd) {
 			collisions++;
 
 			vcm = 0.5*(molecule1->v+molecule2->v);
+            double len = norm(vcm,2);
 
             cos_th = 1.0 - 2.0*rnd->nextDouble();      // Cosine and sine of
 			sin_th = sqrt(1.0 - cos_th*cos_th); // collision angle theta
@@ -103,6 +104,12 @@ int Cell::collide(Random *rnd) {
 			
 			molecule1->v = vcm + 0.5*vrel;
 			molecule2->v = vcm - 0.5*vrel;
+            vec new_vcm = 0.5*(molecule1->v+molecule2->v);
+
+            double len2 = norm(new_vcm,2);
+            if(abs(len2-len) > 1e-8) {
+                cout << "WHAT the fuck is going on???" << endl;
+            }
 		} // Loop over pairs
 	}
 	

@@ -50,7 +50,7 @@ GridPoint* Grid::get_grid_point(const vec r, const int idx) {
     return get_grid_point(i,j);
 }
 
-#define DEBUG
+// #define DEBUG
 
 void Grid::calculate_normals() {
 #ifdef DEBUG
