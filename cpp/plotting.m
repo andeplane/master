@@ -4,7 +4,6 @@ close all;
 
 %energy = dlmread('energy.dat');
 temperature = dlmread('temperature.dat');
-sum(temperature(:,2))/length(temperature)
 
 velocity = dlmread('velocity.dat');
 
