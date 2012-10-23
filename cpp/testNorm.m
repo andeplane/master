@@ -1,8 +1,12 @@
 function testNorm()
+    tx = @(v) v(2);
+    ty = @(v) v(1);
+    tanvec = @(v) [tx(v) -ty(v)];
+
     %r = rand(3,3);
     %m = r>0.5
     m = [     0        0   1.0000;
-            1.0000   1.0000   1.0000;
+            0.0   1.0000   1.0000;
             1.0000   1.0000   1.0000]
      
     v = [0 0];
@@ -17,6 +21,7 @@ function testNorm()
         end
     end
     v = v/norm(v)
+    t = tanvec(v)
     
     figure
     subplot(2,2,1)
@@ -24,6 +29,8 @@ function testNorm()
     subplot(2,2,2)
     x0 = [0 0];
     vectarrow(x0,v);
+    hold on
+    vectarrow(x0,t);
     axis([-1 1 -1 1])
     %arrow([0,v(1)],[0,v(2)]);
 end

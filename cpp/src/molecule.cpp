@@ -22,6 +22,11 @@ inline int sign(double a) {
 
 // #define DEBUG
 
+inline void Molecule::fixR() {
+    if(r(0) > system->width) r(0) -= system->width;
+    else if(r(0) < 0)        r(0) += system->width;
+}
+
 void Molecule::move(double dt, Random *rnd, int depth) {
     if(!active) return;
 #ifdef DEBUG
@@ -32,8 +37,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
     // cout << "i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << endl;
 
     r += v*dt;
-    r(0) = fmod(r(0)+10*system->width,system->width);
-    r(1) = fmod(r(1)+10*system->height,system->height);
+    fixR();
     // cout << "moved, i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << endl;
 
     GridPoint *point = system->world_grid->get_grid_point(r);
@@ -60,8 +64,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
                     while(system->world_grid->get_grid_point(r)->is_wall) {
                         dt += 0.1*tau;
                         r -= 0.1*v*tau;
-                        r(0) = fmod(r(0)+10*system->width,system->width);
-                        r(1) = fmod(r(1)+10*system->height,system->height);
+                        fixR();
                     }
 #ifdef DEBUG
                     if(cri) cout<< "I did break here, dt left: " << dt << endl;
@@ -71,8 +74,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
 
                 if(point->is_wall) {
                     r -= v*tau;
-                    r(0) = fmod(r(0)+10*system->width,system->width);
-                    r(1) = fmod(r(1)+10*system->height,system->height);
+                    fixR();
                     tau /= 2;
 #ifdef DEBUG
                     if(cri) cout << "Moved back to: i=" << system->world_grid->get_grid_point(r)->i << ", j=" << system->world_grid->get_grid_point(r)->j << ". Is wall: " << system->world_grid->get_grid_point(r)->is_wall << endl;
@@ -94,8 +96,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
                 }
 
                 r += v*tau;
-                r(0) = fmod(r(0)+10*system->width,system->width);
-                r(1) = fmod(r(1)+10*system->height,system->height);
+                fixR();
             }
         }
         else {
@@ -105,8 +106,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
             while(system->world_grid->get_grid_point(r)->is_wall) {
                 dt += 0.1*tau;
                 r -= 0.1*v*tau;
-                r(0) = fmod(r(0)+10*system->width,system->width);
-                r(1) = fmod(r(1)+10*system->height,system->height);
+                fixR();
                 if(++count > 100) {
                     active = false;
                     r.zeros();

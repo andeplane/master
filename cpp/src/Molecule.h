@@ -23,6 +23,7 @@ public:
     System *system;
 
     Molecule(System *system);
+    inline void fixR();
 	void addR(vec dr);
     void move(double dt, Random *rnd, int depth = 0);
     void move_old(double dt, Random *rnd);
