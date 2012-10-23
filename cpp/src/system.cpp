@@ -20,6 +20,7 @@ void System::initialize(CIniFile &ini) {
     cells_x = ini.getint("cells_x");
     cells_y = ini.getint("cells_y");
     T       = ini.getdouble("T");
+    wall_temperature = ini.getdouble("wall_temperature");
     threads = ini.getint("threads");
     mat world   = readBMP((char*)ini.getstring("world").c_str());
     mat initial_world = readBMP((char*)ini.getstring("initial_world").c_str());
@@ -117,8 +118,8 @@ void System::step() {
 
 void System::move() {
     Random *rnd = randoms[0];
-    for(int n=0; n< N; n++ ) {
-        // cout << "Moving particle " << n << endl;
+
+    for(int n=0; n<N; n++ ) {
         molecules[n]->move(dt,rnd);
     }
 }

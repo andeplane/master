@@ -51,7 +51,7 @@ int main(int args, char* argv[]) {
     printf("Summary:\n");
     printf("Collisions: %d\n",system.collisions);
     if(ini.getbool("print_temperature"))
-        printf("Average temperature: %.3f\n",sampler.temperature_sum/sampler.temperature_samples);
+        printf("Average temperature: %.3f\n",sampler.temperature_sum/(sampler.temperature_samples/ini.getint("sample_every_n")));
 
 
     return 0;

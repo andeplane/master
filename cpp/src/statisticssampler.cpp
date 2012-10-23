@@ -14,6 +14,7 @@ StatisticsSampler::StatisticsSampler(System *_system, CIniFile &ini) {
 
     temperature_samples = 0;
     temperature_sum = 0;
+    sample_every_n = ini.getint("sample_every_n");
 
     temperature_file = fopen("temperature.dat","w");
 
@@ -33,17 +34,16 @@ void StatisticsSampler::sample() {
 
 void StatisticsSampler::calculateTemperature() {
     if(!print_temperature) return;
-    if(++temperature_samples % 5) return;
+    if(++temperature_samples % sample_every_n) return;
 
     long N = system->N;
-	double energy = 0;
+    double T = 0;
 	
     Molecule **molecules = system->molecules;
 	for(int n=0;n<N;n++) {
-        energy += dot(molecules[n]->v,molecules[n]->v);
+        T += dot(molecules[n]->v,molecules[n]->v)/(3*N);
 	}
-
-    double T = energy/(3*N);
+    // Note that E=0.5*M*v^2 and M=N*m, but it cancels in the denominator
 
     temperature_sum += T;
 	
@@ -52,23 +52,21 @@ void StatisticsSampler::calculateTemperature() {
 
 void StatisticsSampler::calculateVelocityProfile() {
     if(!print_velocity_profile) return;
-    if(++velocity_profile_samples % 5) return;
+    if(++velocity_profile_samples % sample_every_n) return;
 
     int N = 100;
 	Molecule *molecule;
-	double *velocities = new double[100];
-	for(int n=0;n<N;n++) 
-		velocities[n] = 0;
+    vec velocities(100,1);
 
 	int n;
 	for(int i=0;i<this->system->N;i++) {
         molecule = system->molecules[i];
         n = N*molecule->r(1)/system->height;
-        velocities[n] += molecule->v(0);
+        velocities(n) += molecule->v(0)/N;
 	}
 	
 	for(int n=0;n<N;n++) 
-        fprintf(velocity_file,"%f ",velocities[n]);
+        fprintf(velocity_file,"%f ",velocities(n));
 
     fprintf(velocity_file,"\n");
 }

@@ -51,6 +51,7 @@ public:
 	double coeff;
 	double t;
 	double T;
+    double wall_temperature;
 	double *time_consumption;
 	int numberOfCells;
     int threads;

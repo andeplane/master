@@ -15,6 +15,8 @@ public:
 
     bool print_velocity_profile;
     int  velocity_profile_samples;
+
+    int sample_every_n;
 	
     FILE *velocity_file;
     FILE *temperature_file;

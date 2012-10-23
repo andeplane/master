@@ -1,10 +1,10 @@
 TEMPLATE = app
 CONFIG += console
 CONFIG -= qt
-LIBS   += -larmadillo -openmp
-INCLUDEPATH += -openmp
-QMAKE_CXXFLAGS += -openmp
-QMAKE_LFLAGS += -openmp
+LIBS   += -larmadillo -fopenmp
+INCLUDEPATH += -fopenmp
+QMAKE_CXXFLAGS += -fopenmp
+QMAKE_LFLAGS += -fopenmp
 
 SOURCES += main.cpp \
     system.cpp \

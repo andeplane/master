@@ -5,9 +5,10 @@ function testNorm()
 
     %r = rand(3,3);
     %m = r>0.5
-    m = [     0        0   1.0000;
-            0.0   1.0000   1.0000;
-            1.0000   1.0000   1.0000]
+    m = [ 1 0 0;
+          1 1 0;
+          0 0 0
+        ]
      
     v = [0 0];
     
@@ -30,7 +31,7 @@ function testNorm()
     x0 = [0 0];
     vectarrow(x0,v);
     hold on
-    vectarrow(x0,t);
+    %vectarrow(x0,t);
     axis([-1 1 -1 1])
     %arrow([0,v(1)],[0,v(2)]);
 end
