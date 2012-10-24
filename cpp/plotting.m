@@ -5,6 +5,13 @@ close all;
 %energy = dlmread('energy.dat');
 temperature = dlmread('temperature.dat');
 
+figure(1)
+subplot(3,1,1);
+plot(temperature(:,1),temperature(:,2));
+legend('Temperature');
+xlabel('Time')
+ylabel('Temperature')
+
 velocity = dlmread('velocity.dat');
 
 vel_size = size(velocity);
@@ -12,20 +19,25 @@ v_x_last = velocity(vel_size(1),:);
 avg_v = sum(v_x_last)/length(v_x_last);
 v_x_last = v_x_last/avg_v;
 
-v_x_last = smooth(smooth(smooth(v_x_last)));
-
-
-figure(1)
-subplot(2,1,1);
-plot(temperature(:,1),temperature(:,2));
-legend('Temperature');
-xlabel('Time')
-ylabel('Temperature')
-
-subplot(2,1,2);
+subplot(3,1,2);
 plot(v_x_last);
 legend('Velocity profile');
 xlabel('x')
 ylabel('v')
+
+pressure = dlmread('pressure.dat');
+
+subplot(3,1,3);
+x = 0:2;
+y = 0:1;
+imagesc(x,y,pressure);
+colorbar;
+
+caxis([0 max(pressure)])
+    
+legend('Pressure field');
+xlabel('x')
+ylabel('y')
+
     
 end

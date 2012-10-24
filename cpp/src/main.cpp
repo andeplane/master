@@ -16,6 +16,7 @@ int main(int args, char* argv[]) {
     ini.load("dsmc.ini");
     bool print_positions = ini.getbool("print_positions");
     int timesteps = ini.getint("timesteps");
+    int print_every_n_step = ini.getint("print_every_n_step");
 
     System system;
     system.initialize(ini);
@@ -37,8 +38,9 @@ int main(int args, char* argv[]) {
 
         sampler.sample();
 
-        if(print_positions) system.printPositionsToFile(positions);
+        if(print_positions && !(i%print_every_n_step)) system.printPositionsToFile(positions);
     }
+    sampler.calculatePressure();
 
     sampler.finish();
 
@@ -52,7 +54,9 @@ int main(int args, char* argv[]) {
     printf("Collisions: %d\n",system.collisions);
     if(ini.getbool("print_temperature"))
         printf("Average temperature: %.3f\n",sampler.temperature_sum/(sampler.temperature_samples/ini.getint("sample_every_n")));
-
+    printf("System volume: %f\n",system.volume);
+    if(ini.getbool("print_pressure"))
+        printf("Average pressure: %.3f\n",sampler.pressure_sum/(sampler.representative_cells*system.volume));
 
     return 0;
 }

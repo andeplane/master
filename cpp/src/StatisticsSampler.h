@@ -13,6 +13,11 @@ public:
     int  temperature_samples;
     double temperature_sum;
 
+    bool print_pressure;
+    int  pressure_samples;
+    int  representative_cells;
+    double pressure_sum;
+
     bool print_velocity_profile;
     int  velocity_profile_samples;
 
@@ -20,10 +25,12 @@ public:
 	
     FILE *velocity_file;
     FILE *temperature_file;
+    FILE *pressure_file;
 
     StatisticsSampler(System *system, CIniFile &ini);
 	void sample();
 	void calculateTemperature();
+    void calculatePressure();
 	void calculateVelocityProfile();
 	void finish();
 };

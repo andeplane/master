@@ -43,6 +43,7 @@ public:
     double width;
     double height;
     double acceleration;
+    double max_x_acceleration;
 	double volume;
 	double eff_num;
 	double mpv; 	// Most probable velocity

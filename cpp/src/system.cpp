@@ -29,13 +29,21 @@ void System::initialize(CIniFile &ini) {
     initial_world_grid = new Grid(initial_world,this);
 
     acceleration = ini.getdouble("acceleration");
+    max_x_acceleration = ini.getdouble("max_x_acceleration");
 
     printf("Initializing system...");
     time_consumption = new double[4];
     for(int i=0;i<4;i++)
         time_consumption[i] = 0;
+    double porosity = 0;
+    for(int i=0;i<world.n_cols;i++)
+        for(int j=0;j<world.n_rows;j++) {
+            porosity += world(j,i) == 0;
+        }
+    porosity /= world.n_cols*world.n_rows;
 
-    volume = width*height;
+    volume = width*height*porosity;
+
     steps = 0;
     collisions = 0;
     t = 0;
@@ -63,6 +71,8 @@ void System::initialize(CIniFile &ini) {
     printf("done.\n\n");
     printf("%d molecules\n",N);
     printf("%d (%d x %d) cells\n",numberOfCells,cells_x,cells_y);
+    printf("Porosity: %f\n",porosity);
+    printf("System volume: %f\n",volume);
     printf("System size: %.2f x %.2f \n",width,height);
     printf("System size (mfp): %.2f x %.2f \n",width/mfp,height/mfp);
     printf("Global Kn: %.2f x %.2f \n",mfp/width,mfp/height);
@@ -139,7 +149,8 @@ int System::collide() {
 
 void System::accelerate() {
     for(int n=0;n<N;n++)
-        molecules[n]->v(0) += acceleration*dt;
+        if(molecules[n]->r(0) < max_x_acceleration)
+            molecules[n]->v(0) += acceleration*dt;
 }
 
 void System::initWalls() {
@@ -156,6 +167,8 @@ void System::initCells() {
 
         for(int j=0;j<cells_y;j++) {
             cells[i][j] = new Cell(this);
+            cells[i][j]->i = i;
+            cells[i][j]->j = j;
             cells[i][j]->vr_max = 3*mpv;
         }
 	}

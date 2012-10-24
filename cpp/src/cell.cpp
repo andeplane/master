@@ -10,6 +10,7 @@ Cell::Cell(System *_system) {
     vr_max = 0;
     particles = 0;
     momentum = zeros<vec>(3,1);
+    momentum_change = zeros<vec>(3,1);
     energy = 0;
     density = 0;
     particle_capacity = 100;
@@ -29,21 +30,34 @@ void Cell::reset() {
 
 void Cell::sampleStatistics() {
 	// Calculate energy
+
     energy = 0;
     density = 0;
     momentum.zeros();
+    pressure = 0;
 
 	Molecule *molecule;
     int particleIndex;
+    int atoms_per_molecule;
     for(int i=0;i<particles;i++) {
         particleIndex = particle_indices[i];
         molecule = system->molecules[particleIndex];
 
-        energy   += 0.5*molecule->atoms*dot(molecule->v,molecule->v);
+        energy   += 0.5*dot(molecule->v,molecule->v);
 
         momentum += molecule->atoms*molecule->v;
         density  += molecule->atoms;
+
+        atoms_per_molecule = molecule->atoms;
 	}
+
+    if(this->particles) {
+        pressure += norm(momentum_change,2)/2;
+        pressure += 2*this->particles*energy/3;
+
+        pressure /= this->particles*system->dt;
+        momentum_change.zeros();
+    }
 
     energy /= volume;
     density /= volume;
@@ -101,6 +115,8 @@ int Cell::collide(Random *rnd) {
 
 			vrel(0) = cr*cos_th;             // Compute post-collision
 			vrel(1) = cr*sin_th;    // relative velocity
+
+            momentum_change += vcm + 0.5*vrel-molecule1->v;
 			
 			molecule1->v = vcm + 0.5*vrel;
 			molecule2->v = vcm - 0.5*vrel;

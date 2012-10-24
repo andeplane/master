@@ -10,17 +10,23 @@ using namespace arma;
 StatisticsSampler::StatisticsSampler(System *_system, CIniFile &ini) {
     system = _system;
     print_temperature = ini.getbool("print_temperature");
+    print_pressure = ini.getbool("print_pressure");
     print_velocity_profile = ini.getbool("print_velocity_profile");
+    sample_every_n = ini.getint("sample_every_n");
 
     temperature_samples = 0;
     temperature_sum = 0;
-    sample_every_n = ini.getint("sample_every_n");
+    if(print_temperature)
+        temperature_file = fopen("temperature.dat","w");
 
-    temperature_file = fopen("temperature.dat","w");
+    pressure_samples = 0;
+    pressure_sum = 0;
+    if(print_pressure)
+        pressure_file = fopen("pressure.dat","w");
 
     velocity_profile_samples = 0;
-	
-    velocity_file = fopen("velocity.dat","w");
+    if(print_velocity_profile)
+        velocity_file = fopen("velocity.dat","w");
 }
 
 void StatisticsSampler::finish() {
@@ -50,16 +56,35 @@ void StatisticsSampler::calculateTemperature() {
     fprintf(temperature_file, "%f %f \n",system->t, T);
 }
 
+void StatisticsSampler::calculatePressure() {
+    if(!print_pressure) return;
+    // if(++pressure_field_samples % sample_every_n) return;
+    pressure_sum = 0;
+    representative_cells = 0;
+    for(int j=0;j<system->cells_y;j++) {
+        for(int i=0;i<system->cells_x;i++) {
+            fprintf(pressure_file,"%f ",system->cells[i][j]->pressure);
+            if(system->cells[i][j]->pressure > 0) {
+                pressure_sum += system->cells[i][j]->pressure;
+                representative_cells++;
+            }
+
+        }
+        fprintf(pressure_file,"\n");
+    }
+}
+
 void StatisticsSampler::calculateVelocityProfile() {
     if(!print_velocity_profile) return;
     if(++velocity_profile_samples % sample_every_n) return;
 
     int N = 100;
 	Molecule *molecule;
-    vec velocities(100,1);
+    vec velocities = zeros<vec>(N,1);
 
 	int n;
-	for(int i=0;i<this->system->N;i++) {
+
+    for(int i=0;i<system->N;i++) {
         molecule = system->molecules[i];
         n = N*molecule->r(1)/system->height;
         velocities(n) += molecule->v(0)/N;

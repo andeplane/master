@@ -18,8 +18,12 @@ public:
     System *system;
 
 	double energy;
+    double pressure;
 	double density;
     vec momentum;
+    vec momentum_change;
+
+    int i,j;
 
 	int particles;
     int particle_capacity;
