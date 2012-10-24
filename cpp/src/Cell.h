@@ -19,7 +19,8 @@ public:
 
 	double energy;
     double pressure;
-	double density;
+    double density;
+    double T;
     vec momentum;
     vec momentum_change;
 

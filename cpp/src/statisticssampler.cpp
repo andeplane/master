@@ -7,12 +7,13 @@
 #include <CInIFile.h>
 using namespace arma;
 
-StatisticsSampler::StatisticsSampler(System *_system, CIniFile &ini) {
+StatisticsSampler::StatisticsSampler(System *_system, CIniFile *_ini) {
     system = _system;
-    print_temperature = ini.getbool("print_temperature");
-    print_pressure = ini.getbool("print_pressure");
-    print_velocity_profile = ini.getbool("print_velocity_profile");
-    sample_every_n = ini.getint("sample_every_n");
+    ini = _ini;
+    print_temperature = ini->getbool("print_temperature");
+    print_pressure = ini->getbool("print_pressure");
+    print_velocity_profile = ini->getbool("print_velocity_profile");
+    sample_every_n = ini->getint("sample_every_n");
 
     temperature_samples = 0;
     temperature_sum = 0;
@@ -94,4 +95,15 @@ void StatisticsSampler::calculateVelocityProfile() {
         fprintf(velocity_file,"%f ",velocities(n));
 
     fprintf(velocity_file,"\n");
+}
+double StatisticsSampler::getPressure() {
+    if(!print_pressure) return 0;
+
+    return pressure_sum/representative_cells;
+}
+
+double StatisticsSampler::getTemperature() {
+    if(!print_temperature) return 0;
+
+    return temperature_sum/(temperature_samples/ini->getint("sample_every_n"));
 }

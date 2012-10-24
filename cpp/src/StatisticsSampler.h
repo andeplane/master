@@ -22,17 +22,21 @@ public:
     int  velocity_profile_samples;
 
     int sample_every_n;
+
+    CIniFile *ini;
 	
     FILE *velocity_file;
     FILE *temperature_file;
     FILE *pressure_file;
 
-    StatisticsSampler(System *system, CIniFile &ini);
+    StatisticsSampler(System *system, CIniFile *ini);
 	void sample();
 	void calculateTemperature();
     void calculatePressure();
 	void calculateVelocityProfile();
 	void finish();
+    double getTemperature();
+    double getPressure();
 };
 
 #endif

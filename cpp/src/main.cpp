@@ -20,7 +20,7 @@ int main(int args, char* argv[]) {
 
     System system;
     system.initialize(ini);
-    StatisticsSampler sampler(&system, ini);
+    StatisticsSampler sampler(&system, &ini);
     // StatisticsSampler *sampler = new StatisticsSampler(&system, timesteps);
 
     FILE *positions = 0;
@@ -52,11 +52,11 @@ int main(int args, char* argv[]) {
     printf("Sampling: %.2f s\n",system.time_consumption[SAMPLE]);
     printf("Summary:\n");
     printf("Collisions: %d\n",system.collisions);
-    if(ini.getbool("print_temperature"))
-        printf("Average temperature: %.3f\n",sampler.temperature_sum/(sampler.temperature_samples/ini.getint("sample_every_n")));
+
     printf("System volume: %f\n",system.volume);
-    if(ini.getbool("print_pressure"))
-        printf("Average pressure: %.3f\n",sampler.pressure_sum/(sampler.representative_cells*system.volume));
+    printf("Average temperature: %.3f\n",sampler.getTemperature());
+    printf("Average pressure: %.3f\n",sampler.getPressure());
+    printf("V*P: %.3f\n",sampler.getPressure()*system.volume);
 
     return 0;
 }

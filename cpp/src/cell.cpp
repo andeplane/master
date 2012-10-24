@@ -9,6 +9,7 @@ Cell::Cell(System *_system) {
     system = _system;
     vr_max = 0;
     particles = 0;
+    T = system->T;
     momentum = zeros<vec>(3,1);
     momentum_change = zeros<vec>(3,1);
     energy = 0;
@@ -34,7 +35,9 @@ void Cell::sampleStatistics() {
     energy = 0;
     density = 0;
     momentum.zeros();
+    // if(!(system->steps % 10))
     pressure = 0;
+    T = 0;
 
 	Molecule *molecule;
     int particleIndex;
@@ -44,6 +47,7 @@ void Cell::sampleStatistics() {
         molecule = system->molecules[particleIndex];
 
         energy   += 0.5*dot(molecule->v,molecule->v);
+        T += 2*energy/(3*particles);
 
         momentum += molecule->atoms*molecule->v;
         density  += molecule->atoms;
@@ -52,10 +56,11 @@ void Cell::sampleStatistics() {
 	}
 
     if(this->particles) {
-        pressure += norm(momentum_change,2)/2;
-        pressure += 2*this->particles*energy/3;
+        pressure += norm(momentum_change,2);
+        pressure /= 2*particles*system->dt;
 
-        pressure /= this->particles*system->dt;
+        pressure += particles*T;
+
         momentum_change.zeros();
     }
 
