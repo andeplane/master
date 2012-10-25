@@ -25,6 +25,7 @@ void Sorter::sort() {
     // Loop through and calculate cell index for each particle
 	for(int n=0; n<N; n++ ) {
         Molecule *m = system->molecules[n];
+        if(!m->active) continue;
 
         i = (int)((m->r(0)/width)*cells_x);
         j = (int)((m->r(1)/height)*cells_y);
@@ -50,6 +51,9 @@ void Sorter::sort() {
 
     // Update particle index list
     for(int n=0; n<N; n++ ) {
+        Molecule *m = system->molecules[n];
+        if(!m->active) continue;
+
         i = cell_x[n];
         j = cell_y[n];
         c = system->cells[i][j];

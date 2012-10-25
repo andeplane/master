@@ -14,6 +14,7 @@ StatisticsSampler::StatisticsSampler(System *_system, CIniFile *_ini) {
     print_pressure = ini->getbool("print_pressure");
     print_velocity_profile = ini->getbool("print_velocity_profile");
     sample_every_n = ini->getint("sample_every_n");
+    print_velocity_field = ini->getbool("print_velocity_field");
 
     temperature_samples = 0;
     temperature_sum = 0;
@@ -28,6 +29,11 @@ StatisticsSampler::StatisticsSampler(System *_system, CIniFile *_ini) {
     velocity_profile_samples = 0;
     if(print_velocity_profile)
         velocity_file = fopen("velocity.dat","w");
+
+    if(print_velocity_field) {
+        velocity_field_file_x = fopen("vel_x.dat","w");
+        velocity_field_file_y = fopen("vel_y.dat","w");;
+    }
 }
 
 void StatisticsSampler::finish() {
@@ -35,11 +41,11 @@ void StatisticsSampler::finish() {
 }
 
 void StatisticsSampler::sample() {
-    calculateTemperature();
-    calculateVelocityProfile();
+    calculate_temperature();
+    calculate_velocity_profile();
 }
 
-void StatisticsSampler::calculateTemperature() {
+void StatisticsSampler::calculate_temperature() {
     if(!print_temperature) return;
     if(++temperature_samples % sample_every_n) return;
 
@@ -57,7 +63,7 @@ void StatisticsSampler::calculateTemperature() {
     fprintf(temperature_file, "%f %f \n",system->t, T);
 }
 
-void StatisticsSampler::calculatePressure() {
+void StatisticsSampler::calculate_pressure() {
     if(!print_pressure) return;
     // if(++pressure_field_samples % sample_every_n) return;
     pressure_sum = 0;
@@ -66,16 +72,15 @@ void StatisticsSampler::calculatePressure() {
         for(int i=0;i<system->cells_x;i++) {
             fprintf(pressure_file,"%f ",system->cells[i][j]->pressure);
             if(system->cells[i][j]->pressure > 0) {
-                pressure_sum += system->cells[i][j]->pressure;
+                pressure_sum += system->cells[i][j]->f_sum;
                 representative_cells++;
             }
-
         }
         fprintf(pressure_file,"\n");
     }
 }
 
-void StatisticsSampler::calculateVelocityProfile() {
+void StatisticsSampler::calculate_velocity_profile() {
     if(!print_velocity_profile) return;
     if(++velocity_profile_samples % sample_every_n) return;
 
@@ -96,14 +101,32 @@ void StatisticsSampler::calculateVelocityProfile() {
 
     fprintf(velocity_file,"\n");
 }
-double StatisticsSampler::getPressure() {
+double StatisticsSampler::get_pressure() {
     if(!print_pressure) return 0;
+    double P = (system->N*system->T + 1.0/2*pressure_sum/representative_cells)/system->volume;
 
-    return pressure_sum/representative_cells;
+    return P;
 }
 
-double StatisticsSampler::getTemperature() {
+double StatisticsSampler::get_temperature() {
     if(!print_temperature) return 0;
 
     return temperature_sum/(temperature_samples/ini->getint("sample_every_n"));
+}
+
+void StatisticsSampler::calculate_velocity_field() {
+    if(!print_velocity_field) return;
+
+    Cell *c;
+    for(int j=0;j<system->cells_y;j++) {
+        for(int i=0;i<system->cells_x;i++) {
+            c = system->cells[i][j];
+
+            fprintf(velocity_field_file_x,"%.5f ",c->momentum(0));
+            fprintf(velocity_field_file_y,"%.5f ",c->momentum(1));
+        }
+
+        fprintf(velocity_field_file_x,"\n");
+        fprintf(velocity_field_file_y,"\n");
+    }
 }

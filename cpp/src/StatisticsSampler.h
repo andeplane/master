@@ -21,6 +21,8 @@ public:
     bool print_velocity_profile;
     int  velocity_profile_samples;
 
+    bool print_velocity_field;
+
     int sample_every_n;
 
     CIniFile *ini;
@@ -28,15 +30,21 @@ public:
     FILE *velocity_file;
     FILE *temperature_file;
     FILE *pressure_file;
+    FILE *velocity_field_file_x;
+    FILE *velocity_field_file_y;
+
 
     StatisticsSampler(System *system, CIniFile *ini);
 	void sample();
-	void calculateTemperature();
-    void calculatePressure();
-	void calculateVelocityProfile();
+    void calculate_temperature();
+    void calculate_pressure();
+    void calculate_velocity_profile();
+    void calculate_velocity_field();
+
 	void finish();
-    double getTemperature();
-    double getPressure();
+    double get_temperature();
+    double get_pressure();
+
 };
 
 #endif

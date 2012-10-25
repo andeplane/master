@@ -40,7 +40,8 @@ int main(int args, char* argv[]) {
 
         if(print_positions && !(i%print_every_n_step)) system.printPositionsToFile(positions);
     }
-    sampler.calculatePressure();
+    sampler.calculate_pressure();
+    sampler.calculate_velocity_field();
 
     sampler.finish();
 
@@ -54,9 +55,9 @@ int main(int args, char* argv[]) {
     printf("Collisions: %d\n",system.collisions);
 
     printf("System volume: %f\n",system.volume);
-    printf("Average temperature: %.3f\n",sampler.getTemperature());
-    printf("Average pressure: %.3f\n",sampler.getPressure());
-    printf("V*P: %.3f\n",sampler.getPressure()*system.volume);
+    printf("Average temperature: %.3f\n",sampler.get_temperature());
+    printf("Average pressure: %.3f\n",sampler.get_pressure());
+    printf("V*P: %.3f\n",sampler.get_pressure()*system.volume);
 
     return 0;
 }

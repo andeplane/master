@@ -108,6 +108,7 @@ void System::step() {
 
    //  #pragma omp parallel for
     Cell *c;
+    #pragma omp parallel for private(c) num_threads(threads)
     for(int i=0;i<cells_x;i++)
         for(int j=0;j<cells_y;j++) {
             c = cells[i][j];
@@ -127,10 +128,13 @@ void System::step() {
 }
 
 void System::move() {
-    Random *rnd = randoms[0];
-
+#pragma omp parallel num_threads(threads)
+    {
+    Random *rnd = randoms[omp_get_thread_num()];
+    #pragma omp for
     for(int n=0; n<N; n++ ) {
         molecules[n]->move(dt,rnd);
+    }
     }
 }
 
@@ -138,11 +142,20 @@ int System::collide() {
 	int col = 0;          // Count number of collisions
 	
 	//* Loop over cells and process collisions in each cell
+    #pragma omp parallel num_threads(threads)
+    {
+        Random *rnd = randoms[omp_get_thread_num()];
+        int local_col = 0;
 
-    Random *rnd = randoms[0];
-    for(int i=0;i<cells_x;i++)
-        for(int j=0;j<cells_y;j++)
-        col += cells[i][j]->collide(rnd);
+        #pragma omp for
+        for(int i=0;i<cells_x;i++)
+            for(int j=0;j<cells_y;j++)
+            local_col += cells[i][j]->collide(rnd);
+        #pragma omp critical
+        {
+            col += local_col;
+        }
+    }
 
 	return col;
 }
@@ -180,7 +193,10 @@ void System::initMolecules() {
         molecules[n] = new Molecule(this);
         molecules[n]->atoms = eff_num;
         molecules[n]->index = n;
+        if(n==0)
+            molecules[n]->information_carrier = 1;
     }
+
     initPositions();
     initVelocities();
 }
@@ -198,10 +214,6 @@ void System::initPositions() {
             m->r(1) = height*randoms[0]->nextDouble();
 
             didCollide = initial_world_grid->get_grid_point(m->r)->is_wall;
-        }
-
-        if(n == 594) {
-             // cout << "290 at " << world_grid->get_grid_point(m->r)->i << ", " << world_grid->get_grid_point(m->r)->j << " wall: " << world_grid->get_grid_point(m->r)->is_wall << endl;
         }
 	}
 }
@@ -221,7 +233,8 @@ void System::printPositionsToFile(FILE *file) {
 	fprintf(file,"Random comment that must be here\n");
 
     for(int n=0;n<N;n++) {
-        fprintf(file,"H %.10f %.10f 0\n",molecules[n]->r(0),molecules[n]->r(1));
+        // fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->type,molecules[n]->r(0),molecules[n]->r(1));
+        fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->information_carrier ? "O" : "H",molecules[n]->r(0),molecules[n]->r(1));
     }
 	
 }

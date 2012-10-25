@@ -12,10 +12,11 @@ using namespace std;
 
 class Molecule {
 public:
-	char   type;
+    char   *type;
 	int    atoms;
     int    index;
     bool   active;
+    int    information_carrier;
 
     vec r;
     vec v;

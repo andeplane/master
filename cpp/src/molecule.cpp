@@ -13,6 +13,8 @@ Molecule::Molecule(System *_system) {
     atoms = 1;
     type = 0;
     system = _system;
+    type = "H";
+    information_carrier = 0;
     active = true;
 }
 
@@ -66,6 +68,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
                 if(++count > 100) {
                     active = false;
                     r.zeros();
+                    v.zeros();
                     cout << "Trouble with molecule " << index << " at (i,j)=(" << point->i << "," << point->j << "). Check your world." << endl;
                     return;
                 }
@@ -74,7 +77,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
             }
         }
         else {
-            // This was actually the boundary
+            // This was actually the boundary2
             // cout << "Particle " << index << " is at the boundary!" << endl;
             int count = 0;
             while(system->world_grid->get_grid_point(r)->is_wall) {
@@ -83,13 +86,14 @@ void Molecule::move(double dt, Random *rnd, int depth) {
                 if(++count > 100) {
                     active = false;
                     r.zeros();
-                    cout << "Trouble with molecule " << index << " at (i,j)=(" << point->i << "," << point->j << "). Check your world." << endl;
+                    cout << "Another kind of trouble with molecule " << index << " at (i,j)=(" << point->i << "," << point->j << "). Check your world." << endl;
                     return;
                 }
             }
         }
 
-        double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
+        // double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
+        double v_normal = sqrt(-2*M_PI/2*point->T*log(rnd->nextDouble()));
         double v_tangent = sqrt(3.0/2*point->T)*rnd->nextGauss();
 
         v(0) = v_normal*point->normal.x + v_tangent*point->tangent.x;
