@@ -1,0 +1,351 @@
+#pragma once
+
+using namespace std;
+
+#include <math.h>
+#include <CMatrix.h>
+#include <CMath.h>
+#include <iostream>
+#include <vector>
+#include <CUtil.h>
+
+template <typename T>
+class CVectorT  {
+ public:
+  T x,y,z;
+
+  // Constructors
+
+  inline CVectorT() {
+    x=y=z=0;         
+  }
+
+  inline CVectorT(const T& px, const T& py, const T& pz) {
+    x = px;
+    y = py;
+    z = pz;
+  }
+
+  inline CVectorT(const CVectorT& v)
+  {
+    x=v.x;
+    y=v.y;
+    z=v.z;
+  }
+
+
+  // Operators 
+
+  inline CVectorT operator+(const CVectorT& a) const {
+     return CVectorT(a.x +x, a.y+y, a.z+z);
+   }
+
+  inline CVectorT operator-(const CVectorT& a) const {
+     return CVectorT(a.x - x, a.y - y, a.z - z);
+   }
+
+  inline T& operator[](const int i) const {
+    if (i==0) return x;
+    if (i==1) return y;
+    return z;
+  }
+ 
+  inline CVectorT operator*(T scale) const {
+     return CVectorT(x * scale, y * scale, z * scale);
+   }
+
+  inline CVectorT operator/(const double scale) const {
+     return CVectorT(x / scale, y / scale, z / scale);
+   }
+ 
+
+  inline CVectorT operator/(const CVectorT& o) const {
+     return CVectorT(x / o.x, y / o.y, z / o.z);
+   }
+
+  friend ostream& operator<<(ostream& os, const CVectorT& o) {
+    os <<"[ " << o.x << " " << o.y << " " << o.z << " ";
+    os << "]" << endl;
+    return os;
+  }
+
+  inline void operator=(const T& v) {
+     x = v; y= v; z=v;
+  }
+  inline bool operator==(const CVectorT& v) const {
+       if (x==v.x && y==v.y && z==v.z)
+          return true;
+       return false;     
+  }
+  inline void operator=(const int& v) {
+     x = v; y= v; z=v;
+  }
+
+
+  // Transformations
+
+  inline void Inverse() {
+     x=-x;y=-y;z=-z;
+   }
+
+  inline CVectorT Mul(const CVectorT& v) const {
+     return CVectorT(x * v.x, y * v.y, z * v.z);
+   }
+ 
+  inline void Mul(CMatrix& m) {
+    double xt = m.M[0][0] * x + m.M[1][0] * y + m.M[2][0] * z; 
+    double yt = m.M[0][1] * x + m.M[1][1] * y + m.M[2][1] * z; 
+    double zt = m.M[0][2] * x + m.M[1][2] * y + m.M[2][2] * z; 
+    x = xt; y = yt; z = zt;
+  }
+
+  inline CVectorT Rotate2d(T t) const {
+      return CVectorT(cos(t)*x - sin(t)*y, sin(t)*x+cos(t)*y,0);
+  }
+
+  inline CVectorT rotateY(double t) const {
+   return   CVectorT(x * cos(t) - z * sin(t) ,y, x*sin(t) + z*cos(t));
+ }
+
+  inline CVectorT rotateX(double t)  const {
+   return CVectorT(x, y * cos(t) - z * sin(t), y*sin(t) + z*cos(t));
+ }
+
+  inline CVectorT rotateZ(double t) const {
+   return CVectorT(x * cos(t) - y * sin(t), x*sin(t) + y*cos(t),z);
+  }
+  
+  inline double Length() const {
+    return sqrt((x*x + y*y + z*z));
+  }
+  
+  inline T Length2() const {
+    return ((x*x + y*y + z*z));
+  }
+  
+  inline CVectorT Normalize() const {
+    double length = Length();
+    if (length!=0)
+      return *this/length;
+  }
+  
+  inline T Dot( const CVectorT& o) const {
+    return (T)(x*o.x + y*o.y + z*o.z);
+  }
+  
+  
+  inline CVectorT Cross(const CVectorT& o) const {
+    return CVectorT(o.y*z - o.z*y, o.z*x - o.x*z, o.x*y - o.y*x);
+  }
+  
+  // Return statements
+  
+  inline void MinMax(const CVectorT& min, const CVectorT& max) {
+    if (x>max.x) max.x=x;
+    if (y>max.y) max.y=y;
+    if (z>max.z) max.z=z;
+    
+    if (x<min.x) min.x=x;
+    if (y<min.y) min.y=y;
+    if (z<min.z) min.z=z;
+  }
+
+  inline CVectorT xz() const {
+    return CVectorT(x,0,z);
+  }
+  
+  inline CVectorT xy() const {
+    return CVectorT(x,y,0);
+  }
+  
+  inline CVectorT yz() const {
+    return CVectorT(0,y,z);
+  }
+  
+  // Utilities
+  
+  inline void Set(const double px, const double py, const double pz) {
+     x = px; y=py; z = pz;
+   }
+
+  inline void Set(const CVectorT& v) {
+     x = v.x; y=v.y; z = v.z;
+   }
+
+  inline void toDouble(T* a) {
+    if (a==0)
+      throw string("CVectorT::toT error: array not allocated");
+    a[0] = x;
+    a[1] = y;
+    a[2] = z;
+    a[3] = 1.0f;
+  }
+
+  inline void toFloat(float* a) {
+    if (a==0)
+      throw string("CVectorT::toT error: array not allocated");
+    a[0] = x;
+    a[1] = y;
+    a[2] = z;
+    a[3] = 1.0f;
+
+  }
+  static CVectorT nearest(vector<CVectorT>& lst, CVectorT add) {
+     if (lst.size()==0) return CVectorT(0,0,0);
+     T min = 100000;
+     int winner = 0;
+     for (unsigned int i=0;i<lst.size();i++) {
+         T d = (lst[i]-add).Length();
+         if (d<min) {
+            winner = i;
+            min = d;   
+         }    
+     }
+     return lst[winner];
+             
+  }
+
+  CVectorT RandomUniform() {
+    return CVectorT(CMath::RandomUniform()*x - x/2.0,  CMath::RandomUniform()*y - y/2.0, CMath::RandomUniform()*z - z/2.0); 
+  }
+  CVectorT RandomGaussian() {
+    return CVectorT((CMath::RandomGauss()-0.5)*x,  (CMath::RandomGauss()-0.5)*y , (CMath::RandomGauss()-0.5)*z); 
+  }
+
+  inline double distance_from_plane(CVectorT& plane_normal, CVectorT& V) const {
+       return plane_normal.Dot(*this - V);       
+  }
+
+ inline CVectorT from_spherical() const {
+   return CVectorT( cos(y)*sin(x), sin(y)*sin(x), cos(x)).Normalize() * z;             
+ }
+
+  void FloorColor();
+  CVectorT glMatMul(float* pm);
+  CVectorT glMatMul(float* pm, float& w);
+  CVectorT glMatMul_flip(float* pm);
+  static bool get_plane_equation(CVectorT p0, CVectorT p1, CVectorT p2, double* eq);
+  static CVectorT Interpolate(CVectorT& v1, CVectorT& v2, CVectorT& v3, const double& val);
+  T distance_from_plane(CVectorT& plane_normal, CVectorT& V);
+};
+
+template<typename T>
+void CVectorT<T>::FloorColor() {
+  if (x>255) x = 255;
+  if (y>255) y = 255;
+  if (z>255) z = 255;
+  if (x<-255) x = -255;
+  if (y<-255) y = -255;
+  if (z<-255) z = -255;
+}
+
+template<typename T>
+CVectorT<T> CVectorT<T>::glMatMul(float* pm) {
+       
+      CVectorT res;
+       
+      res.x = pm[0] * x + 
+              pm[1] * y +       
+              pm[2] * z;  
+
+      res.y = pm[4] * x + 
+              pm[5] * y +       
+              pm[6] * z;       
+
+      res.z = pm[8] * x + 
+              pm[9] * y +       
+              pm[10] * z;       
+      return res;
+}
+
+template<typename T>
+CVectorT<T> CVectorT<T>::glMatMul(float* pm, float& w) {
+       
+      CVectorT res;
+       
+      res.x = pm[0] * x + 
+              pm[1] * y +       
+              pm[2] * z;  
+
+      res.y = pm[4] * x + 
+              pm[5] * y +       
+              pm[6] * z;       
+
+      res.z = pm[8] * x + 
+              pm[9] * y +       
+              pm[10] * z;       
+
+      w = pm[12] * x + 
+	  pm[13] * y +       
+	  pm[14] * z +
+	  pm[15] * 1.0;       
+
+      return res;
+}
+
+template<typename T>
+
+CVectorT<T> CVectorT<T>::glMatMul_flip(float* pm) {
+       
+      CVectorT res;
+       
+      res.x = pm[0] * x + 
+              pm[4] * y +       
+              pm[8] * z;  
+
+      res.y = pm[1] * x + 
+              pm[5] * y +       
+              pm[9] * z;       
+
+      res.z = pm[2] * x + 
+              pm[6] * y +       
+              pm[10] * z;       
+
+      return res;
+}
+
+ 
+ 
+template<typename T>
+CVectorT<T> CVectorT<T>::Interpolate(CVectorT<T>& v1, CVectorT<T>& v2, CVectorT<T>& v3, const double& val) {
+  // val is between 0 and 1, 0.5 = v2
+  double sc1,sc2,sc0;
+  if (val<=0.5) {
+      sc2 = 0.0;
+      sc1 = 2.0*val;
+      sc0 = 1.0-sc1;
+    }
+    else
+      {
+	double v = val - 0.5;
+	sc1 = 1.0 - (2*v);
+	sc2 = 1.0 - sc1;
+	sc0 = 0.0;
+      }
+    return v1 * sc0 +v2 * sc1 + v3 * sc2;
+}  
+
+template<typename T>
+bool CVectorT<T>::get_plane_equation(CVectorT p0, CVectorT p1, CVectorT p2, double* eq) {
+	// following two expressions order of arguments is very important 
+	// still we need to keep plane's positive normal in plane's equation	
+    CVectorT v0 = p0-p1;
+    CVectorT v1 = p2-p1;
+    CVectorT n;
+    n = v0.Cross(v1).Normalize();
+
+	
+    double &A = eq[0], &B = eq[1], &C = eq[2], &D = eq[3];
+	
+	// positive normal
+    A = n.x; 
+    B = n.y; 
+    C = n.z;
+	// Here instead of p0, p1 and p2 can be used as well since they all belong to this plane
+    D = - (A*p0.x + B*p0.y + C*p0.z);
+    return true;
+}
+
+// Define types
+
+typedef CVectorT<double> CVector;
