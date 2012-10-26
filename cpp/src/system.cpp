@@ -9,7 +9,7 @@
 
 const double boltz = 1.0;    // Boltzmann's constant (J/K)
 double mass = 1.0;     	    // Mass of argon atom (kg)
-double diam = 3.66e-4;    	  	    // Effective diameter of argon atom (m)
+double diam = 4.17e-4;    	  	    // Effective diameter of argon atom (m)
 double density = 26850000;		    // Number density of argon at STP (L^-3)
 mat readBMP(char* filename);
 

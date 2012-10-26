@@ -51,8 +51,8 @@ void Cell::sampleStatistics() {
 
         energy   += 0.5*dot(molecule->v,molecule->v);
         T += 2*energy/(3*particles);
-
-        this_momentum += molecule->atoms*molecule->v/particles;
+        if(particles > 10)
+            this_momentum += molecule->atoms*molecule->v/particles;
         density  += molecule->atoms;
 
         atoms_per_molecule = molecule->atoms;
@@ -62,7 +62,8 @@ void Cell::sampleStatistics() {
 
     if(this->particles) {
         f_sum = -2*T;
-        pressure = 1/volume*(particles*T + 0.5*f_sum);
+        // pressure = 1/volume*(particles*T + 0.5*f_sum);
+        pressure = particles/volume*T;
     }
 }
 

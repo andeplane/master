@@ -41,7 +41,7 @@ ylabel('y')
 
 figure()
 
-world_bmp = imread('world.bmp');
+world_bmp = imread('world_cool.bmp');
 world_bmp = sum(255-world_bmp,3); %Invert colors
 
 world_bmp(174,158,1) = 77;
@@ -67,7 +67,7 @@ mesh = meshgrid(x,y);
 
 imshow(world_bmp);
 hold on;
-quiver(x,y,v_x,v_y,2);
+quiver(x,y,v_x,-v_y,2);
 
 axis('equal');
     
