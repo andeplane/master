@@ -1,8 +1,8 @@
 #include <iostream>
 #include <math.h>
 #include <fstream>
-#include <Molecule.h>
-#include <System.h>
+#include <molecule.h>
+#include <system.h>
 #include <time.h>
 #include <omp.h>
 #include <defines.h>
@@ -65,7 +65,6 @@ void System::initialize(CIniFile &ini) {
         randoms[i] = new Random(-(i+1));
     initMolecules();
     initCells();
-    initWalls();
     sorter = new Sorter(this);
 
     printf("done.\n\n");
@@ -106,7 +105,6 @@ void System::step() {
 
     double density = 0;
 
-   //  #pragma omp parallel for
     Cell *c;
     #pragma omp parallel for private(c) num_threads(threads)
     for(int i=0;i<cells_x;i++)
@@ -164,12 +162,6 @@ void System::accelerate() {
     for(int n=0;n<N;n++)
         if(molecules[n]->r(0) < max_x_acceleration)
             molecules[n]->v(0) += acceleration*dt;
-}
-
-void System::initWalls() {
-    walls = new Wall*[2];
-    walls[0] = new Wall(0,T,false);
-    walls[1] = new Wall(height,T,true);
 }
 
 void System::initCells() {

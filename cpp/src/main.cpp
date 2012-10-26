@@ -3,8 +3,8 @@
 #include "time.h"
 #include <armadillo>
 #include <fstream>
-#include <System.h>
-#include <StatisticsSampler.h>
+#include <system.h>
+#include <statisticssampler.h>
 #include <defines.h>
 #include <CIniFile.h>
 

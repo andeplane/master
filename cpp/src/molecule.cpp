@@ -1,7 +1,6 @@
-#include "Molecule.h"
+#include "molecule.h"
 #include <iostream>
 #include <math.h>
-#include "Wall.h"
 #include "omp.h"
 #include <CVector.h>
 using namespace std;

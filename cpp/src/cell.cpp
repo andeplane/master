@@ -1,4 +1,4 @@
-#include "Cell.h"
+#include "cell.h"
 #include <math.h>
 #include <time.h>
 #include <molecule.h>

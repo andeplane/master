@@ -1,10 +1,10 @@
-#include <StatisticsSampler.h>
+#include <statisticssampler.h>
 #include <armadillo>
-#include <Molecule.h>
-#include <Cell.h>
+#include <molecule.h>
+#include <cell.h>
 #include <math.h>
-#include <Sorter.h>
-#include <CInIFile.h>
+#include <sorter.h>
+#include <CIniFile.h>
 using namespace arma;
 
 StatisticsSampler::StatisticsSampler(System *_system, CIniFile *_ini) {
