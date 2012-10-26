@@ -21,6 +21,10 @@ Cell::Cell(System *_system) {
     volume = system->width*system->height/(system->cells_x*system->cells_y);
 }
 
+bool Cell::cmp(Cell *c1, Cell *c2) {
+    return c1->collision_pairs < c2->collision_pairs;
+}
+
 void Cell::resize(int n) {
     delete [] particle_indices;
     particle_capacity = n;
@@ -67,12 +71,12 @@ void Cell::sampleStatistics() {
     }
 }
 
-void Cell::prepare() {
-    return;
+int Cell::prepare() {
     //* Determine number of candidate collision pairs to be selected in this cell
     double select = system->coeff*particles*(particles-1)*vr_max;
 
     collision_pairs = round(select);      // Number of pairs to be selected
+    return collision_pairs;
 }
 
 int Cell::collide(Random *rnd) {
@@ -80,9 +84,6 @@ int Cell::collide(Random *rnd) {
     if( particles < 1 ) return 0;  // Skip to the next cell
 
     Molecule **molecules = system->molecules;
-    double select = system->coeff*particles*(particles-1)*vr_max;
-
-    collision_pairs = round(select);      // Number of pairs to be selected
 
     double crm = vr_max;     // Current maximum relative speed
 

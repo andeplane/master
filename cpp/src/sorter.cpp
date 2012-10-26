@@ -1,9 +1,12 @@
-#include "sorter.h"
+#include <sorter.h>
+#include <algorithm>
+#include <vector>
+
 Sorter::Sorter(System *_system) {
     system = _system;
 }
 
-void Sorter::sort() {
+int Sorter::sort_system() {
 	//* Find the cell address for each particle
 
     int N = system->N;
@@ -59,7 +62,14 @@ void Sorter::sort() {
         c = system->cells[i][j];
         c->particle_indices[c->particles++] = n;
     }
+    int collisions = 0;
+
+    for(int i=0;i<cells_x;i++)
+        for(int j=0;j<cells_y;j++)
+            collisions += system->cells[i][j]->prepare();
 
     delete [] cell_x;
     delete [] cell_y;
+
+    return collisions;
 }

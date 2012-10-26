@@ -30,6 +30,9 @@ private:
 public:
     Molecule **molecules;
     Cell ***cells;
+    Cell ***load_balanced_cell_list;
+    int  *cells_in_list;
+
     Grid *world_grid;
     Grid *initial_world_grid;
 

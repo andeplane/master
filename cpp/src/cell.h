@@ -10,6 +10,15 @@ class System;
 using namespace arma;
 using namespace std;
 
+/*
+struct col_pairs_greater
+{
+    bool operator()( const Cell& c1, const Cell& c2 ) const {
+            return c1.collision_pairs < c2.collision_pairs;
+        }
+};
+*/
+
 class Cell {
 public:
 	double volume;
@@ -35,9 +44,20 @@ public:
 
     Cell(System *system);
 	void reset();
-    void prepare();
+    int prepare();
     void resize(int n);
     int collide(Random *rnd);
 	void resetPressureCalculation();
 	void sampleStatistics();
+    static bool cmp(Cell *c1, Cell *c2);
+
+    /*
+    bool operator < (const Cell &c1, const Cell &c2) const {
+        return c1.collision_pairs < c2.collision_pairs;
+    }
+
+    bool operator > (const Cell &c1, const Cell &c2) const {
+        return c1.collision_pairs > c2.collision_pairs;
+    }
+    */
 };
