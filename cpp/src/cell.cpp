@@ -128,6 +128,7 @@ int Cell::collide(Random *rnd) {
 			
 			molecule1->v = vcm + 0.5*vrel;
 			molecule2->v = vcm - 0.5*vrel;
+
             // molecule1->information_carrier |= molecule2->information_carrier;
             // molecule2->information_carrier |= molecule1->information_carrier;
 
