@@ -6,7 +6,7 @@ Sorter::Sorter(System *_system) {
     system = _system;
 }
 
-int Sorter::sort_system() {
+void Sorter::sort_system() {
 	//* Find the cell address for each particle
 
     int N = system->N;
@@ -71,5 +71,20 @@ int Sorter::sort_system() {
     delete [] cell_x;
     delete [] cell_y;
 
-    return collisions;
+    int collisions_per_thread = collisions/4;
+
+    int load_balance_index = 0;
+    for(int n=0;n<system->threads;n++)
+        system->cells_in_list[n] = 0;
+
+    int number_of_distributed_collisions = 0;
+    for(int i=0;i<system->cells_x;i++)
+        for(int j=0;j<system->cells_y;j++) {
+            // Put this cell in the list for the correct thread
+            system->load_balanced_cell_list[load_balance_index][system->cells_in_list[load_balance_index]++] = system->cells[i][j];
+            number_of_distributed_collisions += system->cells[i][j]->collision_pairs;
+
+            if(number_of_distributed_collisions > collisions_per_thread*(1+load_balance_index) && load_balance_index < system->threads-1)
+                load_balance_index++;
+        }
 }

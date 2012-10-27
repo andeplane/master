@@ -13,8 +13,6 @@ double diam = 4.17e-4;    	  	    // Effective diameter of argon atom (m)
 double density = 26850000;		    // Number density of argon at STP (L^-3)
 mat readBMP(char* filename);
 
-#define CELL_SORT
-
 void System::initialize(CIniFile &ini) {
     N       = ini.getint("N");
     width   = ini.getdouble("width");
@@ -100,26 +98,7 @@ void System::step() {
     //* Sort the particles into cells
     t0 = clock();
     // Arrange all particles in correct cells
-    int expected_collisions = sorter->sort_system();
-#ifdef CELL_SORT
-
-    int collisions_per_thread = expected_collisions/4;
-
-    int load_balance_index = 0;
-    for(int n=0;n<threads;n++)
-        cells_in_list[n] = 0;
-
-    int number_of_distributed_collisions = 0;
-    for(int i=0;i<cells_x;i++)
-        for(int j=0;j<cells_y;j++) {
-            // Put this cell in the list for the correct thread
-            load_balanced_cell_list[load_balance_index][cells_in_list[load_balance_index]++] = cells[i][j];
-            number_of_distributed_collisions += cells[i][j]->collision_pairs;
-
-            if(number_of_distributed_collisions > collisions_per_thread*(1+load_balance_index) && load_balance_index < threads-1)
-                load_balance_index++;
-        }
-#endif
+    sorter->sort_system();
 
     time_consumption[SORT] += ((double)clock()-t0)/CLOCKS_PER_SEC;
 
@@ -169,20 +148,12 @@ int System::collide() {
         int thread_id = omp_get_thread_num();
         Random *rnd = randoms[thread_id];
         int local_col = 0;
-#ifdef CELL_SORT
         Cell **local_cells = load_balanced_cell_list[thread_id];
-#endif
 
         #pragma omp for
-#ifdef CELL_SORT
-        for(int n=0;n<cells_in_list[thread_id];n++)
-            local_col += local_cells[n]->collide(rnd);
-#else
         for(int i=0;i<cells_x;i++)
             for(int j=0;j<cells_y;j++)
                 local_col += cells[i][j]->collide(rnd);
-#endif
-
 
         #pragma omp critical
         {
@@ -201,14 +172,15 @@ void System::accelerate() {
 
 void System::initCells() {
     cells = new Cell**[cells_x];
-#ifdef CELL_SORT
+
     load_balanced_cell_list = new Cell**[threads];
     cells_in_list = new int[threads];
     for(int i=0;i<threads;i++) {
-        load_balanced_cell_list[i] = new Cell*[cells_x*cells_y]; // Create cell list that theoretically can contain all cells
+        // Create cell lists that theoretically can contain all cells
+        load_balanced_cell_list[i] = new Cell*[cells_x*cells_y];
         cells_in_list[i] = 0;
     }
-#endif
+
     for(int i=0;i<cells_x;i++) {
         cells[i] = new Cell*[cells_y];
 

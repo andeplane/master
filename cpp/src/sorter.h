@@ -13,7 +13,7 @@ public:
 
     // Regular Constructor. 
     Sorter(System *system);
-    int sort_system();
+    void sort_system();
 };
 
 #endif

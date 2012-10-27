@@ -92,7 +92,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
         }
 
         // double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
-        double v_normal = sqrt(-2*M_PI/2*point->T*log(rnd->nextDouble()));
+        double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
         double v_tangent = sqrt(3.0/2*point->T)*rnd->nextGauss();
 
         v(0) = v_normal*point->normal.x + v_tangent*point->tangent.x;
@@ -101,6 +101,6 @@ void Molecule::move(double dt, Random *rnd, int depth) {
     }
     else dt = 0;
 
-    if(dt > 1e-10 && depth < 10)
+    if(dt > 1e-10 && depth < 5)
         move(dt,rnd,depth+1);
 }
