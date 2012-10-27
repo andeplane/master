@@ -25,6 +25,7 @@ private:
 	void initMolecules();
 	void initCells();
 	void move();
+    void init_randoms();
 	int  collide();
 	void accelerate();
 public:
@@ -52,6 +53,7 @@ public:
 	double coeff;
 	double t;
 	double T;
+    double mass, diam, density;
     double wall_temperature;
 	double *time_consumption;
 	int numberOfCells;
@@ -67,6 +69,7 @@ public:
 	void printPositionsToFile(FILE *file);
     void initialize(CIniFile &ini);
 	void step();
+    void read_ini_file(CIniFile &ini);
 	double rand_gauss(long *idum);
     System() { }
 };

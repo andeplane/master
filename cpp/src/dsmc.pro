@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     Stdafx.cpp \
     CVector.cpp \
     CUtil.cpp \
-    CMath.cpp
+    CMath.cpp \
+    system.inc.cpp
 
 HEADERS += \
     system.h \
