@@ -18,7 +18,8 @@ SOURCES += main.cpp \
     CVector.cpp \
     CUtil.cpp \
     CMath.cpp \
-    system.inc.cpp
+    system.inc.cpp \
+    CBitMap.cpp
 
 HEADERS += \
     system.h \
@@ -33,7 +34,8 @@ HEADERS += \
     CUtil.h \
     CMatrix.h \
     CMath.h \
-    CIniFile.h
+    CIniFile.h \
+    CBitMap.h
 
 OTHER_FILES += \
     ../dsmc.ini
