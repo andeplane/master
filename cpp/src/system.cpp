@@ -102,7 +102,8 @@ void System::printPositionsToFile(FILE *file) {
 
     for(int n=0;n<N;n++) {
         // fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->type,molecules[n]->r(0),molecules[n]->r(1));
-        fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->information_carrier ? "O" : "H",molecules[n]->r(0),molecules[n]->r(1));
+        // We return height - r(1) because system is inverted
+        fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->information_carrier ? "H" : "H",molecules[n]->r(0),molecules[n]->r(1));
     }
 	
 }

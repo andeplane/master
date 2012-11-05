@@ -15,8 +15,8 @@ Grid::Grid(mat M,System *_system)
         for(int j=0;j<rows;j++) {
             GridPoint p(M(j,i));
             // p.T = system->T + (system->wall_temperature - system->T)*((double)i/(M.n_cols-1));
-            p.T = system->wall_temperature - (system->wall_temperature-system->T)*2*abs(0.5-i/(M.n_cols-1));
-            // p.T = system->wall_temperature;
+            // p.T = system->wall_temperature - (system->wall_temperature-system->T)*2*abs(0.5-i/(M.n_cols-1));
+            p.T = system->wall_temperature;
             p.i = i;
             p.j = j;
             points.push_back(p);

@@ -154,8 +154,11 @@ mat CBitMap::toMatrix()
 {
     mat M = zeros<mat>(height,width);
     for(int x=0;x<width;x++)
-        for(int y=0;y<height;y++)
-            M(height-y-1,x) = pixel(x,y);
+        for(int y=0;y<height;y++) {
+            // int _y = (y-1+height)%height;
+            int _x = (x-(int)0.9*y+2*width)%width;
+            M(y,_x) = pixel(x,y);
+        }
 
     return M;
 }
