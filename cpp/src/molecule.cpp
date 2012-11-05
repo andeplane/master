@@ -70,7 +70,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
                     active = false;
                     r.zeros();
                     v.zeros();
-                    cout << "Trouble with molecule " << index << " at (i,j)=(" << point->i-1 << "," << point->j << "). Check your world." << endl;
+                    cout << "Trouble with molecule " << index << " at (i,j)=(" << point->i << "," << point->j << "). Check your world." << endl;
                     return;
                 }
 
@@ -87,7 +87,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
                 if(++count > 100) {
                     active = false;
                     r.zeros();
-                    cout << "Another kind of trouble with molecule " << index << " at (i,j)=(" << point->i-1 << "," << point->j << "). Check your world." << endl;
+                    cout << "Another kind of trouble with molecule " << index << " at (i,j)=(" << point->i << "," << point->j << "). Check your world." << endl;
                     return;
                 }
             }
