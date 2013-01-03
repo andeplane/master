@@ -19,7 +19,8 @@ SOURCES += main.cpp \
     CUtil.cpp \
     CMath.cpp \
     system.inc.cpp \
-    CBitMap.cpp
+    CBitMap.cpp \
+    unitconverter.cpp
 
 HEADERS += \
     system.h \
@@ -35,7 +36,8 @@ HEADERS += \
     CMatrix.h \
     CMath.h \
     CIniFile.h \
-    CBitMap.h
+    CBitMap.h \
+    unitconverter.h
 
 OTHER_FILES += \
     ../dsmc.ini
