@@ -1,11 +1,6 @@
 TEMPLATE = app
 CONFIG += console
 CONFIG -= qt
-LIBS   += -larmadillo -openmp
-INCLUDEPATH +=
-QMAKE_CXXFLAGS += -openmp
-QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CXXFLAGS
-QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CXXFLAGS
 
 SOURCES += main.cpp \
     system.cpp \
@@ -42,3 +37,19 @@ HEADERS += \
 
 OTHER_FILES += \
     ../dsmc.ini
+
+mac {
+    LIBS   += -larmadillo -openmp
+    INCLUDEPATH +=
+    QMAKE_CXXFLAGS += -openmp
+    QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CXXFLAGS
+    QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CXXFLAGS
+}
+
+unix:!mac {
+    LIBS   += -larmadillo -fopenmp
+    INCLUDEPATH +=
+    QMAKE_CXXFLAGS += -fopenmp
+    QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CXXFLAGS
+    QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CXXFLAGS
+}
