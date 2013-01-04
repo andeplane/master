@@ -26,6 +26,7 @@ void System::step() {
     // Arrange all particles in correct cells
     sorter->sort_system();
 
+
     time_consumption[SORT] += ((double)clock()-t0)/CLOCKS_PER_SEC;
 
     t0 = clock();
