@@ -6,13 +6,11 @@
 void System::initialize(CIniFile &ini) {
     read_ini_file(ini);
     Image img;
-    cout << "Hore 1" << endl;
+
     char *world_base = "../worlds/";
-
     char world_file[100];
-
     char initial_world_file[100];
-    // = strcat(world_base,ini.getstring("initial_world").c_str());
+
     strcpy(world_file,world_base);
     strcpy(initial_world_file,world_base);
     strcat(world_file,ini.getstring("world").c_str());
