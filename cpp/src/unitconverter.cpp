@@ -1,14 +1,17 @@
-#include "unitconverter.h"
+#include <unitconverter.h>
 
 UnitConverter::UnitConverter()
 {
-}
+    m0 = 6.63352065e-26;  // SI
+    L0 = 1e-6;            // SI
+    // static double E0 = 1.0318e-2;    // eV
+    E0 = 1.65088e-21;     // SI
+    kb = 1.3806503e-23;   // SI
 
-void UnitConverter::calculate_units() {
     t0 = L0*sqrt(m0/E0);
     F0 = E0/L0;
     T0 = E0/kb;
-    PA0 = m0/(t0*L0);
+    P0 = m0/(t0*L0);
 }
 
 double UnitConverter::pressure_to_SI(double P) { return P0*P; }
