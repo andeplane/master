@@ -41,9 +41,9 @@ OTHER_FILES += \
     ../dsmc.ini
 
 mac {
-    LIBS   += -larmadillo -openmp
+    LIBS   += -larmadillo -fopenmp
     INCLUDEPATH +=
-    QMAKE_CXXFLAGS += -openmp
+    QMAKE_CXXFLAGS += -fopenmp
     QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CXXFLAGS
     QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CXXFLAGS
 }

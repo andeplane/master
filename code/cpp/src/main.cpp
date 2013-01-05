@@ -7,6 +7,7 @@
 #include <statisticssampler.h>
 #include <defines.h>
 #include <CIniFile.h>
+#include <omp.h>
 
 using namespace std;
 
