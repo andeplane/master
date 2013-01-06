@@ -13,13 +13,18 @@ if temp
 end
 
 if vel
+    % Open file
     velocity = dlmread('velocity.dat');
 
+    % Get array size
     vel_size = size(velocity);
+    % The last measured velocity
     v_x_last = velocity(vel_size(1),:);
-    avg_v = sum(v_x_last)/length(v_x_last);
-    v_x_last = v_x_last/avg_v;
-
+    % Average across the canal
+    avg_v = sum(v_x_last)/length(v_x_last)
+    % Normalize
+    %v_x_last = v_x_last/avg_v;
+    
     subplot(3,1,2);
     plot(v_x_last);
     legend('Velocity profile');

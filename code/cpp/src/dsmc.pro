@@ -35,7 +35,8 @@ HEADERS += \
     CIniFile.h \
     CBitMap.h \
     unitconverter.h \
-    Image.h
+    Image.h \
+    defines.h
 
 OTHER_FILES += \
     ../dsmc.ini

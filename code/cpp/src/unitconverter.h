@@ -1,7 +1,7 @@
 #pragma once
 #include <math.h>
 
-static double m0 = m0 = 6.63352065e-26;  // SI
+static double m0 = 6.63352065e-26;  // SI
 static double L0 = 1e-6;            // SI
 static double E0 = 1.65088e-21;     // SI
 static double kb = 1.3806503e-23;   // SI
@@ -9,7 +9,9 @@ static double kb = 1.3806503e-23;   // SI
 static double t0 = L0*sqrt(m0/E0);
 static double F0 = E0/L0;
 static double T0 = E0/kb;
-static double P0 = m0/(t0*L0);
+static double P0 = F0/L0/L0;
+static double v0 = L0/t0;
+static double visc0 = P0*t0;
 
 class UnitConverter
 {
@@ -33,4 +35,13 @@ public:
 
     double energy_to_SI(double E);
     double energy_from_SI(double E);
+
+    double time_to_SI(double t);
+    double time_from_SI(double t);
+
+    double velocity_to_SI(double v);
+    double velocity_from_SI(double v);
+
+    double viscosity_to_SI(double v);
+    double viscosity_from_SI(double v);
 };
