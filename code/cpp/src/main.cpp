@@ -62,10 +62,12 @@ int main(int args, char* argv[]) {
 
     cout << "Viscosity (my units): " << visc << endl;
     cout << "Viscosity (SI): " << uc.viscosity_to_SI(visc) << endl;
+    cout << "Eff num: " << system.eff_num << endl;
+    cout << "Viscosity coeff: " << uc.viscosity_to_SI(1.0) << endl;
 
-    double eta = 5.*M_PI/32.*1.0*system.density*(2./sqrt(M_PI)*system.mpv)*system.mfp;
-    cout << "Theoretical viscosity (my units): " << eta << endl;
-    cout << "Theoretical viscosity (SI): " << uc.viscosity_to_SI(eta) << endl;
+    // double eta = 5.*M_PI/32.*1.0*system.density*(2./sqrt(M_PI)*system.mpv)*system.mfp;
+    // cout << "Theoretical viscosity (my units): " << eta << endl;
+    // cout << "Theoretical viscosity (SI): " << uc.viscosity_to_SI(eta) << endl;
 
     printf("100%%\n\n");
     printf("Time consumption: \n");

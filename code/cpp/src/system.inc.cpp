@@ -37,6 +37,7 @@ void System::initialize(CIniFile &ini) {
     steps = 0;
     collisions = 0;
     t = 0;
+
     eff_num = density*volume/N;
 
     mfp = volume/(sqrt(2.0)*M_PI*diam*diam*N*eff_num);
