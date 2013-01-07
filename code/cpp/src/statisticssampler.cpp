@@ -87,14 +87,22 @@ void StatisticsSampler::calculate_velocity_profile() {
     int N = 100;
 	Molecule *molecule;
     vec velocities = zeros<vec>(N,1);
+    vec velocity_count= zeros<vec>(N,1);
 
 	int n;
+
 
     for(int i=0;i<system->N;i++) {
         molecule = system->molecules[i];
         n = N*molecule->r(1)/system->height;
-        velocities(n) += molecule->v(0)/N;
+        velocities(n) += molecule->v(0);
+        velocity_count(n)++;
 	}
+
+    for(n=0;n<N;n++) {
+        if(velocity_count(n)>0)
+            velocities(n) /= velocity_count(n);
+    }
 	
 	for(int n=0;n<N;n++) 
         fprintf(velocity_file,"%f ",velocities(n));

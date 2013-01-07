@@ -1,7 +1,6 @@
 #include <system.h>
 #include <Image.h>
-// const double boltz = 1.0;    // Boltzmann's constant (J/K)
-// double mass = 1.0;     	    // Mass of argon atom (kg)
+#include <defines.h>
 
 void System::initialize(CIniFile &ini) {
     read_ini_file(ini);
@@ -50,6 +49,9 @@ void System::initialize(CIniFile &ini) {
     dt *= ini.getdouble("dt_factor");
 
     coeff = 0.5*eff_num*M_PI*diam*diam*dt/(volume/numberOfCells);
+
+    dvx0 = 0;
+    dvx1 = 0;
 
     init_randoms();
     initMolecules();
@@ -150,8 +152,14 @@ void System::initVelocities() {
     Molecule *m;
     for(int n=0; n<N; n++ ) {
         m = molecules[n];
+#ifdef VISCOSITY
+        double factor = m->r(1)/height;
 
+        m->v(0) = randoms[0]->nextGauss()*sqrt(3.0/2*T) + factor*VWALL;
+        m->v(1) = randoms[0]->nextGauss()*sqrt(3.0/2*T);
+#else
         m->v(0) = randoms[0]->nextGauss()*sqrt(3.0/2*T);
         m->v(1) = randoms[0]->nextGauss()*sqrt(3.0/2*T);
+#endif
     }
 }

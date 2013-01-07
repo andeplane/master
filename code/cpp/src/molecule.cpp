@@ -1,3 +1,4 @@
+#include "defines.h"
 #include "molecule.h"
 #include <iostream>
 #include <math.h>
@@ -32,6 +33,37 @@ inline void Molecule::fixR() {
     if(r(1) > system->height) r(1) -= system->height;
     else if(r(1) < 0)        r(1) += system->height;
 }
+
+#ifdef VISCOSITY
+    void Molecule::move(double dt, Random *rnd, int depth) {
+        r += v*dt;
+
+        if(r(1) < 0) {
+            r -= v*dt;
+            double tau = r(1)/abs(v(1));
+            r += v*tau;
+
+            v(1) = sqrt(-6.0/2*system->wall_temperature*log(rnd->nextDouble()));
+            v(0) = sqrt(3.0/2*system->wall_temperature)*rnd->nextGauss();
+
+            r += v*(dt - tau);
+        }
+        else if(r(1) > system->height) {
+            r -= v*dt;
+            double tau = (system->height - r(1))/abs(v(1));
+            r += v*tau;
+
+            v(1) = -sqrt(-6.0/2*system->wall_temperature*log(rnd->nextDouble()));
+            v(0) = sqrt(3.0/2*system->wall_temperature)*rnd->nextGauss() + VWALL;  // Wall velocity
+            r += v*(dt - tau);
+        }
+        if(r(0) < 0 || r(0) > system->width) {
+            r(0) = fmod(r(0) + 10*system->width,system->width);
+        }
+    }
+
+#else
+
 
 void Molecule::move(double dt, Random *rnd, int depth) {
     if(!active) return;
@@ -106,3 +138,4 @@ void Molecule::move(double dt, Random *rnd, int depth) {
     if(dt > 1e-10 && depth < 5)
         move(dt,rnd,depth+1);
 }
+#endif

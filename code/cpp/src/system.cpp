@@ -55,13 +55,28 @@ void System::step() {
 }
 
 void System::move() {
-#pragma omp parallel num_threads(threads)
+    #pragma omp parallel num_threads(threads)
     {
-    Random *rnd = randoms[omp_get_thread_num()];
-    #pragma omp for
-    for(int n=0; n<N; n++ ) {
-        molecules[n]->move(dt,rnd);
-    }
+        double v0 = 0;
+        double dvx1_local = 0;
+        double dvx0_local = 0;
+
+        Random *rnd = randoms[omp_get_thread_num()];
+        #pragma omp for
+        for(int n=0; n<N; n++ ) {
+            v0 = molecules[n]->v(0);
+            molecules[n]->move(dt,rnd);
+            if(molecules[n]->r(1) > height/2)
+                dvx1_local += molecules[n]->v(0) - v0;
+            else
+                dvx0_local += molecules[n]->v(0) - v0;
+        }
+
+        #pragma omp critical
+        {
+            dvx0 += dvx0_local;
+            dvx1 += dvx1_local;
+        }
     }
 }
 

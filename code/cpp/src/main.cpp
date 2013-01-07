@@ -7,7 +7,7 @@
 #include <statisticssampler.h>
 #include <defines.h>
 #include <CIniFile.h>
-#include <omp.h>
+#include <unitconverter.h>
 
 using namespace std;
 
@@ -45,6 +45,27 @@ int main(int args, char* argv[]) {
     sampler.calculate_velocity_field();
 
     sampler.finish();
+
+    UnitConverter uc;
+
+    double dvx0 = system.dvx0;
+    double dvx1 = system.dvx1;
+    double P0 = system.eff_num*1.0*dvx0/system.t/system.width;
+    double P1 = system.eff_num*1.0*dvx1/system.t/system.width;
+    cout << endl << "dvx0=" << dvx0 << endl;
+    cout << "dvx1=" << dvx1 << endl;
+    cout << "P0=" << P0 << endl;
+    cout << "P1=" << P1 << endl;
+
+    double vgrad = 2*VWALL/system.height;
+    double visc = 0.5*(P1-P0)/vgrad;  // Average viscosity
+
+    cout << "Viscosity (my units): " << visc << endl;
+    cout << "Viscosity (SI): " << uc.viscosity_to_SI(visc) << endl;
+
+    double eta = 5.*M_PI/32.*1.0*system.density*(2./sqrt(M_PI)*system.mpv)*system.mfp;
+    cout << "Theoretical viscosity (my units): " << eta << endl;
+    cout << "Theoretical viscosity (SI): " << uc.viscosity_to_SI(eta) << endl;
 
     printf("100%%\n\n");
     printf("Time consumption: \n");

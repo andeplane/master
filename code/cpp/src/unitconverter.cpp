@@ -32,4 +32,13 @@ double UnitConverter::force_from_SI(double F) { return F/F0; }
 double UnitConverter::energy_to_SI(double E) { return E0*E; }
 double UnitConverter::energy_from_SI(double E) { return E/E0; }
 
+double UnitConverter::time_to_SI(double t) { return t0*t; }
+double UnitConverter::time_from_SI(double t) { return t/t0; }
+
+double UnitConverter::velocity_to_SI(double v) { return v*v0; }
+double UnitConverter::velocity_from_SI(double v) { return v/v0; }
+
+double UnitConverter::viscosity_to_SI(double v) { return v*visc0; }
+double UnitConverter::viscosity_from_SI(double v) { return v/visc0; }
+
 
