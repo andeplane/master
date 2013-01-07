@@ -3,4 +3,4 @@
 #define SAMPLE 2
 #define COLLIDE 3
 #define VISCOSITY
-#define VWALL 5.0
+#define VWALL 1.0

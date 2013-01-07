@@ -72,7 +72,7 @@ void System::move() {
                 dvx0_local += molecules[n]->v(0) - v0;
         }
 
-        #pragma omp barrier
+        #pragma omp critical
         {
             dvx0 += dvx0_local;
             dvx1 += dvx1_local;

@@ -52,22 +52,20 @@ int main(int args, char* argv[]) {
     double dvx1 = system.dvx1;
     double P0 = system.eff_num*1.0*dvx0/system.t/system.width;
     double P1 = system.eff_num*1.0*dvx1/system.t/system.width;
-    cout << dvx0 << endl;
-    cout << dvx1 << endl;
-    cout << P0 << endl;
-    cout << P1 << endl;
+    cout << endl << "dvx0=" << dvx0 << endl;
+    cout << "dvx1=" << dvx1 << endl;
+    cout << "P0=" << P0 << endl;
+    cout << "P1=" << P1 << endl;
 
     double vgrad = 2*VWALL/system.height;
-
     double visc = 0.5*(P1-P0)/vgrad;  // Average viscosity
-    cout << "Viscosity my units: " << visc << endl;
-    cout << "Viscosity factor: " << uc.viscosity_to_SI(1.0) << endl;
-    cout << "Viscosity: " << uc.viscosity_to_SI(visc) << endl;
-    double eta = 5.*M_PI/32.*uc.mass_to_SI(1.0)*system.density*(2./sqrt(M_PI)*uc.velocity_to_SI(system.mpv))*uc.length_to_SI(system.mfp);
-    double eta_my_units = 5.*M_PI/32.*1.0*system.density*(2./sqrt(M_PI)*system.mpv)*system.mfp;
-    cout << "Theoretical viscosity: " << eta << endl;
-    cout << "Theoretical viscosity (my units): " << eta_my_units << endl;
-    cout << "Theoretical viscosity (converted): " << uc.viscosity_to_SI(eta_my_units) << endl;
+
+    cout << "Viscosity (my units): " << visc << endl;
+    cout << "Viscosity (SI): " << uc.viscosity_to_SI(visc) << endl;
+
+    double eta = 5.*M_PI/32.*1.0*system.density*(2./sqrt(M_PI)*system.mpv)*system.mfp;
+    cout << "Theoretical viscosity (my units): " << eta << endl;
+    cout << "Theoretical viscosity (SI): " << uc.viscosity_to_SI(eta) << endl;
 
     printf("100%%\n\n");
     printf("Time consumption: \n");
