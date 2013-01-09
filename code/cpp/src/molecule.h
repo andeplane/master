@@ -29,7 +29,7 @@ public:
     inline void addR(vec dr);
     void move(double dt, Random *rnd, int depth = 0);
     void move_old(double dt, Random *rnd);
-    double r_squared_from_initial();
+    double squaredDistanceFromInitialPosition();
 };
 
 #endif

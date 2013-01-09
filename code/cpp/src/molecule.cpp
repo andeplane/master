@@ -23,7 +23,7 @@ inline int sign(double a) {
 	return a >= 0 ? 1 : -1;
 }
 
-double Molecule::r_squared_from_initial() {
+double Molecule::squaredDistanceFromInitialPosition() {
     vec dr = initial_r-r;
     return dot(dr,dr);
 }
