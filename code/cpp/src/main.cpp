@@ -48,6 +48,9 @@ int main(int args, char* argv[]) {
 
     UnitConverter uc;
 
+    double diffusion_constant = sampler.calculate_diffusion_constant();
+    cout << "Diffusion constant: " << uc.diffusion_to_SI(diffusion_constant) << endl;
+
     printf("100%%\n\n");
     printf("Time consumption: \n");
     printf("Sorting: %.2f s\n",system.time_consumption[SORT]);

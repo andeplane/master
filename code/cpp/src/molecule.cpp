@@ -23,6 +23,10 @@ inline int sign(double a) {
 	return a >= 0 ? 1 : -1;
 }
 
+double Molecule::r_squared_from_initial() {
+    return dot(initial_r,r);
+}
+
 inline void Molecule::addR(vec dr) {
     r += dr;
     fixR();

@@ -12,6 +12,7 @@ static double T0 = E0/kb;
 static double P0 = F0/L0/L0;
 static double v0 = L0/t0;
 static double visc0 = P0*t0;
+static double diff0 = L0*L0/t0;
 
 class UnitConverter
 {
@@ -44,4 +45,7 @@ public:
 
     double viscosity_to_SI(double v);
     double viscosity_from_SI(double v);
+
+    double diffusion_to_SI(double d);
+    double diffusion_from_SI(double d);
 };

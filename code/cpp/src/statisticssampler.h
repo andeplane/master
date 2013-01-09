@@ -40,6 +40,7 @@ public:
     void calculate_pressure();
     void calculate_velocity_profile();
     void calculate_velocity_field();
+    double calculate_diffusion_constant();
 
 	void finish();
     double get_temperature();

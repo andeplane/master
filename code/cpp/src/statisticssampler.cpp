@@ -138,3 +138,16 @@ void StatisticsSampler::calculate_velocity_field() {
         fprintf(velocity_field_file_y,"\n");
     }
 }
+
+double StatisticsSampler::calculate_diffusion_constant() {
+    Molecule *molecule;
+    double r_squared = 0;
+    for(int i=0;i<system->N;i++) {
+        molecule = system->molecules[i];
+        r_squared += molecule->r_squared_from_initial();
+    }
+    r_squared /= system->N;
+
+    double diffusion_constant = r_squared/6/system->t;
+    return diffusion_constant;
+}
