@@ -51,9 +51,6 @@ void System::initialize(CIniFile &ini) {
 
     coeff = 0.5*eff_num*M_PI*diam*diam*dt/(volume/numberOfCells);
 
-    dvx0 = 0;
-    dvx1 = 0;
-
     init_randoms();
     initMolecules();
     initCells();
@@ -153,14 +150,7 @@ void System::initVelocities() {
     Molecule *m;
     for(int n=0; n<N; n++ ) {
         m = molecules[n];
-#ifdef VISCOSITY
-        double factor = m->r(1)/height;
-
-        m->v(0) = randoms[0]->nextGauss()*sqrt(3.0/2*T) + factor*VWALL;
-        m->v(1) = randoms[0]->nextGauss()*sqrt(3.0/2*T);
-#else
         m->v(0) = randoms[0]->nextGauss()*sqrt(3.0/2*T);
         m->v(1) = randoms[0]->nextGauss()*sqrt(3.0/2*T);
-#endif
     }
 }

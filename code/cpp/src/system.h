@@ -41,9 +41,6 @@ public:
 
 	int N; 			// Number of molecules
 
-    double dvx0;
-    double dvx1;
-
     double width;
     double height;
     double acceleration;
