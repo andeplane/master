@@ -12,7 +12,7 @@ void System::step() {
     time_t t0;
 
     steps += 1;
-    t += 1;
+    t += dt;
 
     accelerate();
 
