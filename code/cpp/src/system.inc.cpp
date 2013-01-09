@@ -111,8 +111,10 @@ void System::initCells() {
 
 void System::init_randoms() {
     randoms = new Random*[threads];
+    long seed = time(NULL);
+
     for(int i=0;i<threads;i++)
-        randoms[i] = new Random(-(i+1));
+        randoms[i] = new Random(-(i+1+seed));
 }
 
 void System::initMolecules() {
