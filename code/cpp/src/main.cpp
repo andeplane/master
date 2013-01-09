@@ -30,6 +30,8 @@ int main(int args, char* argv[]) {
         system.printPositionsToFile(positions);
     }
 
+    UnitConverter uc;
+
     for(int i=0;i<timesteps;i++) {
         if(timesteps >= 100 && !(i%(timesteps/100))) {
             printf("%d%%..",(100*i)/timesteps);
@@ -40,16 +42,14 @@ int main(int args, char* argv[]) {
         sampler.sample();
 
         if(print_positions && !(i%print_every_n_step)) system.printPositionsToFile(positions);
+
+        double diffusion_constant = sampler.calculate_diffusion_constant();
+        cout << "Diffusion constant: " << uc.diffusion_to_SI(diffusion_constant) << endl;
     }
     sampler.calculate_pressure();
     sampler.calculate_velocity_field();
 
     sampler.finish();
-
-    UnitConverter uc;
-
-    double diffusion_constant = sampler.calculate_diffusion_constant();
-    cout << "Diffusion constant: " << uc.diffusion_to_SI(diffusion_constant) << endl;
 
     printf("100%%\n\n");
     printf("Time consumption: \n");
