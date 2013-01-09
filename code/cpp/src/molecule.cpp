@@ -24,7 +24,8 @@ inline int sign(double a) {
 }
 
 double Molecule::r_squared_from_initial() {
-    return dot(initial_r,r);
+    vec dr = initial_r-r;
+    return dot(dr,dr);
 }
 
 inline void Molecule::addR(vec dr) {
