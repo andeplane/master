@@ -144,7 +144,7 @@ double StatisticsSampler::calculate_diffusion_constant() {
     double r_squared = 0;
     for(int i=0;i<system->N;i++) {
         molecule = system->molecules[i];
-        r_squared += molecule->r_squared_from_initial();
+        r_squared += molecule->squared_distance_from_initial_position();
     }
     r_squared /= system->N;
 

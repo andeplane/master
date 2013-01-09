@@ -23,7 +23,7 @@ inline int sign(double a) {
 	return a >= 0 ? 1 : -1;
 }
 
-double Molecule::squaredDistanceFromInitialPosition() {
+double Molecule::squared_distance_from_initial_position() {
     vec dr = initial_r-r;
     return dot(dr,dr);
 }
@@ -34,11 +34,11 @@ inline void Molecule::addR(vec dr) {
 }
 
 inline void Molecule::fixR() {
-    if(r(0) > system->width)  { r(0) -= system->width; initial_r(0) += system->width; }
-    else if(r(0) < 0)         { r(0) += system->width; initial_r(0) -= system->width; }
+    if(r(0) > system->width)  { r(0) -= system->width; initial_r(0) -= system->width; }
+    else if(r(0) < 0)         { r(0) += system->width; initial_r(0) += system->width; }
 
-    if(r(1) > system->height) { r(1) -= system->height; initial_r(1) += system->height; }
-    else if(r(1) < 0)         { r(1) += system->height; initial_r(1) -= system->height; }
+    if(r(1) > system->height) { r(1) -= system->height; initial_r(1) -= system->height; }
+    else if(r(1) < 0)         { r(1) += system->height; initial_r(1) += system->height; }
 }
 
 void Molecule::move(double dt, Random *rnd, int depth) {

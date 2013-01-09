@@ -36,15 +36,15 @@ int main(int args, char* argv[]) {
         if(timesteps >= 100 && !(i%(timesteps/100))) {
             printf("%d%%..",(100*i)/timesteps);
             fflush(stdout);
+
+            double diffusion_constant = sampler.calculate_diffusion_constant();
+            cout << "Diffusion constant: " << uc.diffusion_to_SI(diffusion_constant) << endl;
         }
         system.step();
 
         sampler.sample();
 
         if(print_positions && !(i%print_every_n_step)) system.printPositionsToFile(positions);
-
-        double diffusion_constant = sampler.calculate_diffusion_constant();
-        cout << "Diffusion constant: " << uc.diffusion_to_SI(diffusion_constant) << endl;
     }
     sampler.calculate_pressure();
     sampler.calculate_velocity_field();
