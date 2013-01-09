@@ -140,6 +140,7 @@ void System::initPositions() {
         while(didCollide) {
             m->r(0) = width*randoms[0]->nextDouble();
             m->r(1) = height*randoms[0]->nextDouble();
+            m->initial_r = m->r;
 
             didCollide = initial_world_grid->get_grid_point(m->r)->is_wall;
         }

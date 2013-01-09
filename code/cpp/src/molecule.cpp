@@ -8,6 +8,7 @@ using namespace std;
 
 Molecule::Molecule(System *_system) {
     r = zeros<vec> (3,1);
+    initial_r = r;
     v = zeros<vec> (3,1);
 
     atoms = 1;
@@ -28,10 +29,11 @@ inline void Molecule::addR(vec dr) {
 }
 
 inline void Molecule::fixR() {
-    if(r(0) > system->width) r(0) -= system->width;
-    else if(r(0) < 0)        r(0) += system->width;
-    if(r(1) > system->height) r(1) -= system->height;
-    else if(r(1) < 0)        r(1) += system->height;
+    if(r(0) > system->width)  { r(0) -= system->width; initial_r(0) += system->width; }
+    else if(r(0) < 0)         { r(0) += system->width; initial_r(0) -= system->width; }
+
+    if(r(1) > system->height) { r(1) -= system->height; initial_r(1) += system->height; }
+    else if(r(1) < 0)         { r(1) += system->height; initial_r(1) -= system->height; }
 }
 
 void Molecule::move(double dt, Random *rnd, int depth) {

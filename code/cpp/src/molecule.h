@@ -19,6 +19,7 @@ public:
     int    information_carrier;
 
     vec r;
+    vec initial_r;
     vec v;
 
     System *system;
