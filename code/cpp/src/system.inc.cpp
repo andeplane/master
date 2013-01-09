@@ -64,7 +64,7 @@ void System::initialize(CIniFile &ini) {
     printf("System size: %.2f x %.2f \n",width,height);
     printf("System size (mfp): %.2f x %.2f \n",width/mfp,height/mfp);
     printf("Global Kn: %.2f x %.2f \n",mfp/width,mfp/height);
-    printf("Mean free paths per cell: %.2f \n",min(mfp/(width/cells_x),mfp/(height/cells_y)));
+    printf("Mean free paths per cell: %.2f \n",min(width/cells_x/mfp,height/cells_y/mfp));
     printf("%d atoms per molecule\n",(int)eff_num);
     printf("%d molecules per cell\n",N/numberOfCells);
 
