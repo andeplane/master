@@ -11,6 +11,7 @@ Molecule::Molecule(System *_system) {
     initial_r = r;
     v = zeros<vec> (3,1);
 
+    mass = 1;
     atoms = 1;
     type = 0;
     system = _system;

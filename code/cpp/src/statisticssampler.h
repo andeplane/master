@@ -41,10 +41,14 @@ public:
     void calculate_velocity_profile();
     void calculate_velocity_field();
     double calculate_diffusion_constant();
+    mat calculate_pressure_tensor(vector<Molecule*> molecules);
+    vector<mat> calculate_local_pressure_tensor();
+    mat calculate_global_pressure_tensor();
 
 	void finish();
     double get_temperature();
     double get_pressure();
+
 
 };
 

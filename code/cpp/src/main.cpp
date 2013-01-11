@@ -31,20 +31,28 @@ int main(int args, char* argv[]) {
     }
 
     UnitConverter uc;
+    FILE *pressure_file = fopen("pressure.dat","w");
 
     for(int i=0;i<timesteps;i++) {
         if(timesteps >= 100 && !(i%(timesteps/100))) {
             printf("%d%%..",(100*i)/timesteps);
             fflush(stdout);
-
-            double diffusion_constant = sampler.calculate_diffusion_constant();
-            cout << "Diffusion constant: " << uc.diffusion_to_SI(diffusion_constant) << endl;
         }
-        system.step();
 
+        system.step();
         sampler.sample();
 
         if(print_positions && !(i%print_every_n_step)) system.printPositionsToFile(positions);
+
+        mat p = sampler.calculate_global_pressure_tensor();
+        vector<mat> pressure_tensors = sampler.calculate_local_pressure_tensor();
+
+        for(int n=0;n<pressure_tensors.size();n++) {
+            mat pressure_tensor = pressure_tensors[n];
+            fprintf(pressure_file,"%.5f ",pressure_tensor(0,0));
+        }
+        fprintf(pressure_file,"\n");
+
     }
     sampler.calculate_pressure();
     sampler.calculate_velocity_field();

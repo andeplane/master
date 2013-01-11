@@ -151,3 +151,60 @@ double StatisticsSampler::calculate_diffusion_constant() {
     double diffusion_constant = r_squared/6/system->t;
     return diffusion_constant;
 }
+
+
+mat StatisticsSampler::calculate_global_pressure_tensor() {
+    vector<Molecule*> molecules;
+    for(int n=0;n<system->N;n++)
+        molecules.push_back(system->molecules[n]);
+
+    return calculate_pressure_tensor(molecules);
+}
+
+vector<mat> StatisticsSampler::calculate_local_pressure_tensor() {
+    // Matrix with dimension (N_cells,3), one
+    vector<mat> pressure_tensors;
+
+    Cell *c; Molecule *m;
+    for(int i=0;i<system->cells_x;i++) {
+        for(int j=0;j<system->cells_y;j++) {
+            c = system->cells[i][j];
+            vector<Molecule*> molecules;
+            for(int n=0;n<c->particles;n++)
+                molecules.push_back(system->molecules[c->particle_indices[n]]);
+            pressure_tensors.push_back(calculate_pressure_tensor(molecules));
+        }
+    }
+
+    return pressure_tensors;
+}
+
+mat StatisticsSampler::calculate_pressure_tensor(vector<Molecule*> molecules) {
+    mat p = zeros<mat>(3,3);
+    vec v = zeros<vec>(3,1);
+    double rho = 0;
+    int N = molecules.size();
+    if(!N) return p;
+
+    Molecule *m;
+
+    for(int n=0;n<molecules.size();n++) {
+        m = molecules[n];
+        v += m->mass*m->v/N;
+        rho += m->mass/N;
+        for(int i=0;i<3;i++) {
+            for(int j=0;j<3;j++) {
+                p(i,j) += m->v(i)*m->v(j)*m->mass/N;
+            }
+        }
+    }
+    v /= rho;
+
+    for(int i=0;i<3;i++) {
+        for(int j=0;j<3;j++) {
+            p(i,j) -= v(i)*v(j)*rho;
+        }
+    }
+
+    return p;
+}

@@ -17,6 +17,7 @@ public:
     int    index;
     bool   active;
     int    information_carrier;
+    double mass;
 
     vec r;
     vec initial_r;
