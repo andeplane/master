@@ -30,10 +30,12 @@ public:
     double pressure;
     double f_sum;
     double density;
-    double T;
+    int average_over;
+    double temperature;
     int momentum_time_steps;
     vec momentum;
     vec momentum_change;
+    mat pressure_tensor;
 
     int collision_pairs;
     int i,j;
@@ -48,7 +50,12 @@ public:
     void resize(int n);
     int collide(Random *rnd);
 	void resetPressureCalculation();
-	void sampleStatistics();
+
+    void update_pressure_tensor(mat updated_pressure_tensor);
+    void update_energy(double updated_energy);
+    void update_momentum(vec update_momentum);
+    void update_temperature(double updated_temperature);
+
     static bool cmp(Cell *c1, Cell *c2);
 
     /*

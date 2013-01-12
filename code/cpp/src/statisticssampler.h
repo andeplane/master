@@ -13,11 +13,6 @@ public:
     int  temperature_samples;
     double temperature_sum;
 
-    bool print_pressure;
-    int  pressure_samples;
-    int  representative_cells;
-    double pressure_sum;
-
     bool print_velocity_profile;
     int  velocity_profile_samples;
 
@@ -29,7 +24,6 @@ public:
 	
     FILE *velocity_file;
     FILE *temperature_file;
-    FILE *pressure_file;
     FILE *velocity_field_file_x;
     FILE *velocity_field_file_y;
 
@@ -37,9 +31,9 @@ public:
     StatisticsSampler(System *system, CIniFile *ini);
 	void sample();
     void calculate_temperature();
-    void calculate_pressure();
     void calculate_velocity_profile();
     void calculate_velocity_field();
+    void update_cell_statistics();
     double calculate_diffusion_constant();
     mat calculate_pressure_tensor(vector<Molecule*> molecules);
     vector<mat> calculate_local_pressure_tensor();
@@ -47,9 +41,6 @@ public:
 
 	void finish();
     double get_temperature();
-    double get_pressure();
-
-
 };
 
 #endif

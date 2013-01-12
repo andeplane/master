@@ -9,10 +9,13 @@ Cell::Cell(System *_system) {
     system = _system;
     vr_max = 0;
     particles = 0;
+    average_over = 100;
     momentum_time_steps = 0;
-    T = system->T;
+    temperature = system->T;
     momentum = zeros<vec>(3,1);
     momentum_change = zeros<vec>(3,1);
+    pressure_tensor = zeros<mat>(3,3);
+
     energy = 0;
     density = 0;
     particle_capacity = 100;
@@ -35,40 +38,21 @@ void Cell::reset() {
     particles = 0;
 }
 
-void Cell::sampleStatistics() {
-	// Calculate energy
-    energy = 0;
-    density = 0;
-    vec this_momentum = zeros<vec>(3,1);
+void Cell::update_pressure_tensor(mat updated_pressure_tensor) {
+    pressure_tensor = ((average_over-1)/average_over)*pressure_tensor+1.0/average_over*updated_pressure_tensor;
+}
 
-    pressure = 0;
-    f_sum = 0;
-    T = 0;
+void Cell::update_momentum(vec updated_momentum) {
 
-	Molecule *molecule;
-    int particleIndex;
-    int atoms_per_molecule;
-    for(int i=0;i<particles;i++) {
-        particleIndex = particle_indices[i];
-        molecule = system->molecules[particleIndex];
-        if(!molecule->active) continue;
+    momentum = ((average_over-1)/average_over)*momentum+1.0/average_over*updated_momentum;
+}
 
-        energy   += 0.5*dot(molecule->v,molecule->v);
-        T += 2*energy/(3*particles);
-        if(particles > 10)
-            this_momentum += molecule->atoms*molecule->v/particles;
-        density  += molecule->atoms;
+void Cell::update_energy(double updated_energy) {
+    energy = ((average_over-1)/average_over)*energy+1.0/average_over*updated_energy;
+}
 
-        atoms_per_molecule = molecule->atoms;
-	}
-
-    momentum = (19.0/20)*momentum+1.0/20*this_momentum;
-
-    if(this->particles) {
-        f_sum = -2*T;
-        // pressure = 1/volume*(particles*T + 0.5*f_sum);
-        pressure = particles/volume*T;
-    }
+void Cell::update_temperature(double updated_temperature) {
+    temperature = ((average_over-1)/average_over)*temperature+1.0/average_over*updated_temperature;
 }
 
 int Cell::prepare() {
@@ -89,7 +73,7 @@ int Cell::collide(Random *rnd) {
 
 	//* Loop over total number of candidate collision pairs
     int isel, collisions = 0, k, kk, ip1, ip2;
-    double cos_th, sin_th,cr;
+    double cr;
 
 	Molecule *molecule1, *molecule2;
 	vec vcm = zeros<vec>(3,1);

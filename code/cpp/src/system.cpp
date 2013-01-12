@@ -32,26 +32,6 @@ void System::step() {
 
     collisions += collide();
     time_consumption[COLLIDE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
-
-    t0 = clock();
-
-    double E = 0;
-    vec p(3,1);
-    double density = 0;
-
-    Cell *c;
-    #pragma omp parallel for private(c) num_threads(threads)
-    for(int i=0;i<cells_x;i++)
-        for(int j=0;j<cells_y;j++) {
-            c = cells[i][j];
-            c->sampleStatistics();
-            // E += c->energy;
-            // p += c->momentum;
-
-            // density += c->density;
-    }
-
-    time_consumption[SAMPLE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
 }
 
 void System::move() {
