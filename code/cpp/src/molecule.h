@@ -30,6 +30,7 @@ public:
     inline void addR(vec dr);
     void move(double dt, Random *rnd, int depth = 0);
     void move_old(double dt, Random *rnd);
+    vec collide_with(Molecule *m, Random *rnd, double cr);
     double squared_distance_from_initial_position();
 };
 

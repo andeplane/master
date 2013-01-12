@@ -115,3 +115,27 @@ void Molecule::move(double dt, Random *rnd, int depth) {
     if(dt > 1e-10 && depth < 5)
         move(dt,rnd,depth+1);
 }
+
+vec Molecule::collide_with(Molecule *m, Random *rnd, double cr) {
+    vec vrel = zeros<vec>(3,1);
+    vec vcm = zeros<vec>(3,1);
+    double cos_th, sin_th;
+
+    vcm = 0.5*(v+m->v);
+
+    cos_th = 1.0 - 2.0*rnd->nextDouble();      // Cosine and sine of
+    sin_th = sqrt(1.0 - cos_th*cos_th); // collision angle theta
+
+    vrel(0) = cr*cos_th;             // Compute post-collision
+    vrel(1) = cr*sin_th;             // relative velocity
+
+    vec momentum_change = atoms*(vcm + 0.5*vrel-v);
+
+    v = vcm + 0.5*vrel;
+    m->v = vcm - 0.5*vrel;
+
+    // molecule1->information_carrier |= molecule2->information_carrier;
+    // molecule2->information_carrier |= molecule1->information_carrier;
+
+    return momentum_change;
+}

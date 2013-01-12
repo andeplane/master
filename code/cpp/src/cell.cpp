@@ -115,23 +115,7 @@ int Cell::collide(Random *rnd) {
         if( cr > rnd->nextDouble()*vr_max ) {
 			//* If pair accepted, select post-collision velocities
 			collisions++;
-
-			vcm = 0.5*(molecule1->v+molecule2->v);
-
-            cos_th = 1.0 - 2.0*rnd->nextDouble();      // Cosine and sine of
-			sin_th = sqrt(1.0 - cos_th*cos_th); // collision angle theta
-
-			vrel(0) = cr*cos_th;             // Compute post-collision
-            vrel(1) = cr*sin_th;             // relative velocity
-
-            momentum_change += molecule1->atoms*(vcm + 0.5*vrel-molecule1->v);
-			
-			molecule1->v = vcm + 0.5*vrel;
-			molecule2->v = vcm - 0.5*vrel;
-
-            // molecule1->information_carrier |= molecule2->information_carrier;
-            // molecule2->information_carrier |= molecule1->information_carrier;
-
+            momentum_change += molecule1->collide_with(molecule2,rnd, cr);
 		} // Loop over pairs
 	}
 	
