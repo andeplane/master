@@ -15,9 +15,9 @@ Cell::Cell(System *_system) {
     momentum = zeros<vec>(3,1);
     momentum_change = zeros<vec>(3,1);
     pressure_tensor = zeros<mat>(3,3);
-
     energy = 0;
     density = 0;
+
     particle_capacity = 100;
     particle_indices = new unsigned int[particle_capacity];
 

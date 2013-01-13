@@ -56,10 +56,14 @@ int System::collide() {
         int local_col = 0;
         Cell **local_cells = load_balanced_cell_list[thread_id];
 
+
         #pragma omp for
         for(int i=0;i<cells_x;i++)
             for(int j=0;j<cells_y;j++)
                 local_col += cells[i][j]->collide(rnd);
+
+        // for(int i=0;i<cells_in_list[thread_id];i++)
+        //    local_col += local_cells[i]->collide(rnd);
 
         #pragma omp critical
         {
