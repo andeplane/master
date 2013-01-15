@@ -30,21 +30,6 @@ void System::initialize(CIniFile &ini) {
     collisions = 0;
     t = 0;
 
-    eff_num = density*volume/N;
-
-    mfp = volume/(sqrt(2.0)*M_PI*diam*diam*N*eff_num);
-    mpv = sqrt(T);  // Most probable initial velocity
-
-    numberOfCells = cells_x*cells_y;
-    double cell_size = width/cells_x;
-
-    dt = 0.2*cell_size/mpv;       // Set timestep dt
-    dt *= ini.getdouble("dt_factor");
-
-    coeff = 0.5*eff_num*M_PI*diam*diam*dt/(volume/numberOfCells);
-
-    init_randoms();
-    initMolecules();
     initCells();
 
     double porosity = 0;
@@ -72,8 +57,23 @@ void System::initialize(CIniFile &ini) {
 
 
     porosity /= world.n_cols*world.n_rows;
-
     volume = width*height*porosity;
+
+    eff_num = density*volume/N;
+
+    mfp = volume/(sqrt(2.0)*M_PI*diam*diam*N*eff_num);
+    mpv = sqrt(T);  // Most probable initial velocity
+
+    numberOfCells = cells_x*cells_y;
+    double cell_size = width/cells_x;
+
+    dt = 0.2*cell_size/mpv;       // Set timestep dt
+    dt *= ini.getdouble("dt_factor");
+
+    coeff = 0.5*eff_num*M_PI*diam*diam*dt/(volume/numberOfCells);
+
+    init_randoms();
+    initMolecules();
 
     sorter = new Sorter(this);
 
