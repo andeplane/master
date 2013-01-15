@@ -17,11 +17,11 @@ Cell::Cell(System *_system) {
     pressure_tensor = zeros<mat>(3,3);
     energy = 0;
     density = 0;
+    pixels = 0;
+    total_pixels = 0;
 
     particle_capacity = 100;
     particle_indices = new unsigned int[particle_capacity];
-
-    volume = system->width*system->height/(system->cells_x*system->cells_y);
 }
 
 bool Cell::cmp(Cell *c1, Cell *c2) {
@@ -53,6 +53,14 @@ void Cell::update_energy(double updated_energy) {
 
 void Cell::update_temperature(double updated_temperature) {
     temperature = ((average_over-1)/average_over)*temperature+1.0/average_over*updated_temperature;
+}
+
+void Cell::update_volume() {
+    // Update the effective cell volume. A cell may contain 50% of solid material
+    pixels = 1;
+    total_pixels = 1;
+
+    volume = system->width*system->height/(system->cells_x*system->cells_y)*(float)pixels/total_pixels;
 }
 
 int Cell::prepare() {

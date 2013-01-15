@@ -22,6 +22,8 @@ struct col_pairs_greater
 class Cell {
 public:
 	double volume;
+    int pixels; // Used to calculate volume in a cell
+    int total_pixels;
 
 	double vr_max;
     System *system;
@@ -55,6 +57,7 @@ public:
     void update_energy(double updated_energy);
     void update_momentum(vec update_momentum);
     void update_temperature(double updated_temperature);
+    void update_volume();
 
     static bool cmp(Cell *c1, Cell *c2);
 

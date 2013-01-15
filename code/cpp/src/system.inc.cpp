@@ -25,14 +25,6 @@ void System::initialize(CIniFile &ini) {
     time_consumption = new double[4];
     for(int i=0;i<4;i++)
         time_consumption[i] = 0;
-    double porosity = 0;
-    for(int i=0;i<world.n_cols;i++)
-        for(int j=0;j<world.n_rows;j++) {
-            porosity += world(j,i) == 0;
-        }
-    porosity /= world.n_cols*world.n_rows;
-
-    volume = width*height*porosity;
 
     steps = 0;
     collisions = 0;
@@ -54,6 +46,35 @@ void System::initialize(CIniFile &ini) {
     init_randoms();
     initMolecules();
     initCells();
+
+    double porosity = 0;
+    Cell *c;
+    int c_x,c_y;
+    for(int i=0;i<world.n_cols;i++)
+        for(int j=0;j<world.n_rows;j++) {
+            // Update the effective cell volume. A cell may contain 50% of solid material
+            c_x = i/(float)world.n_cols*cells_x;
+            c_y = j/(float)world.n_rows*cells_y;
+            c = cells[c_x][c_y];
+            c->total_pixels++;
+
+            c->pixels += world(j,i) == 0;
+            porosity += world(j,i) == 0;
+        }
+
+    for(int i=0;i<cells_x;i++)
+        for(int j=0;j<cells_y;j++) {
+            c_x = i/(float)world.n_cols*cells_x;
+            c_y = j/(float)world.n_rows*cells_y;
+            c = cells[c_x][c_y];
+            c->update_volume();
+        }
+
+
+    porosity /= world.n_cols*world.n_rows;
+
+    volume = width*height*porosity;
+
     sorter = new Sorter(this);
 
     printf("done.\n\n");
@@ -99,7 +120,6 @@ void System::initCells() {
 
     for(int i=0;i<cells_x;i++) {
         cells[i] = new Cell*[cells_y];
-
         for(int j=0;j<cells_y;j++) {
             cells[i][j] = new Cell(this);
             cells[i][j]->i = i;
