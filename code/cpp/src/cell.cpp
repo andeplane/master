@@ -57,9 +57,6 @@ void Cell::update_temperature(double updated_temperature) {
 
 void Cell::update_volume() {
     // Update the effective cell volume. A cell may contain 50% of solid material
-    pixels = 1;
-    total_pixels = 1;
-
     volume = system->width*system->height/(system->cells_x*system->cells_y)*(float)pixels/total_pixels;
 }
 

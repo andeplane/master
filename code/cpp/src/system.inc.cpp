@@ -49,12 +49,9 @@ void System::initialize(CIniFile &ini) {
 
     for(int i=0;i<cells_x;i++)
         for(int j=0;j<cells_y;j++) {
-            c_x = i/(float)world.n_cols*cells_x;
-            c_y = j/(float)world.n_rows*cells_y;
-            c = cells[c_x][c_y];
+            c = cells[i][j];
             c->update_volume();
         }
-
 
     porosity /= world.n_cols*world.n_rows;
     volume = width*height*porosity;
