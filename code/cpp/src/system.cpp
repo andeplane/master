@@ -32,6 +32,7 @@ void System::step() {
 
     collisions += collide();
     time_consumption[COLLIDE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
+
 }
 
 void System::move() {
