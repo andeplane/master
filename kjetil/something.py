@@ -1,4 +1,6 @@
 from dolfin import *
+parameters["linear_algebra_backend"] = "uBLAS";
+
 import numpy as np
 import time
 
@@ -7,8 +9,8 @@ rho = 1.0   # Assumed to 1.0, not included in the calculations
 dt = 0.01   # Timestep
 nu = 0.01    # Kinematic viscosity
 
-Lx = 14.0    # Canal length (x)
-Ly = 1.0    # Canal length (y)
+x0 = -2.0
+x1 = 14.0
 
 PA = 1.0    # Pressure at x=0
 PB = 0.0    # Pressure at x=Lx
@@ -16,8 +18,10 @@ PB = 0.0    # Pressure at x=Lx
 start_time = time.time()
 
 mesh = Mesh("meshtofile.xml")
+boundaries = MeshFunction('size_t', mesh, "meshtofile.xml")
 
 elapsed_time = time.time() - start_time
+
 print "File read in ",elapsed_time, " seconds"
 
 # Define function spaces (P2-P1)
@@ -37,37 +41,17 @@ n = FacetNormal(mesh)
 p_in = Constant(PA) # Pressure at x=0
 p_out = Constant(PB) # Pressure at x=1
 
-def u0_boundary_bottom(x, on_boundary):
-    if on_boundary:
-        return x[1] < 0 and x[0] > (-2 + DOLFIN_EPS) and x[0] < (Lx - DOLFIN_EPS)
+def u0_noslip(x,on_boundary):
+    return on_boundary
 
-def u0_boundary_top(x, on_boundary):
-    if on_boundary:
-        return x[1] > 0 and x[0] > (-2 + DOLFIN_EPS) and x[0] < (Lx - DOLFIN_EPS)
-
-def u0_boundary_left_and_right(x, on_boundary):
-    if on_boundary:
-        if x[0] > (-2 + DOLFIN_EPS):
-            return True
-        elif x[0] < (Lx - DOLFIN_EPS):
-            return True
-
-def pressure_boundary_left(x):
-    return x[0] < 0
-
-def pressure_boundary_right(x):
-    return x[0] > 12
-
-# No slip makes sure that the velocity field is fixed at the boundaries
-noslip_1  = DirichletBC(V, (0, 0), u0_boundary_bottom)
-noslip_2  = DirichletBC(V, (0, 0), u0_boundary_top)
-left_right = DirichletBC(V, (1,0), u0_boundary_left_and_right)
+# No slip at the walls
+noslip = DirichletBC(V, (0,0), boundaries, 3)
 
 # Pressure boundary conditions
-inflow  = DirichletBC(Q, p_in, pressure_boundary_left)
-outflow = DirichletBC(Q, p_out, pressure_boundary_right)
+inflow = DirichletBC(Q, p_in, boundaries, 1)
+outflow = DirichletBC(Q, p_out, boundaries, 2)
 
-bcu = [noslip_1, noslip_2]
+bcu = [noslip]
 bcp = [inflow, outflow]
 
 # Create functions to save solutions
@@ -75,6 +59,7 @@ u0 = Function(V)
 u1 = Function(V)
 p0 = Function(Q)
 p1 = Function(Q)
+F  = Function(Q)
 
 # Define coefficients
 k = Constant(dt)
@@ -84,7 +69,6 @@ f = Constant((0, 0))
 
 U = 0.5*(u0 + u)
 
-
 # Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
     + nu_const*inner(nabla_grad(U), nabla_grad(v))*dx \
@@ -92,7 +76,7 @@ F1 = (1/k)*inner(u - u0, v)*dx \
     - inner(f, v)*dx\
     + inner(dot(u0,nabla_grad(u0)), v)*dx \
     + inner(p0*n,v)*ds\
-    
+
 a1 = lhs(F1)
 L1 = rhs(F1)
 
@@ -115,6 +99,7 @@ t = 0.0
 
 def step():
     global t
+
     # Compute tentative velocity step
     b1 = assemble(L1)
     [bc.apply(A1, b1) for bc in bcu]
@@ -124,12 +109,24 @@ def step():
     b2 = assemble(L2)
     [bc.apply(A2, b2) for bc in bcp]
     solve(A2, p1.vector(), b2, "lu", "none")
-
+    
     # Velocity correction
     b3 = assemble(L3)
     [bc.apply(A3, b3) for bc in bcu]
     solve(A3, u1.vector(), b3, "lu", "none")
+    
+    ds_2 = Measure("ds")[boundaries]
 
+    m1 = p1*n[0]*ds_2(4)
+    m2 = p1*n[1]*ds_2(4)
+    
+    v1 = assemble(m1)
+    v2 = assemble(m2)
+    #print "Force = ", v1.array().max()
+    print "F_x = ", v1
+    print "F_y = ", v2
+
+    
     # Move to next time step
     u0.assign(u1)
     p0.assign(p1)

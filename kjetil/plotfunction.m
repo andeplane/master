@@ -5,14 +5,16 @@ load mesh.mat;
 close all
 fclose all;
 
-for i = 0:1:10000
-   
-[~,~,~,u] = read_vtk(sprintf('output/v%06d.vtu',i));
-[~,~,~,p] = read_vtk(['output/p' num2str(i,'%06d') '.vtu']);
-vx = u(1:3:end);
-vy = u(2:3:end);
-vz = u(3:3:end);
-
+for i = 1:1:10000
+    
+    tic
+    [~,~,~,u] = read_vtk(sprintf('output/v%06d.vtu',i));
+    [~,~,~,p] = read_vtk(['output/p' num2str(i,'%06d') '.vtu']);
+    vx = u(1:3:end);
+    vy = u(2:3:end);
+    vz = u(3:3:end);
+    display(['Reading from VTK file: ' num2str(toc) 's']);
+    
     %Plot~
     figure(1)
     hold off

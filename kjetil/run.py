@@ -15,17 +15,19 @@ def run():
 	global file_p
 	
 	t,u,p = step()
-	
-	#u_array = interpolate(u,V2)
 	p_array = interpolate(p,Q2)
 
+	start_time = time.time()
 	file_v << u
 	file_p << p_array
+	elapsed_time = time.time() - start_time
+	print "Files saved in ",elapsed_time, " seconds"
 
 	print "t=",t
-	#print "v_max=",max(u_array)
 
-while True:
-	run()
+global boundaries
+plot(boundaries)
+interactive()
 
-plt.show()
+#while True:
+#	run()
