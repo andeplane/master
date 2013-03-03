@@ -22,8 +22,6 @@ void System::initialize(Settings *settings_) {
 
     temperature       = unit_converter->temperature_from_SI(settings->temperature);;
     wall_temperature = unit_converter->temperature_from_SI(settings->wall_temperature);
-    cout << "Temperature: " << temperature << endl;
-    cout << "Temperature wall: " << wall_temperature << endl;
 
     acceleration = settings->acceleration;
     max_x_acceleration = settings->max_x_acceleration;

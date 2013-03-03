@@ -83,8 +83,6 @@ void Molecule::move(double dt, Random *rnd, int depth) {
             }
         }
         else {
-            // This was actually the boundary2
-            // cout << "Particle " << index << " is at the boundary!" << endl;
             int count = 0;
             while(system->world_grid->get_grid_point(r)->is_wall) {
                 dt += 0.1*tau;

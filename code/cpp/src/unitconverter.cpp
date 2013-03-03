@@ -4,7 +4,7 @@ UnitConverter::UnitConverter()
 {
     m0 = 6.63352065e-26;  // SI
     L0 = 1e-6;            // SI
-    // static double E0 = 1.0318e-2;    // eV
+    E0ev = 1.0318e-2;    // eV
     E0 = 1.65088e-21;     // SI
     kb = 1.3806503e-23;   // SI
 
@@ -31,6 +31,9 @@ double UnitConverter::force_from_SI(double F) { return F/F0; }
 
 double UnitConverter::energy_to_SI(double E) { return E0*E; }
 double UnitConverter::energy_from_SI(double E) { return E/E0; }
+
+double UnitConverter::energy_to_eV(double E) { return E0ev*E; }
+double UnitConverter::energy_from_eV(double E) { return E/E0ev; }
 
 double UnitConverter::time_to_SI(double t) { return t0*t; }
 double UnitConverter::time_from_SI(double t) { return t/t0; }

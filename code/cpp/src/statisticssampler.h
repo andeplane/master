@@ -1,5 +1,4 @@
-#ifndef STATISTICSSAMPLER_H
-#define STATISTICSSAMPLER_H
+#pragma once
 
 #include <stdio.h>
 #include <system.h>
@@ -15,9 +14,5 @@ private:
 public:
     StatisticsSampler(System *system);
     void sample();
-    double kinetic_energy, temperature;
-
-
+    double kinetic_energy, temperature, mean_r_squared;
 };
-
-#endif

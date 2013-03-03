@@ -4,6 +4,7 @@
 static double m0 = 6.63352065e-26;  // SI
 static double L0 = 1e-6;            // SI
 static double E0 = 1.65088e-21;     // SI
+static double E0ev = 1.0318e-2;     // eV
 static double kb = 1.3806503e-23;   // SI
 
 static double t0 = L0*sqrt(m0/E0);
@@ -36,6 +37,9 @@ public:
 
     double energy_to_SI(double E);
     double energy_from_SI(double E);
+
+    double energy_to_eV(double E);
+    double energy_from_eV(double E);
 
     double time_to_SI(double t);
     double time_from_SI(double t);
