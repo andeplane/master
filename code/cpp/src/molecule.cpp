@@ -97,8 +97,11 @@ void Molecule::move(double dt, Random *rnd, int depth) {
             }
         }
 
-        double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
-        double v_tangent = sqrt(3.0/2*point->T)*rnd->nextGauss();
+        // double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
+        // double v_tangent = sqrt(3.0/2*point->T)*rnd->nextGauss();
+
+        double v_normal = sqrt(-4.0/2*point->T*log(rnd->nextDouble()));
+        double v_tangent = sqrt(2.0/2*point->T)*rnd->nextGauss();
 
         v[0] = v_normal*point->normal.x + v_tangent*point->tangent.x;
         v[1] = v_normal*point->normal.y + v_tangent*point->tangent.y;
@@ -123,7 +126,6 @@ void Molecule::collide_with(Molecule *m, Random *rnd, const double &cr) {
     vrelx = cr*cos_th;          // Compute post-collision
     vrely = cr*sin_th;          // relative velocity
     vrelz = 0;
-
 
     tmpx = atoms*(vcmx + 0.5*vrelx-v[0]);
     tmpy = atoms*(vcmy + 0.5*vrely-v[1]);

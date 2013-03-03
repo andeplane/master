@@ -1,64 +1,39 @@
 #include <statisticssampler.h>
-/*
+
 #include <armadillo>
 #include <molecule.h>
 #include <cell.h>
 #include <math.h>
 #include <sorter.h>
 #include <CIniFile.h>
+#include <unitconverter.h>
+#include <dsmc_io.h>
+
 using namespace arma;
 
-StatisticsSampler::StatisticsSampler(System *_system, CIniFile *_ini) {
-    system = _system;
-    ini = _ini;
-    print_temperature = ini->getbool("print_temperature");
-    print_velocity_profile = ini->getbool("print_velocity_profile");
-    sample_every_n = ini->getint("sample_every_n");
-    print_velocity_field = ini->getbool("print_velocity_field");
-
-    temperature_samples = 0;
-    temperature_sum = 0;
-    if(print_temperature)
-        temperature_file = fopen("temperature.dat","w");
-
-    velocity_profile_samples = 0;
-    if(print_velocity_profile)
-        velocity_file = fopen("velocity.dat","w");
-
-    if(print_velocity_field) {
-        velocity_field_file_x = fopen("vel_x.dat","w");
-        velocity_field_file_y = fopen("vel_y.dat","w");;
-    }
-}
-
-void StatisticsSampler::finish() {
-	
+StatisticsSampler::StatisticsSampler(System *system_) {
+    system = system_;
+    settings = system->settings;
 }
 
 void StatisticsSampler::sample() {
-    calculate_temperature();
-    calculate_velocity_profile();
-    update_cell_statistics();
+    // Note that number of atoms is note used because they cancel out in monoatomic systems
+    if(settings->statistics_interval && system->steps % settings->statistics_interval != 0) return;
+
+    kinetic_energy = 0;
+    for(int n=0;n<system->N;n++) {
+        Molecule *m = system->molecules[n];
+        kinetic_energy += 0.5*m->mass*(m->v[0]*m->v[0] + m->v[1]*m->v[1] + m->v[2]*m->v[2]);
+    }
+
+    temperature = kinetic_energy/system->N;
+
+    fprintf(system->io->energy_file, "%f %f %f",system->t, kinetic_energy, system->unit_converter->temperature_to_SI(temperature));
+
+    cout << system->steps << "   t=" << system->t << "   T=" << system->unit_converter->temperature_to_SI(temperature) << endl;
 }
 
-void StatisticsSampler::calculate_temperature() {
-    if(!print_temperature) return;
-    if(++temperature_samples % sample_every_n) return;
-
-    long N = system->N;
-    double T = 0;
-	
-    Molecule **molecules = system->molecules;
-	for(int n=0;n<N;n++) {
-        T += dot(molecules[n]->v,molecules[n]->v)/(3*N);
-	}
-    // Note that E=0.5*M*v^2 and M=N*m, but it cancels in the denominator
-
-    temperature_sum += T;
-	
-    fprintf(temperature_file, "%f %f \n",system->t, T);
-}
-
+/*
 void StatisticsSampler::calculate_velocity_profile() {
     if(!print_velocity_profile) return;
     if(++velocity_profile_samples % sample_every_n) return;

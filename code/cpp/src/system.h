@@ -16,6 +16,7 @@ class DSMC_IO;
 #include <CIniFile.h>
 #include <grid.h>
 #include <settings.h>
+#include <unitconverter.h>
 
 using namespace std;
 using namespace arma;
@@ -39,6 +40,7 @@ public:
     Grid *world_grid;
     Grid *initial_world_grid;
     Settings *settings;
+    UnitConverter * unit_converter;
 
     Random *rnd;
 
@@ -55,7 +57,7 @@ public:
 	double dt;
 	double coeff;
 	double t;
-	double T;
+    double temperature;
     double mass, diam, density;
     double wall_temperature;
 	double *time_consumption;

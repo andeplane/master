@@ -4,20 +4,26 @@
 #include <dsmc_io.h>
 
 void System::initialize(Settings *settings_) {
+    settings = settings_;
+
     printf("Initializing system...");
-    io = new DSMC_IO(settings_,this);
+    io = new DSMC_IO(this);
+    unit_converter = new UnitConverter();
+
     time_consumption = new double[4];
     Image img;
     char *world_base = "../worlds/";
     char world_file[100];
     char initial_world_file[100];
 
-    settings = settings_;
     N       = settings->number_of_particles;
     width   = settings->width;
     height  = settings->height;
-    T       = settings->temperature;
-    wall_temperature = settings->wall_temperature;
+
+    temperature       = unit_converter->temperature_from_SI(settings->temperature);;
+    wall_temperature = unit_converter->temperature_from_SI(settings->wall_temperature);
+    cout << "Temperature: " << temperature << endl;
+    cout << "Temperature wall: " << wall_temperature << endl;
 
     acceleration = settings->acceleration;
     max_x_acceleration = settings->max_x_acceleration;
@@ -75,7 +81,7 @@ void System::initialize(Settings *settings_) {
     eff_num = density*volume/N;
 
     mfp = volume/(sqrt(2.0)*M_PI*diam*diam*N*eff_num);
-    mpv = sqrt(T);  // Most probable initial velocity
+    mpv = sqrt(temperature);  // Most probable initial velocity
 
     double cell_size = width/settings->cells_x;
 
@@ -178,8 +184,8 @@ void System::init_velocities() {
     Molecule *m;
     for(int n=0; n<N; n++ ) {
         m = molecules[n];
-        m->v[0] = rnd->nextGauss()*sqrt(3.0/2*T);
-        m->v[1] = rnd->nextGauss()*sqrt(3.0/2*T);
+        m->v[0] = rnd->nextGauss()*sqrt(2.0/2*temperature);
+        m->v[1] = rnd->nextGauss()*sqrt(2.0/2*temperature);
         m->v[2] = 0;
     }
 }

@@ -9,14 +9,6 @@ Cell::Cell(System *_system) {
     system = _system;
     vr_max = 0;
     particles = 0;
-    average_over = 100;
-    momentum_time_steps = 0;
-    temperature = system->T;
-    momentum = zeros<vec>(3,1);
-    momentum_change = zeros<vec>(3,1);
-    pressure_tensor = zeros<mat>(3,3);
-    energy = 0;
-    density = 0;
     pixels = 0;
     total_pixels = 0;
 
@@ -36,23 +28,6 @@ void Cell::resize(int n) {
 
 void Cell::reset() {
     particles = 0;
-}
-
-void Cell::update_pressure_tensor(mat updated_pressure_tensor) {
-    pressure_tensor = ((average_over-1)/average_over)*pressure_tensor+1.0/average_over*updated_pressure_tensor;
-}
-
-void Cell::update_momentum(vec updated_momentum) {
-
-    momentum = ((average_over-1)/average_over)*momentum+1.0/average_over*updated_momentum;
-}
-
-void Cell::update_energy(double updated_energy) {
-    energy = ((average_over-1)/average_over)*energy+1.0/average_over*updated_energy;
-}
-
-void Cell::update_temperature(double updated_temperature) {
-    temperature = ((average_over-1)/average_over)*temperature+1.0/average_over*updated_temperature;
 }
 
 void Cell::update_volume() {

@@ -3,11 +3,12 @@
 
 using namespace std;
 
-DSMC_IO::DSMC_IO(Settings *settings_, System *system_) {
-    settings = settings_;
+DSMC_IO::DSMC_IO(System *system_) {
     system = system_;
+    settings = system->settings;
     movie_frames = 0;
     movie_file_open = false;
+    energy_file = fopen("energy.txt","w");
 }
 
 void DSMC_IO::save_state_to_file_xyz() {
@@ -44,12 +45,6 @@ void DSMC_IO::save_state_to_movie_file() {
             // We return height - r(1) because system is inverted
             fprintf(movie_file,"H %.10f %.10f 0\n", system->molecules[n]->r[0],-system->molecules[n]->r[1] + system->height);
         }
-    }
-}
-
-void DSMC_IO::finalize() {
-    if(movie_file_open) {
-        fclose(movie_file);
     }
 }
 
@@ -103,4 +98,11 @@ void DSMC_IO::load_state_from_file_binary() {
 
     double t = ((double)clock()-t0)/CLOCKS_PER_SEC;
     cout << "Loading took " << t << " seconds." << endl;
+}
+
+void DSMC_IO::finalize() {
+    if(movie_file_open) {
+        fclose(movie_file);
+    }
+    fclose(energy_file);
 }
