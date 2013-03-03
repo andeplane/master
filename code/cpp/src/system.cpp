@@ -61,19 +61,21 @@ int System::collide() {
 
 void System::accelerate() {
     for(int n=0;n<N;n++) {
-        if(molecules[n]->r(0) < max_x_acceleration) {
-            molecules[n]->v(0) += acceleration*dt;
+        if(molecules[n]->r[0] < max_x_acceleration) {
+            molecules[n]->v[0] += acceleration*dt;
         }
     }
 }
 
 void System::printPositionsToFile(FILE *file) {
+    /*
     fprintf(file,"%d\n",N);
 	fprintf(file,"Random comment that must be here\n");
 
     for(int n=0;n<N;n++) {
         // fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->type,molecules[n]->r(0),molecules[n]->r(1));
         // We return height - r(1) because system is inverted
-        fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->information_carrier ? "H" : "H",molecules[n]->r(0),-molecules[n]->r(1) + height);
+        // fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->information_carrier ? "H" : "H",molecules[n]->r(0),-molecules[n]->r(1) + height);
     }
+    */
 }

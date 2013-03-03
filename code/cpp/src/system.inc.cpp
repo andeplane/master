@@ -3,6 +3,14 @@
 #include <defines.h>
 
 void System::initialize(Settings *settings_) {
+    printf("Initializing system...");
+
+    time_consumption = new double[4];
+    Image img;
+    char *world_base = "../worlds/";
+    char world_file[100];
+    char initial_world_file[100];
+
     settings = settings_;
     N       = settings->number_of_particles;
     width   = settings->width;
@@ -15,11 +23,13 @@ void System::initialize(Settings *settings_) {
     density = settings->density;
     diam = settings->diam;
 
-    Image img;
+    steps = 0;
+    collisions = 0;
+    t = 0;
 
-    char *world_base = "../worlds/";
-    char world_file[100];
-    char initial_world_file[100];
+    for(int i=0;i<4;i++) {
+        time_consumption[i] = 0;
+    }
 
     strcpy(world_file,world_base);
     strcpy(initial_world_file,world_base);
@@ -31,16 +41,6 @@ void System::initialize(Settings *settings_) {
 
     world_grid = new Grid(world,this);
     initial_world_grid = new Grid(initial_world,this);
-
-    printf("Initializing system...");
-    time_consumption = new double[4];
-    for(int i=0;i<4;i++) {
-        time_consumption[i] = 0;
-    }
-
-    steps = 0;
-    collisions = 0;
-    t = 0;
 
     init_cells();
 
@@ -106,24 +106,18 @@ void System::initialize(Settings *settings_) {
 }
 
 void System::init_cells() {
-    cells = new Cell**[settings->cells_x];
-    /*
-    load_balanced_cell_list = new Cell**[threads];
-    cells_in_list = new int[threads];
-    for(int i=0;i<threads;i++) {
-        // Create cell lists that theoretically can contain all cells
-        load_balanced_cell_list[i] = new Cell*[cells_x*cells_y];
-        cells_in_list[i] = 0;
-    }
-    */
+    cells.resize(settings->cells_x);
 
     for(int i=0;i<settings->cells_x;i++) {
-        cells[i] = new Cell*[settings->cells_y];
+        ((vector<Cell*>)cells[i]).reserve(settings->cells_y);
+
         for(int j=0;j<settings->cells_y;j++) {
-            cells[i][j] = new Cell(this);
-            cells[i][j]->i = i;
-            cells[i][j]->j = j;
-            cells[i][j]->vr_max = 3*mpv;
+            Cell *c = new Cell(this);
+            c->i = i;
+            c->j = j;
+            c->vr_max = 3*mpv;
+
+            cells[i].push_back(c);
         }
     }
 }
@@ -135,14 +129,17 @@ void System::init_randoms() {
 
 void System::init_molecules() {
     molecules.resize(N);
+    positions = new double[3*N];
+    velocities = new double[3*N];
+    initial_positions = new double[3*N];
 
     for(int n=0;n<N;n++) {
         molecules[n] = new Molecule(this);
         molecules[n]->atoms = eff_num;
         molecules[n]->index = n;
-        if(n==0) {
-            molecules[n]->information_carrier = 1;
-        }
+        molecules[n]->r = &positions[3*n];
+        molecules[n]->v = &velocities[3*n];
+        molecules[n]->initial_r = &initial_positions[3*n];
     }
 
     init_positions();
@@ -152,17 +149,20 @@ void System::init_molecules() {
 void System::init_positions() {
     Molecule *m;
 
-    bool didCollide;
+    bool did_collide;
 
     for(int n=0; n<N; n++ ) {
-        didCollide = true;
+        did_collide = true;
         m = molecules[n];
-        while(didCollide) {
-            m->r(0) = width*rnd->nextDouble();
-            m->r(1) = height*rnd->nextDouble();
-            m->initial_r = m->r;
+        while(did_collide) {
+            m->r[0] = width*rnd->nextDouble();
+            m->r[1] = width*rnd->nextDouble();
+            m->r[2] = 0;
+            m->initial_r[0] = m->r[0];
+            m->initial_r[1] = m->r[1];
+            m->initial_r[2] = m->r[2];
 
-            didCollide = initial_world_grid->get_grid_point(m->r)->is_wall;
+            did_collide = initial_world_grid->get_grid_point(m->r)->is_wall;
         }
     }
 }
@@ -171,7 +171,8 @@ void System::init_velocities() {
     Molecule *m;
     for(int n=0; n<N; n++ ) {
         m = molecules[n];
-        m->v(0) = rnd->nextGauss()*sqrt(3.0/2*T);
-        m->v(1) = rnd->nextGauss()*sqrt(3.0/2*T);
+        m->v[0] = rnd->nextGauss()*sqrt(3.0/2*T);
+        m->v[1] = rnd->nextGauss()*sqrt(3.0/2*T);
+        m->v[2] = 0;
     }
 }

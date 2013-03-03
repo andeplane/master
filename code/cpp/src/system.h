@@ -31,9 +31,9 @@ private:
 	void accelerate();
 public:
     vector<Molecule*>molecules;
-    Cell ***cells;
-    Cell ***load_balanced_cell_list;
-    int  *cells_in_list;
+    vector< vector<Cell*> > cells;
+    // Cell ***load_balanced_cell_list;
+    // int  *cells_in_list;
 
     Grid *world_grid;
     Grid *initial_world_grid;
@@ -58,6 +58,11 @@ public:
     double mass, diam, density;
     double wall_temperature;
 	double *time_consumption;
+
+    double *positions;
+    double *velocities;
+    double *initial_positions;
+
 	int collisions;
 	int steps;
 

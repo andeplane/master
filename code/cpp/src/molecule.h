@@ -19,9 +19,9 @@ public:
     int    information_carrier;
     double mass;
 
-    vec r;
-    vec initial_r;
-    vec v;
+    double *r;
+    double *v;
+    double *initial_r;
     vec temp_vector;
     vec vrel;
     vec vcm;

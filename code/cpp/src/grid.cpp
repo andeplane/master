@@ -42,14 +42,12 @@ GridPoint* Grid::get_grid_point(const double &x, const double &y) {
     return get_grid_point(i,j);
 }
 
-GridPoint* Grid::get_grid_point(const vec &r, const int &idx) {
-    int i =  clamp((int)(r(0)/system->width*cols),0,cols-1);
-    int j =  clamp((int)(r(1)/system->height*rows),0,rows-1);
+GridPoint* Grid::get_grid_point(double *r) {
+    int i =  clamp((int)(r[0]/system->width*cols),0,cols-1);
+    int j =  clamp((int)(r[1]/system->height*rows),0,rows-1);
 
     return get_grid_point(i,j);
 }
-
-// #define DEBUG
 
 void Grid::calculate_normals() {
     for(int i=0;i<cols;i++)

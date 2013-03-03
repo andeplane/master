@@ -94,8 +94,7 @@ int Cell::collide(Random *rnd) {
 
 		//* Calculate pair's relative speed
 
-        // cr = norm(molecule1->v-molecule2->v,2);
-        cr = sqrt(molecule1->v(0)*molecule2->v(0)+molecule1->v(1)*molecule2->v(1)+molecule1->v(2)*molecule2->v(2));
+        cr = sqrt(molecule1->v[0]*molecule2->v[0]+molecule1->v[1]*molecule2->v[1]+molecule1->v[2]*molecule2->v[2]);
 
         if( cr > crm ) {         // If relative speed larger than crm,
             crm = cr;            // then reset crm to larger value
