@@ -22,15 +22,17 @@ public:
     vec r;
     vec initial_r;
     vec v;
+    vec temp_vector;
+    vec vrel;
+    vec vcm;
 
     System *system;
 
     Molecule(System *system);
     inline void fixR();
-    inline void addR(vec dr);
+    inline void do_move(const double &dt);
     void move(double dt, Random *rnd, int depth = 0);
-    void move_old(double dt, Random *rnd);
-    vec collide_with(Molecule *m, Random *rnd, double cr);
+    void collide_with(Molecule *m, Random *rnd, const double &cr);
     double squared_distance_from_initial_position();
 };
 

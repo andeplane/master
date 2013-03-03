@@ -6,47 +6,30 @@
 #include <system.h>
 #include <statisticssampler.h>
 #include <defines.h>
-#include <CIniFile.h>
 #include <unitconverter.h>
+#include "settings.h"
 
 using namespace std;
 
 int main(int args, char* argv[]) {
-    CIniFile ini;
-
-    ini.load("../dsmc.ini");
-    bool print_positions = ini.getbool("print_positions");
-    int timesteps = ini.getint("timesteps");
-    int print_every_n_step = ini.getint("print_every_n_step");
-
+    Settings *settings = new Settings("../dsmc.ini");
     System system;
-    system.initialize(ini);
-    StatisticsSampler sampler(&system, &ini);
-    // StatisticsSampler *sampler = new StatisticsSampler(&system, timesteps);
 
-    FILE *positions = 0;
-    if(print_positions) {
-        positions = fopen("pos.xyz","w");
-        system.printPositionsToFile(positions);
-    }
+    system.initialize(settings);
 
-    UnitConverter uc;
-
-    for(int i=0;i<timesteps;i++) {
-        if(timesteps >= 100 && !(i%(timesteps/100))) {
-            printf("%d%%..",(100*i)/timesteps);
+    for(int i=0;i<settings->timesteps;i++) {
+        if(settings->timesteps >= 100 && !(i%(settings->timesteps/100))) {
+            printf("%d%%..",(100*i)/settings->timesteps);
             fflush(stdout);
         }
 
         system.step();
-        sampler.sample();
-
-        if(print_positions && !(i%print_every_n_step)) system.printPositionsToFile(positions);
     }
+    return 0;
 
-    sampler.calculate_velocity_field();
+    // sampler.calculate_velocity_field();
 
-    sampler.finish();
+    // sampler.finish();
 
     printf("100%%\n\n");
     printf("Time consumption: \n");
@@ -58,7 +41,7 @@ int main(int args, char* argv[]) {
     printf("Collisions: %d\n",system.collisions);
 
     printf("System volume: %f\n",system.volume);
-    printf("Average temperature: %.3f\n",sampler.get_temperature());
+    // printf("Average temperature: %.3f\n",sampler.get_temperature());
 
     return 0;
 }

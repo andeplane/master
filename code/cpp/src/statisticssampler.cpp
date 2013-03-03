@@ -1,4 +1,5 @@
 #include <statisticssampler.h>
+/*
 #include <armadillo>
 #include <molecule.h>
 #include <cell.h>
@@ -98,8 +99,8 @@ void StatisticsSampler::calculate_velocity_field() {
     if(!print_velocity_field) return;
 
     Cell *c;
-    for(int j=0;j<system->cells_y;j++) {
-        for(int i=0;i<system->cells_x;i++) {
+    for(int j=0;j<system->settings->cells_y;j++) {
+        for(int i=0;i<system->settings->cells_x;i++) {
             c = system->cells[i][j];
 
             fprintf(velocity_field_file_x,"%.5f ",c->momentum(0));
@@ -137,8 +138,8 @@ vector<mat> StatisticsSampler::calculate_local_pressure_tensor() {
     vector<mat> pressure_tensors;
 
     Cell *c;
-    for(int i=0;i<system->cells_x;i++) {
-        for(int j=0;j<system->cells_y;j++) {
+    for(int i=0;i<system->settings->cells_x;i++) {
+        for(int j=0;j<system->settings->cells_y;j++) {
             c = system->cells[i][j];
             vector<Molecule*> molecules;
             for(int n=0;n<c->particles;n++)
@@ -182,8 +183,8 @@ mat StatisticsSampler::calculate_pressure_tensor(vector<Molecule*> molecules) {
 
 void StatisticsSampler::update_cell_statistics() {
     Cell *c; Molecule *m;
-    for(int i=0;i<system->cells_x;i++) {
-        for(int j=0;j<system->cells_y;j++) {
+    for(int i=0;i<system->settings->cells_x;i++) {
+        for(int j=0;j<system->settings->cells_y;j++) {
             c = system->cells[i][j];
             vector<Molecule*> molecules;
             vec momentum = zeros<vec>(3,1);
@@ -204,3 +205,4 @@ void StatisticsSampler::update_cell_statistics() {
         }
     }
 }
+*/

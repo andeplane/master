@@ -12,8 +12,8 @@ void Sorter::sort_system() {
     int N = system->N;
     double width = system->width;
     double height = system->height;
-    int cells_x = system->cells_x;
-    int cells_y = system->cells_y;
+    int cells_x = system->settings->cells_x;
+    int cells_y = system->settings->cells_y;
 
     int i, j;
 
@@ -71,6 +71,7 @@ void Sorter::sort_system() {
     delete [] cell_x;
     delete [] cell_y;
 
+    /*
     int collisions_per_thread = collisions/4;
 
     int load_balance_index = 0;
@@ -78,7 +79,7 @@ void Sorter::sort_system() {
         system->cells_in_list[n] = 0;
 
     int number_of_distributed_collisions = 0;
-    for(int i=0;i<system->cells_x;i++)
+    for(int i=0;i<system->cells_x;i++) {
         for(int j=0;j<system->cells_y;j++) {
             // Put this cell in the list for the correct thread
             system->load_balanced_cell_list[load_balance_index][system->cells_in_list[load_balance_index]++] = system->cells[i][j];
@@ -87,4 +88,6 @@ void Sorter::sort_system() {
             if(number_of_distributed_collisions > collisions_per_thread*(1+load_balance_index) && load_balance_index < system->threads-1)
                 load_balance_index++;
         }
+    }
+        */
 }

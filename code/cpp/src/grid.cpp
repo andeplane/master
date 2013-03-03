@@ -4,7 +4,7 @@
 #define max(a,b)                      (((a) > (b)) ? (a) : (b))
 #define clamp(value, lb, ub)          max( lb, min( ub, value ))
 
-Grid::Grid(mat M,System *_system)
+Grid::Grid(mat &M,System *_system)
 {
     system = _system;
     points.reserve(M.n_elem);
@@ -27,7 +27,7 @@ Grid::Grid(mat M,System *_system)
     calculate_inner_points();
 }
 
-GridPoint* Grid::get_grid_point(const int i, const int j) {
+inline GridPoint* Grid::get_grid_point(const int &i, const int &j) {
     if(i < 0 || i >= cols || j < 0 || j >= rows) {
         return &points[((j+rows)%rows) + ((i+cols)%cols)*rows];
     }
@@ -35,14 +35,14 @@ GridPoint* Grid::get_grid_point(const int i, const int j) {
     return &points[j + i*rows];
 }
 
-GridPoint* Grid::get_grid_point(const double x, const double y) {
+GridPoint* Grid::get_grid_point(const double &x, const double &y) {
     int i =  clamp((int)(x/system->width*cols),0,cols-1);
     int j =  clamp((int)(y/system->height*rows),0,rows-1);
 
     return get_grid_point(i,j);
 }
 
-GridPoint* Grid::get_grid_point(const vec r, const int idx) {
+GridPoint* Grid::get_grid_point(const vec &r, const int &idx) {
     int i =  clamp((int)(r(0)/system->width*cols),0,cols-1);
     int j =  clamp((int)(r(1)/system->height*rows),0,rows-1);
 

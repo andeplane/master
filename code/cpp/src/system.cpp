@@ -4,7 +4,6 @@
 #include <molecule.h>
 #include <system.h>
 #include <time.h>
-#include <omp.h>
 #include <defines.h>
 #include "system.inc.cpp"
 
@@ -36,13 +35,8 @@ void System::step() {
 }
 
 void System::move() {
-    #pragma omp parallel num_threads(threads)
-    {
-        Random *rnd = randoms[omp_get_thread_num()];
-        #pragma omp for
-        for(int n=0; n<N; n++ ) {
-            molecules[n]->move(dt,rnd);
-        }
+    for(int n=0; n<N; n++ ) {
+        molecules[n]->move(dt,rnd);
     }
 }
 
@@ -50,35 +44,27 @@ int System::collide() {
 	int col = 0;          // Count number of collisions
 	
 	//* Loop over cells and process collisions in each cell
-    #pragma omp parallel num_threads(threads)
-    {
-        int thread_id = omp_get_thread_num();
-        Random *rnd = randoms[thread_id];
-        int local_col = 0;
-        Cell **local_cells = load_balanced_cell_list[thread_id];
 
+    // Cell **local_cells = load_balanced_cell_list[thread_id];
 
-        #pragma omp for
-        for(int i=0;i<cells_x;i++)
-            for(int j=0;j<cells_y;j++)
-                local_col += cells[i][j]->collide(rnd);
-
-        // for(int i=0;i<cells_in_list[thread_id];i++)
-        //    local_col += local_cells[i]->collide(rnd);
-
-        #pragma omp critical
-        {
-           col += local_col;
+    for(int i=0;i<settings->cells_x;i++) {
+        for(int j=0;j<settings->cells_y;j++) {
+            col += cells[i][j]->collide(rnd);
         }
     }
+
+    // for(int i=0;i<cells_in_list[thread_id];i++)
+    //    local_col += local_cells[i]->collide(rnd);
 
 	return col;
 }
 
 void System::accelerate() {
-    for(int n=0;n<N;n++)
-        if(molecules[n]->r(0) < max_x_acceleration)
+    for(int n=0;n<N;n++) {
+        if(molecules[n]->r(0) < max_x_acceleration) {
             molecules[n]->v(0) += acceleration*dt;
+        }
+    }
 }
 
 void System::printPositionsToFile(FILE *file) {
@@ -90,5 +76,4 @@ void System::printPositionsToFile(FILE *file) {
         // We return height - r(1) because system is inverted
         fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->information_carrier ? "H" : "H",molecules[n]->r(0),-molecules[n]->r(1) + height);
     }
-	
 }

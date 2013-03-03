@@ -57,7 +57,7 @@ void Cell::update_temperature(double updated_temperature) {
 
 void Cell::update_volume() {
     // Update the effective cell volume. A cell may contain 50% of solid material
-    volume = system->width*system->height/(system->cells_x*system->cells_y)*(float)pixels/total_pixels;
+    volume = system->width*system->height/(system->settings->cells_x*system->settings->cells_y)*(float)pixels/total_pixels;
 }
 
 int Cell::prepare() {
@@ -72,7 +72,7 @@ int Cell::collide(Random *rnd) {
 	//* Skip cells with only one particle
     if( particles < 1 ) return 0;  // Skip to the next cell
 
-    Molecule **molecules = system->molecules;
+    vector<Molecule*>&molecules = system->molecules;
 
     double crm = vr_max;     // Current maximum relative speed
 
@@ -80,9 +80,7 @@ int Cell::collide(Random *rnd) {
     int isel, collisions = 0, k, kk, ip1, ip2;
     double cr;
 
-	Molecule *molecule1, *molecule2;
-	vec vcm = zeros<vec>(3,1);
-	vec vrel = zeros<vec>(3,1);
+    Molecule *molecule1, *molecule2;
 
     for( isel=0; isel<collision_pairs; isel++ ) {
 		//* Pick two particles at random out of this cell
@@ -91,20 +89,23 @@ int Cell::collide(Random *rnd) {
         ip1 = particle_indices[k];
         ip2 = particle_indices[kk];
 
-		molecule1 = molecules[ip1];
-		molecule2 = molecules[ip2];
+        molecule1 = molecules[ip1];
+        molecule2 = molecules[ip2];
 
 		//* Calculate pair's relative speed
-        cr = norm(molecule1->v-molecule2->v,2);
 
-		if( cr > crm )         // If relative speed larger than crm,
-		crm = cr;            // then reset crm to larger value
+        // cr = norm(molecule1->v-molecule2->v,2);
+        cr = sqrt(molecule1->v(0)*molecule2->v(0)+molecule1->v(1)*molecule2->v(1)+molecule1->v(2)*molecule2->v(2));
+
+        if( cr > crm ) {         // If relative speed larger than crm,
+            crm = cr;            // then reset crm to larger value
+        }
 
 		//* Accept or reject candidate pair according to relative speed
         if( cr > rnd->nextDouble()*vr_max ) {
 			//* If pair accepted, select post-collision velocities
 			collisions++;
-            momentum_change += molecule1->collide_with(molecule2,rnd, cr);
+            molecule1->collide_with(molecule2,rnd, cr);
 		} // Loop over pairs
 	}
 	

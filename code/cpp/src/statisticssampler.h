@@ -6,6 +6,7 @@
 #include <fstream>
 #include <CIniFile.h>
 class StatisticsSampler {
+    /*
 private:
 	System *system;
 public:
@@ -20,8 +21,6 @@ public:
 
     int sample_every_n;
 
-    CIniFile *ini;
-	
     FILE *velocity_file;
     FILE *temperature_file;
     FILE *velocity_field_file_x;
@@ -41,6 +40,8 @@ public:
 
 	void finish();
     double get_temperature();
+    */
 };
+
 
 #endif
