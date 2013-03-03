@@ -89,7 +89,7 @@ void System::initialize(Settings *settings_) {
     init_randoms();
 
     if(settings->load_previous_state) {
-        io->state_from_file_binary();
+        io->load_state_from_file_binary();
     } else {
         init_molecules();
     }

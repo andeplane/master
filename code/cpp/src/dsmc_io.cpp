@@ -8,8 +8,31 @@ DSMC_IO::DSMC_IO(Settings *settings_, System *system_) {
     system = system_;
 }
 
+void DSMC_IO::save_state_to_file_xyz() {
+    time_t t0;
+    t0 = clock();
+    cout << "Saving state to xyz-file..." << endl;
 
-void DSMC_IO::state_to_file_binary() {
+    ofstream file ("state.xyz", ios::out);
+    file << system->N << endl;
+    file << "sup" << endl;
+
+    for(int n=0;n<system->N;n++) {
+        // We return height - r(1) because system is inverted
+        file << "H " << system->molecules[n]->r[0] << " " << (-system->molecules[n]->r[1]+system->height) << " " << system->molecules[n]->r[2] << endl;
+    }
+
+    file.close();
+
+    double t = ((double)clock()-t0)/CLOCKS_PER_SEC;
+    cout << "Saving took " << t << " seconds." << endl;
+}
+
+void DSMC_IO::prepare_movie() {
+
+}
+
+void DSMC_IO::save_state_to_file_binary() {
     time_t t0;
     t0 = clock();
     cout << "Saving state to file..." << endl;
@@ -28,7 +51,7 @@ void DSMC_IO::state_to_file_binary() {
     cout << "Saving took " << t << " seconds." << endl;
 }
 
-void DSMC_IO::state_from_file_binary() {
+void DSMC_IO::load_state_from_file_binary() {
     time_t t0;
     t0 = clock();
     cout << "Loading state from file..." << endl;
