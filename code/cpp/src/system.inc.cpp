@@ -1,10 +1,11 @@
 #include <system.h>
 #include <Image.h>
 #include <defines.h>
+#include <dsmc_io.h>
 
 void System::initialize(Settings *settings_) {
     printf("Initializing system...");
-
+    io = new DSMC_IO(settings_,this);
     time_consumption = new double[4];
     Image img;
     char *world_base = "../worlds/";
@@ -86,7 +87,12 @@ void System::initialize(Settings *settings_) {
     coeff = 0.5*eff_num*M_PI*diam*diam*dt/(volume/number_of_cells);
 
     init_randoms();
-    init_molecules();
+
+    if(settings->load_previous_state) {
+        io->state_from_file_binary();
+    } else {
+        init_molecules();
+    }
 
     sorter = new Sorter(this);
 
@@ -128,18 +134,19 @@ void System::init_randoms() {
 }
 
 void System::init_molecules() {
-    molecules.resize(N);
+    molecules.reserve(N);
     positions = new double[3*N];
     velocities = new double[3*N];
     initial_positions = new double[3*N];
-
+    Molecule *m;
     for(int n=0;n<N;n++) {
-        molecules[n] = new Molecule(this);
-        molecules[n]->atoms = eff_num;
-        molecules[n]->index = n;
-        molecules[n]->r = &positions[3*n];
-        molecules[n]->v = &velocities[3*n];
-        molecules[n]->initial_r = &initial_positions[3*n];
+        m = new Molecule(this);
+        m->atoms = eff_num;
+        m->index = n;
+        m->r = &positions[3*n];
+        m->v = &velocities[3*n];
+        m->initial_r = &initial_positions[3*n];
+        molecules.push_back(m);
     }
 
     init_positions();

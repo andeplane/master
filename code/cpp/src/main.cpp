@@ -7,7 +7,9 @@
 #include <statisticssampler.h>
 #include <defines.h>
 #include <unitconverter.h>
-#include "settings.h"
+#include <settings.h>
+#include <dsmc_io.h>
+
 
 using namespace std;
 
@@ -25,6 +27,9 @@ int main(int args, char* argv[]) {
 
         system.step();
     }
+    system.io->state_to_file_binary();
+
+    cout << "I exited with NOOO problems at all!" << endl;
     return 0;
 
     // sampler.calculate_velocity_field();

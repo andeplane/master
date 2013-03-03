@@ -5,7 +5,8 @@
 #include <system.h>
 #include <time.h>
 #include <defines.h>
-#include "system.inc.cpp"
+#include <system.inc.cpp>
+#include <dsmc_io.h>
 
 void System::step() {
     time_t t0;

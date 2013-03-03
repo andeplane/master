@@ -47,8 +47,7 @@ HEADERS += \
     dsmc_io.h
 
 OTHER_FILES += \
-    ../dsmc.ini \
-    ../../dsmc.ini
+    ../dsmc.ini
 
 mac {
     CONFIG -= app_bundle

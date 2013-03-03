@@ -10,7 +10,7 @@ public:
 
     DSMC_IO(Settings *settings_, System *system_);
     void state_to_file_binary();
-
+    void state_from_file_binary();
     FILE *velocity_file;
     FILE *temperature_file;
     FILE *velocity_field_file_x;

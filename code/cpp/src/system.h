@@ -5,6 +5,7 @@ class Cell;
 class Sorter;
 class Wall;
 class Grid;
+class DSMC_IO;
 
 #include <fstream>
 #include "molecule.h"
@@ -34,7 +35,7 @@ public:
     vector< vector<Cell*> > cells;
     // Cell ***load_balanced_cell_list;
     // int  *cells_in_list;
-
+    DSMC_IO *io;
     Grid *world_grid;
     Grid *initial_world_grid;
     Settings *settings;
