@@ -6,6 +6,8 @@ using namespace std;
 DSMC_IO::DSMC_IO(Settings *settings_, System *system_) {
     settings = settings_;
     system = system_;
+    movie_frames = 0;
+    movie_file_open = false;
 }
 
 void DSMC_IO::save_state_to_file_xyz() {
@@ -28,8 +30,27 @@ void DSMC_IO::save_state_to_file_xyz() {
     cout << "Saving took " << t << " seconds." << endl;
 }
 
-void DSMC_IO::prepare_movie() {
+void DSMC_IO::save_state_to_movie_file() {
+    if(settings->create_movie && !(system->steps % settings->movie_every_n_frame)) {
+        if(!movie_file_open) {
+            movie_file = fopen("movie.xyz","w");
+            movie_file_open = true;
+        }
 
+        fprintf(movie_file,"%d\n",system->N);
+        fprintf(movie_file,"Random comment that must be here\n");
+
+        for(int n=0;n<system->N;n++) {
+            // We return height - r(1) because system is inverted
+            fprintf(movie_file,"H %.10f %.10f 0\n", system->molecules[n]->r[0],-system->molecules[n]->r[1] + system->height);
+        }
+    }
+}
+
+void DSMC_IO::finalize() {
+    if(movie_file_open) {
+        fclose(movie_file);
+    }
 }
 
 void DSMC_IO::save_state_to_file_binary() {

@@ -8,6 +8,8 @@ public:
     Settings(string filename);
     CIniFile ini_file;
     bool load_previous_state;
+    bool create_movie;
+    int movie_every_n_frame;
     int number_of_particles;
     int timesteps;
     double temperature;

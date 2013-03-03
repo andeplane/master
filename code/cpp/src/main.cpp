@@ -25,12 +25,12 @@ int main(int args, char* argv[]) {
             fflush(stdout);
         }
 
+        system.io->save_state_to_movie_file();
         system.step();
     }
-    system.io->save_state_to_file_xyz();
     system.io->save_state_to_file_binary();
+    system.io->finalize();
 
-    cout << "I exited with NOOO problems at all!" << endl;
     return 0;
 
     // sampler.calculate_velocity_field();
