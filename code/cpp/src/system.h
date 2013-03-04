@@ -33,9 +33,8 @@ private:
 	void accelerate();
 public:
     vector<Molecule*>molecules;
-    vector< vector<Cell*> > cells;
-    // Cell ***load_balanced_cell_list;
-    // int  *cells_in_list;
+    vector< vector< vector<Cell*> > > cells;
+
     DSMC_IO *io;
     Grid *world_grid;
     Grid *initial_world_grid;
@@ -46,8 +45,9 @@ public:
 
 	int N; 			// Number of molecules
 
-    double width;
-    double height;
+    double Lx;
+    double Ly;
+    double Lz;
     double acceleration;
     double max_x_acceleration;
 	double volume;
@@ -55,7 +55,6 @@ public:
 	double mpv; 	// Most probable velocity
 	double mfp; 	// Mean free path
 	double dt;
-	double coeff;
 	double t;
     double temperature;
     double mass, diam, density;
@@ -71,9 +70,7 @@ public:
 
 	Sorter *sorter;
 
-	void printPositionsToFile(FILE *file);
     void initialize(Settings *settings_);
 	void step();
-	double rand_gauss(long *idum);
     System() { }
 };

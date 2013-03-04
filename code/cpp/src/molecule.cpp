@@ -35,11 +35,14 @@ inline void Molecule::do_move(const double &dt) {
 }
 
 inline void Molecule::fixR() {
-    if(r[0] > system->width)  { r[0] -= system->width; initial_r[0] -= system->width; }
-    else if(r[0] < 0)         { r[0] += system->width; initial_r[0] += system->width; }
+    if(r[0] > system->Lx)  { r[0] -= system->Lx; initial_r[0] -= system->Lx; }
+    else if(r[0] < 0)         { r[0] += system->Lx; initial_r[0] += system->Lx; }
 
-    if(r[1] > system->height) { r[1] -= system->height; initial_r[1] -= system->height; }
-    else if(r[1] < 0)         { r[1] += system->height; initial_r[1] += system->height; }
+    if(r[1] > system->Ly) { r[1] -= system->Ly; initial_r[1] -= system->Ly; }
+    else if(r[1] < 0)         { r[1] += system->Ly; initial_r[1] += system->Ly; }
+
+    if(r[2] > system->Lz) { r[2] -= system->Lz; initial_r[2] -= system->Lz; }
+    else if(r[2] < 0)         { r[2] += system->Lz; initial_r[2] += system->Lz; }
 }
 
 void Molecule::move(double dt, Random *rnd, int depth) {
@@ -98,12 +101,13 @@ void Molecule::move(double dt, Random *rnd, int depth) {
         // double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
         // double v_tangent = sqrt(3.0/2*point->T)*rnd->nextGauss();
 
-        double v_normal = sqrt(-4.0/2*point->T*log(rnd->nextDouble()));
-        double v_tangent = sqrt(2.0/2*point->T)*rnd->nextGauss();
+        double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
+        double v_tangent1 = sqrt(3.0/2*point->T)*rnd->nextGauss();
+        double v_tangent2 = sqrt(3.0/2*point->T)*rnd->nextGauss();
 
-        v[0] = v_normal*point->normal.x + v_tangent*point->tangent.x;
-        v[1] = v_normal*point->normal.y + v_tangent*point->tangent.y;
-
+        v[0] = v_normal*point->normal.x + v_tangent1*point->tangent1.x + v_tangent2*point->tangent2.x;
+        v[1] = v_normal*point->normal.y + v_tangent1*point->tangent1.y + v_tangent2*point->tangent2.y;
+        v[2] = v_normal*point->normal.y + v_tangent1*point->tangent1.z + v_tangent2*point->tangent2.z;
     }
     else dt = 0;
 
@@ -113,17 +117,19 @@ void Molecule::move(double dt, Random *rnd, int depth) {
 }
 
 void Molecule::collide_with(Molecule *m, Random *rnd, const double &cr) {
-    double cos_th, sin_th, vcmx, vcmy, vcmz, vrelx, vrely, vrelz, tmpx, tmpy, tmpz;
+    double cos_th, sin_th, phi, vcmx, vcmy, vcmz, vrelx, vrely, vrelz, tmpx, tmpy, tmpz;
     vcmx  = 0.5*(v[0] + m->v[0]);
     vcmy  = 0.5*(v[1] + m->v[1]);
     vcmz  = 0.5*(v[2] + m->v[2]);
 
     cos_th = 1.0 - 2.0*rnd->nextDouble();      // Cosine and sine of
     sin_th = sqrt(1.0 - cos_th*cos_th); // collision angle theta
+    phi = 2*M_PI*rnd->nextDouble();
 
-    vrelx = cr*cos_th;          // Compute post-collision
-    vrely = cr*sin_th;          // relative velocity
-    vrelz = 0;
+
+    vrelx = cr*cos_th;                   // Compute post-collision
+    vrely = cr*sin_th*cos(phi);          // relative velocity
+    vrelz = cr*sin_th*sin(phi);
 
     tmpx = atoms*(vcmx + 0.5*vrelx-v[0]);
     tmpy = atoms*(vcmy + 0.5*vrely-v[1]);

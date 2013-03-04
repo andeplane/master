@@ -1,4 +1,4 @@
-#include "cell.h"
+#include <cell.h>
 #include <math.h>
 #include <time.h>
 #include <molecule.h>
@@ -30,21 +30,24 @@ void Cell::reset() {
     particles = 0;
 }
 
+int lolz = 0;
+
 void Cell::update_volume() {
     // Update the effective cell volume. A cell may contain 50% of solid material
-    volume = system->width*system->height/(system->settings->cells_x*system->settings->cells_y)*(float)pixels/total_pixels;
+    volume = system->Lx*system->Ly*system->Lz/(system->settings->cells_x*system->settings->cells_y*system->settings->cells_z)*(float)pixels/total_pixels;
+    collision_coefficient = 0.5*system->eff_num*M_PI*system->diam*system->diam*system->dt/volume;
 }
 
 int Cell::prepare() {
     //* Determine number of candidate collision pairs to be selected in this cell
-    double select = system->coeff*particles*(particles-1)*vr_max;
+    double select = collision_coefficient*particles*(particles-1)*vr_max;
 
     collision_pairs = round(select);      // Number of pairs to be selected
     return collision_pairs;
 }
 
 int Cell::collide(Random *rnd) {
-	//* Skip cells with only one particle
+    //* Skip cells with only one particle
     if( particles < 1 ) return 0;  // Skip to the next cell
 
     vector<Molecule*>&molecules = system->molecules;

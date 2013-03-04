@@ -16,8 +16,11 @@ Settings::Settings(string filename) {
     max_x_acceleration = ini_file.getdouble("max_x_acceleration");
     density = ini_file.getdouble("density");
     diam = ini_file.getdouble("diam");
-    width = ini_file.getdouble("width");
-    height = ini_file.getdouble("height");
+    Lx = ini_file.getdouble("Lx");
+    Ly = ini_file.getdouble("Ly");
+    Lz = ini_file.getdouble("Lz");
+    dt = ini_file.getdouble("dt");
     cells_x = ini_file.getint("cells_x");
     cells_y = ini_file.getint("cells_y");
+    cells_z = ini_file.getint("cells_z");
 }

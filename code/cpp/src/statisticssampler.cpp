@@ -17,7 +17,6 @@ StatisticsSampler::StatisticsSampler(System *system_) {
 }
 
 void StatisticsSampler::sample() {
-    // Note that number of atoms is note used because they cancel out in monoatomic systems
     if(settings->statistics_interval && system->steps % settings->statistics_interval != 0) return;
 
     double t_in_nano_seconds = system->unit_converter->time_to_SI(system->t)*1e9;
@@ -26,6 +25,8 @@ void StatisticsSampler::sample() {
 
     for(int n=0;n<system->N;n++) {
         Molecule *m = system->molecules[n];
+
+        // Note that number of atoms is note used because they cancel out in monoatomic systems
         kinetic_energy += 0.5*m->mass*(m->v[0]*m->v[0] + m->v[1]*m->v[1] + m->v[2]*m->v[2]);
         mean_r_squared += m->squared_distance_from_initial_position();
     }
@@ -36,7 +37,7 @@ void StatisticsSampler::sample() {
 
     fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy), system->unit_converter->temperature_to_SI(temperature));
 
-    cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << endl;
+    cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  system->collisions <<  endl;
 }
 
 /*

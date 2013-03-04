@@ -29,9 +29,10 @@ public:
     System *system;
     double density;
     int average_over;
+    double collision_coefficient;
 
     int collision_pairs;
-    int i,j;
+    int i,j,k;
     int particles;
     int particle_capacity;
     unsigned int *particle_indices;
@@ -46,14 +47,4 @@ public:
     void update_volume();
 
     static bool cmp(Cell *c1, Cell *c2);
-
-    /*
-    bool operator < (const Cell &c1, const Cell &c2) const {
-        return c1.collision_pairs < c2.collision_pairs;
-    }
-
-    bool operator > (const Cell &c1, const Cell &c2) const {
-        return c1.collision_pairs > c2.collision_pairs;
-    }
-    */
 };

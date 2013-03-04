@@ -22,7 +22,7 @@ void DSMC_IO::save_state_to_file_xyz() {
 
     for(int n=0;n<system->N;n++) {
         // We return height - r(1) because system is inverted
-        file << "H " << system->molecules[n]->r[0] << " " << (-system->molecules[n]->r[1]+system->height) << " " << system->molecules[n]->r[2] << endl;
+        file << "H " << system->molecules[n]->r[0] << " " << (-system->molecules[n]->r[1]+system->Ly) << " " << system->molecules[n]->r[2] << endl;
     }
 
     file.close();
@@ -43,7 +43,7 @@ void DSMC_IO::save_state_to_movie_file() {
 
         for(int n=0;n<system->N;n++) {
             // We return height - r(1) because system is inverted
-            fprintf(movie_file,"H %.10f %.10f 0\n", system->molecules[n]->r[0],-system->molecules[n]->r[1] + system->height);
+            fprintf(movie_file,"H %.10f %.10f %.10f\n", system->molecules[n]->r[0],-system->molecules[n]->r[1] + system->Ly, system->molecules[n]->r[2]);
         }
     }
 }

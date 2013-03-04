@@ -20,9 +20,12 @@ public:
     double max_x_acceleration;
     double density;
     double diam;
-    double width;
-    double height;
+    double Lx;
+    double Ly;
+    double Lz;
+    double dt;
     int cells_x;
     int cells_y;
+    int cells_z;
 
 };

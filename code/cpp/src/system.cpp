@@ -29,7 +29,6 @@ void System::step() {
     time_consumption[SORT] += ((double)clock()-t0)/CLOCKS_PER_SEC;
 
     t0 = clock();
-
     collisions += collide();
     time_consumption[COLLIDE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
 
@@ -46,16 +45,13 @@ int System::collide() {
 	
 	//* Loop over cells and process collisions in each cell
 
-    // Cell **local_cells = load_balanced_cell_list[thread_id];
-
     for(int i=0;i<settings->cells_x;i++) {
         for(int j=0;j<settings->cells_y;j++) {
-            col += cells[i][j]->collide(rnd);
+            for(int k=0;k<settings->cells_z;k++) {
+                col += cells[i][j][k]->collide(rnd);
+            }
         }
     }
-
-    // for(int i=0;i<cells_in_list[thread_id];i++)
-    //    local_col += local_cells[i]->collide(rnd);
 
 	return col;
 }
@@ -66,17 +62,4 @@ void System::accelerate() {
             molecules[n]->v[0] += acceleration*dt;
         }
     }
-}
-
-void System::printPositionsToFile(FILE *file) {
-    /*
-    fprintf(file,"%d\n",N);
-	fprintf(file,"Random comment that must be here\n");
-
-    for(int n=0;n<N;n++) {
-        // fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->type,molecules[n]->r(0),molecules[n]->r(1));
-        // We return height - r(1) because system is inverted
-        // fprintf(file,"%s %.10f %.10f 0\n",molecules[n]->information_carrier ? "H" : "H",molecules[n]->r(0),-molecules[n]->r(1) + height);
-    }
-    */
 }
