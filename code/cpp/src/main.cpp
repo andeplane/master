@@ -16,7 +16,9 @@ using namespace std;
 int main(int args, char* argv[]) {
     Settings *settings = new Settings("../dsmc.ini");
     System system;
+
     system.initialize(settings);
+
     StatisticsSampler *sampler = new StatisticsSampler(&system);
 
     for(int i=0;i<settings->timesteps;i++) {

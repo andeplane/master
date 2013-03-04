@@ -68,29 +68,28 @@ void System::initialize(Settings *settings_) {
         }
     }
 
-    for(int i=0;i<settings->cells_x;i++) {
-        for(int j=0;j<settings->cells_y;j++) {
-            for(int k=0;k<settings->cells_z;k++) {
-                c = cells[i][j][k];
-                c->update_volume();
-            }
-        }
-    }
 
     porosity /= world_grid->rows*world_grid->cols*world_grid->slices;
     volume = Lx*Ly*Lz*porosity;
 
     eff_num = density*volume/N;
-
     mfp = volume/(sqrt(2.0)*M_PI*diam*diam*N*eff_num);
     mpv = sqrt(temperature);  // Most probable initial velocity
-
     double min_cell_size = min( min(Lx/settings->cells_x,Ly/settings->cells_y), Lz/settings->cells_z);
 
     dt = 0.2*min_cell_size/mpv;       // Set timestep dt
     dt = settings->dt;
-
     dt *= settings->dt_factor;
+
+    for(int i=0;i<settings->cells_x;i++) {
+        for(int j=0;j<settings->cells_y;j++) {
+            for(int k=0;k<settings->cells_z;k++) {
+                c = cells[i][j][k];
+                c->vr_max = 3*mpv;
+                c->update_volume();
+            }
+        }
+    }
 
     init_randoms();
 
