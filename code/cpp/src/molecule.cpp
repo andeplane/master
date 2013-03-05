@@ -110,9 +110,9 @@ void Molecule::move(double dt, Random *rnd, int depth) {
             }
         }
 
-        double v_normal   = sqrt(-6.0/2*system->wall_temperature*log(rnd->nextDouble()));
-        double v_tangent1 = sqrt(3.0/2*system->wall_temperature)*rnd->nextGauss();
-        double v_tangent2 = sqrt(3.0/2*system->wall_temperature)*rnd->nextGauss();
+        double v_normal   = sqrt(-2*system->wall_temperature*log(rnd->nextDouble()));
+        double v_tangent1 = sqrt(system->wall_temperature)*rnd->nextGauss();
+        double v_tangent2 = sqrt(system->wall_temperature)*rnd->nextGauss();
 
         // Normal vector
         double n_x = system->world_grid->normals[3*idx + 0];
@@ -128,29 +128,10 @@ void Molecule::move(double dt, Random *rnd, int depth) {
         double t2_x = system->world_grid->tangents2[3*idx + 0];
         double t2_y = system->world_grid->tangents2[3*idx + 1];
         double t2_z = system->world_grid->tangents2[3*idx + 2];
-        double v_norm_old = v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
 
-        v[0] = v_normal*n_x +   v_tangent1*t1_x + v_tangent2*t2_x;
+        v[0] = v_normal*n_x + v_tangent1*t1_x + v_tangent2*t2_x;
         v[1] = v_normal*n_y + v_tangent1*t1_y + v_tangent2*t2_y;
         v[2] = v_normal*n_z + v_tangent1*t1_z + v_tangent2*t2_z;
-
-        double v_norm_new = v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
-
-        if(isnan(v_norm_new)) {
-            cout << n_x << endl;
-            cout << n_y << endl;
-            cout << n_z << endl;
-
-            cout << t1_x << endl;
-            cout << t1_y << endl;
-            cout << t1_z << endl;
-
-            cout << t2_x << endl;
-            cout << t2_y << endl;
-            cout << t2_z << endl;
-            cout << "I am nan, i was before: " << v_norm_old << endl;
-            exit(0);
-        }
     }
     else dt = 0;
 

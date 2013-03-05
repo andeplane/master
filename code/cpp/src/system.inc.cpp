@@ -30,15 +30,16 @@ void System::initialize(Settings *settings_) {
     for(int i=0;i<4;i++) {
         time_consumption[i] = 0;
     }
+    cout << "Loading world..." << endl;
     world_grid = new Grid(settings->ini_file.getstring("world"),this);
-
+    cout << "Initializing cells..." << endl;
     init_cells();
 
     double porosity = 0;
     Cell *c;
     int c_x,c_y,c_z;
-    cout << "Calculating porosity" << endl;
 
+    cout << "Calculating porosity..." << endl;
     for(int i=0;i<world_grid->Nx;i++) {
         for(int j=0;j<world_grid->Ny;j++) {
             for(int k=0;k<world_grid->Nz;k++) {
@@ -53,11 +54,9 @@ void System::initialize(Settings *settings_) {
             }
         }
     }
-    cout << "Done calculating porosity" << endl;
 
     porosity /= world_grid->points;
     volume = Lx*Ly*Lz*porosity;
-    cout << "Porosity is " << porosity << endl;
 
     eff_num = density*volume/N;
     mfp = volume/(sqrt(2.0)*M_PI*diam*diam*N*eff_num);
@@ -68,6 +67,7 @@ void System::initialize(Settings *settings_) {
     dt = settings->dt;
     dt *= settings->dt_factor;
 
+    cout << "Updating cells..." << endl;
     for(int i=0;i<settings->cells_x;i++) {
         for(int j=0;j<settings->cells_y;j++) {
             for(int k=0;k<settings->cells_z;k++) {
@@ -86,7 +86,7 @@ void System::initialize(Settings *settings_) {
     } else {
         init_molecules();
     }
-    cout << "Done with that" << endl;
+
     int number_of_cells = settings->cells_x*settings->cells_y*settings->cells_z;
 
     sorter = new Sorter(this);
@@ -180,10 +180,13 @@ void System::init_positions() {
 
 void System::init_velocities() {
     Molecule *m;
+    double ek = 0;
     for(int n=0; n<N; n++ ) {
         m = molecules[n];
-        m->v[0] = rnd->nextGauss()*sqrt(3.0/2*temperature);
-        m->v[1] = rnd->nextGauss()*sqrt(3.0/2*temperature);
-        m->v[2] = rnd->nextGauss()*sqrt(3.0/2*temperature);
+        m->v[0] = rnd->nextGauss()*sqrt(temperature);
+        m->v[1] = rnd->nextGauss()*sqrt(temperature);
+        m->v[2] = rnd->nextGauss()*sqrt(temperature);
+        ek += 0.5*(m->v[0]*m->v[0] + m->v[1]*m->v[1] + m->v[2]*m->v[2]);
     }
+    cout << "Initial temperature: " << unit_converter->temperature_to_SI(2*ek/(3*N)) << endl;
 }

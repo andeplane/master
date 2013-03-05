@@ -33,7 +33,7 @@ void StatisticsSampler::sample() {
 
     kinetic_energy /= system->N;
     mean_r_squared /= system->N;
-    temperature = 2.0/2*kinetic_energy;
+    temperature = 2.0/3*kinetic_energy;
 
     fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy), system->unit_converter->temperature_to_SI(temperature));
 
