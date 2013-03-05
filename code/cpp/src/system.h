@@ -37,7 +37,6 @@ public:
 
     DSMC_IO *io;
     Grid *world_grid;
-    Grid *initial_world_grid;
     Settings *settings;
     UnitConverter * unit_converter;
 

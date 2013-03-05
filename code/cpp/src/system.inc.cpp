@@ -10,10 +10,6 @@ void System::initialize(Settings *settings_) {
     io = new DSMC_IO(this);
     unit_converter = new UnitConverter();
     time_consumption = new double[4];
-    Image img;
-    char *world_base = "../worlds/";
-    char world_file[100];
-    char initial_world_file[100];
 
     N    = settings->number_of_particles;
     Lx   = settings->Lx;
@@ -34,43 +30,34 @@ void System::initialize(Settings *settings_) {
     for(int i=0;i<4;i++) {
         time_consumption[i] = 0;
     }
-
-    strcpy(world_file,world_base);
-    strcpy(initial_world_file,world_base);
-    strcat(world_file,settings->ini_file.getstring("world").c_str());
-    strcat(initial_world_file,settings->ini_file.getstring("initial_world").c_str());
-
-    mat world = img.readBMP(world_file);
-    mat initial_world = img.readBMP(initial_world_file);
-    world_grid = new Grid(world,this);
-    initial_world_grid = new Grid(initial_world,this);
+    world_grid = new Grid(settings->ini_file.getstring("world"),this);
 
     init_cells();
 
     double porosity = 0;
     Cell *c;
     int c_x,c_y,c_z;
+    cout << "Calculating porosity" << endl;
 
-    for(int i=0;i<world_grid->cols;i++) {
-        for(int j=0;j<world_grid->rows;j++) {
-            for(int k=0;k<world_grid->slices;k++) {
+    for(int i=0;i<world_grid->Nx;i++) {
+        for(int j=0;j<world_grid->Ny;j++) {
+            for(int k=0;k<world_grid->Nz;k++) {
                 // Update the effective cell volume. A cell may contain 50% of solid material
-
-                c_x = i/(float)world_grid->cols*settings->cells_x;
-                c_y = j/(float)world_grid->rows*settings->cells_y;
-                c_z = k/(float)world_grid->slices*settings->cells_z;
+                c_x = i/(float)world_grid->Nx*settings->cells_x;
+                c_y = j/(float)world_grid->Ny*settings->cells_y;
+                c_z = k/(float)world_grid->Nz*settings->cells_z;
                 c = cells[c_x][c_y][c_z];
                 c->total_pixels++;
-
-                c->pixels += world(j,i) == 0;
-                porosity += world(j,i) == 0;
+                c->pixels += world_grid->get_voxel(i,j,k)[0]<voxel_type_wall;
+                porosity += world_grid->get_voxel(i,j,k)[0]<voxel_type_wall;
             }
         }
     }
+    cout << "Done calculating porosity" << endl;
 
-
-    porosity /= world_grid->rows*world_grid->cols*world_grid->slices;
+    porosity /= world_grid->points;
     volume = Lx*Ly*Lz*porosity;
+    cout << "Porosity is " << porosity << endl;
 
     eff_num = density*volume/N;
     mfp = volume/(sqrt(2.0)*M_PI*diam*diam*N*eff_num);
@@ -93,11 +80,13 @@ void System::initialize(Settings *settings_) {
 
     init_randoms();
 
+    cout << "Initializing molecules..." << endl;
     if(settings->load_previous_state) {
         io->load_state_from_file_binary();
     } else {
         init_molecules();
     }
+    cout << "Done with that" << endl;
     int number_of_cells = settings->cells_x*settings->cells_y*settings->cells_z;
 
     sorter = new Sorter(this);
@@ -145,6 +134,7 @@ void System::init_cells() {
 
 void System::init_randoms() {
     long seed = time(NULL);
+    seed = -1;
     rnd = new Random(-seed);
 }
 
@@ -179,7 +169,7 @@ void System::init_positions() {
             m->r[0] = Lx*rnd->nextDouble();
             m->r[1] = Ly*rnd->nextDouble();
             m->r[2] = Lz*rnd->nextDouble();
-            did_collide = initial_world_grid->get_grid_point(m->r)->is_wall;
+            did_collide = world_grid->get_voxel(m->r)[0]>=voxel_type_wall;
         }
 
         m->initial_r[0] = m->r[0];

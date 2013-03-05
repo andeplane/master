@@ -8,5 +8,5 @@ public:
     Image();
     mat img;
     mat loadBMP(char* filename);
-    mat readBMP(char* filename);
+    mat readBMP(const char *filename);
 };

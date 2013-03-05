@@ -47,67 +47,110 @@ inline void Molecule::fixR() {
 
 void Molecule::move(double dt, Random *rnd, int depth) {
     if(!active) return;
+    // cout << "################# I AM MOLECULE at " << endl;
+    // cout << r[0] << " " << r[1] << " " << r[2] << endl;
 
     double tau = dt;
     do_move(dt);
 
-    GridPoint *point = system->world_grid->get_grid_point(r);
+    unsigned char *voxels = system->world_grid->voxels;
+    int idx = system->world_grid->get_index_of_voxel(r);
 
     // We have to calculate time until collision
-    if(point->is_wall) {
-        if(!point->is_wall_boundary) {
+    if(voxels[idx]>=voxel_type_wall) { // Is wall
+        if(voxels[idx]!=voxel_type_boundary) { // Not boundary
             int count = 0;
             while(true) {
-                point = system->world_grid->get_grid_point(r);
-                if(point->is_wall_boundary) {
+                idx = system->world_grid->get_index_of_voxel(r);
+                if(voxels[idx]==voxel_type_boundary) {
+                    // cout << r[0] << " " << r[1] << " " << r[2] << endl;
+                    // cout << "Voxel is boundary, accepted this move, removing tau from dt" << endl;
                     dt -= tau;
-
-                    while(system->world_grid->get_grid_point(r)->is_wall) {
+                    while(system->world_grid->get_voxel(r)[0]>=voxel_type_wall) {
+                        // cout << "Voxel is still boundary, going a bit back..." << endl;
                         dt += 0.1*tau;
                         do_move(-0.1*tau);
                     }
                     break;
                 }
 
-                if(point->is_wall) {
+                if(voxels[idx]>=voxel_type_wall) {
+                    // cout << r[0] << " " << r[1] << " " << r[2] << endl;
+                    // cout << "Voxel is wall, going back..." << endl;
                     do_move(-tau);
                     tau /= 2;
                 }
                 else {
+                    // cout << r[0] << " " << r[1] << " " << r[2] << endl;
+                    // cout << "Accepted this move, removing tau from dt" << endl;
                     dt -= tau;
                 }
 
                 if(++count > 100) {
                     active = false;
-                    cout << "Trouble with molecule " << index << " at (i,j)=(" << point->i << "," << point->j << "). Check your world." << endl;
-                    return;
+                    // cout << "I have trouble..." << endl;
+                    // cout << "Trouble with molecule " << index << " at (i,j)=(" << point->i << "," << point->j << "). Check your world." << endl;
+                    exit(0);
                 }
+
                 do_move(tau);
             }
         }
         else {
             int count = 0;
-            while(system->world_grid->get_grid_point(r)->is_wall) {
+            while(*system->world_grid->get_voxel(r)>=voxel_type_wall) {
                 dt += 0.1*tau;
                 do_move(-0.1*tau);
                 if(++count > 100) {
                     active = false;
-                    cout << "Another kind of trouble with molecule " << index << " at (i,j)=(" << point->i << "," << point->j << "). Check your world." << endl;
+                    // cout << "I have another kind of trouble" << endl;
+                    // cout << "Another kind of trouble with molecule " << index << " at (i,j)=(" << point->i << "," << point->j << "). Check your world." << endl;
                     return;
                 }
             }
         }
 
-        // double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
-        // double v_tangent = sqrt(3.0/2*point->T)*rnd->nextGauss();
+        double v_normal   = sqrt(-6.0/2*system->wall_temperature*log(rnd->nextDouble()));
+        double v_tangent1 = sqrt(3.0/2*system->wall_temperature)*rnd->nextGauss();
+        double v_tangent2 = sqrt(3.0/2*system->wall_temperature)*rnd->nextGauss();
 
-        double v_normal = sqrt(-6.0/2*point->T*log(rnd->nextDouble()));
-        double v_tangent1 = sqrt(3.0/2*point->T)*rnd->nextGauss();
-        double v_tangent2 = sqrt(3.0/2*point->T)*rnd->nextGauss();
+        // Normal vector
+        double n_x = system->world_grid->normals[3*idx + 0];
+        double n_y = system->world_grid->normals[3*idx + 1];
+        double n_z = system->world_grid->normals[3*idx + 2];
 
-        v[0] = v_normal*point->normal.x + v_tangent1*point->tangent1.x + v_tangent2*point->tangent2.x;
-        v[1] = v_normal*point->normal.y + v_tangent1*point->tangent1.y + v_tangent2*point->tangent2.y;
-        v[2] = v_normal*point->normal.y + v_tangent1*point->tangent1.z + v_tangent2*point->tangent2.z;
+        // Tangent vector 1
+        double t1_x = system->world_grid->tangents1[3*idx + 0];
+        double t1_y = system->world_grid->tangents1[3*idx + 1];
+        double t1_z = system->world_grid->tangents1[3*idx + 2];
+
+        // Tangent vector 2
+        double t2_x = system->world_grid->tangents2[3*idx + 0];
+        double t2_y = system->world_grid->tangents2[3*idx + 1];
+        double t2_z = system->world_grid->tangents2[3*idx + 2];
+        double v_norm_old = v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
+
+        v[0] = v_normal*n_x +   v_tangent1*t1_x + v_tangent2*t2_x;
+        v[1] = v_normal*n_y + v_tangent1*t1_y + v_tangent2*t2_y;
+        v[2] = v_normal*n_z + v_tangent1*t1_z + v_tangent2*t2_z;
+
+        double v_norm_new = v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
+
+        if(isnan(v_norm_new)) {
+            cout << n_x << endl;
+            cout << n_y << endl;
+            cout << n_z << endl;
+
+            cout << t1_x << endl;
+            cout << t1_y << endl;
+            cout << t1_z << endl;
+
+            cout << t2_x << endl;
+            cout << t2_y << endl;
+            cout << t2_z << endl;
+            cout << "I am nan, i was before: " << v_norm_old << endl;
+            exit(0);
+        }
     }
     else dt = 0;
 

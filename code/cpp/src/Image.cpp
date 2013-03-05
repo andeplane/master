@@ -1,6 +1,6 @@
 #include "Image.h"
 
-mat Image::readBMP(char* filename)
+mat Image::readBMP(const char* filename)
 {
     int i;
     FILE* f = fopen(filename, "rb");

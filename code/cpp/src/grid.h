@@ -1,45 +1,31 @@
 #pragma once
-#include <CVector.h>
-#include <armadillo>
 #include <vector>
 #include <system.h>
 
-using namespace arma;
-
-class GridPoint
-{
-public:
-    bool is_wall;
-    bool is_wall_boundary;
-    int i,j,k;
-
-    double T;
-    CVector normal;
-    CVector tangent1;
-    CVector tangent2;
-    GridPoint(bool wall) { is_wall = wall;
-                           is_wall_boundary = false;
-                           normal = CVector();
-                           tangent1 = CVector();
-                           tangent2 = CVector();
-                           T = 3.0; }
-};
+typedef enum {
+    voxel_type_empty = 0,
+    voxel_type_wall = 1,
+    voxel_type_boundary = 2
+} voxel_type;
 
 class Grid
 {
 public:
-    int cols;
-    int rows;
-    int slices;
+    int Nx;
+    int Ny;
+    int Nz;
+    int points;
 
     System *system;
-    vector<GridPoint> points;
+    unsigned char *voxels;
+    float *normals;
+    float *tangents1;
+    float *tangents2;
 
-    Grid(mat &M, System *_system);
-    inline GridPoint *get_grid_point(const int &i, const int &j, const int &k);
-    GridPoint *get_grid_point(const double &x, const double &y, const double &z);
-    GridPoint* get_grid_point(double *r);
-    void calculate_inner_points();
-    void calculate_normals();
-    void calculate_tangents();
+    Grid(string filename, System *system_);
+    unsigned char *get_voxel(const int &i, const int &j, const int &k);
+    unsigned char *get_voxel(const double &x, const double &y, const double &z);
+    unsigned char *get_voxel(double *r);
+    int get_index_of_voxel(double *r);
+    void read_matrix(string filename);
 };
