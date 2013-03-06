@@ -141,7 +141,6 @@ void System::init_molecules() {
     for(int n=0;n<N;n++) {
         m = new Molecule(this);
         m->atoms = eff_num;
-        m->index = n;
         m->r = &positions[3*n];
         m->v = &velocities[3*n];
         m->initial_r = &initial_positions[3*n];

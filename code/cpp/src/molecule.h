@@ -3,26 +3,18 @@ class System;
 class Random;
 
 #include <iostream>
-#include <armadillo>
-
-using namespace arma;
 using namespace std;
 
 class Molecule {
 public:
     char   *type;
-	int    atoms;
-    int    index;
+    int    atoms;
     bool   active;
-    int    information_carrier;
     double mass;
 
     double *r;
     double *v;
     double *initial_r;
-    vec temp_vector;
-    vec vrel;
-    vec vcm;
 
     System *system;
 

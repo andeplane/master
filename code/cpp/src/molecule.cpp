@@ -9,16 +9,11 @@
 using namespace std;
 
 Molecule::Molecule(System *_system) {
-    vrel = zeros<vec>(3,1);
-    vcm = zeros<vec>(3,1);
-    temp_vector = zeros<vec>(3,1);
-
     mass = 1;
     atoms = 1;
     type = 0;
     system = _system;
     type = "H";
-    information_carrier = 0;
     active = true;
 }
 

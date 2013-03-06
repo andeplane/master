@@ -92,7 +92,6 @@ void DSMC_IO::load_state_from_file_binary() {
     for(int n=0;n<N;n++) {
         Molecule *m = new Molecule(system);
         m->atoms = system->eff_num;
-        m->index = n;
         m->r = &system->positions[3*n];
         m->v = &system->velocities[3*n];
         m->initial_r = &system->initial_positions[3*n];

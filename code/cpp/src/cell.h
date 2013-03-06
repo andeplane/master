@@ -9,15 +9,6 @@ class molecule;
 using namespace arma;
 using namespace std;
 
-/*
-struct col_pairs_greater
-{
-    bool operator()( const Cell& c1, const Cell& c2 ) const {
-            return c1.collision_pairs < c2.collision_pairs;
-        }
-};
-*/
-
 class Cell {
 public:
 	double volume;
@@ -26,8 +17,6 @@ public:
 
 	double vr_max;
     System *system;
-    double density;
-    int average_over;
     double collision_coefficient;
 
     int collision_pairs;
