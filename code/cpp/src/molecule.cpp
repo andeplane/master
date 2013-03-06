@@ -1,5 +1,6 @@
 #include <molecule.h>
 
+#include <cstddef>
 #include <defines.h>
 #include <iostream>
 #include <math.h>
@@ -15,6 +16,8 @@ Molecule::Molecule(System *_system) {
     system = _system;
     type = "H";
     active = true;
+    prev = NULL;
+    next = NULL;
 }
 
 inline int sign(double a) {

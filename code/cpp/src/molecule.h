@@ -12,6 +12,9 @@ public:
     bool   active;
     double mass;
 
+    Molecule *next;
+    Molecule *prev;
+
     double *r;
     double *v;
     double *initial_r;

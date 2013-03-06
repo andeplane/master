@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cell.h>
 #include <math.h>
 #include <time.h>
@@ -15,6 +16,7 @@ Cell::Cell(System *_system) {
 
     particle_capacity = 100;
     particle_indices = new unsigned int[particle_capacity];
+    first_molecule = NULL;
 }
 
 bool Cell::cmp(Cell *c1, Cell *c2) {
@@ -91,4 +93,42 @@ int Cell::collide(Random *rnd) {
     vr_max = crm;
 
 	return collisions;
+}
+
+void Cell::add_molecule(Molecule *m) {
+    if(first_molecule == NULL) {
+        first_molecule = m;
+        m->next = NULL;
+        m->prev = NULL;
+    }
+    else {
+        m->next = first_molecule;
+        m->prev = NULL;
+        first_molecule->prev = m;
+    }
+}
+
+void Cell::remove_molecule(Molecule *m) {
+    if(first_molecule == m) {
+        if(m->next == NULL) {
+            // This is the first and only atom
+            first_molecule->prev = NULL;
+            first_molecule->next = NULL;
+            first_molecule = NULL;
+            return;
+        }
+
+        // This is the first molecule in the list
+        first_molecule->next->prev = NULL; // Remove this atom from the next atom
+        first_molecule = m->next;          // Set the next atom as the first atom
+
+        first_molecule->prev = NULL;
+        first_molecule->next = NULL;
+    } else {
+        m->prev->next = m->next; // Set this atoms next as the prev atoms next
+        m->next->prev = m->prev; // Set this atoms prev as the next atoms prev
+
+        m->prev = NULL;
+        m->next = NULL;
+    }
 }

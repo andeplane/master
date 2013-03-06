@@ -3,8 +3,8 @@
 class System;
 #include <random.h>
 #include <armadillo>
-class system;
-class molecule;
+class System;
+class Molecule;
 
 using namespace arma;
 using namespace std;
@@ -24,7 +24,7 @@ public:
     int particles;
     int particle_capacity;
     unsigned int *particle_indices;
-
+    Molecule *first_molecule;
 
     Cell(System *system);
 	void reset();
@@ -33,6 +33,8 @@ public:
     int collide(Random *rnd);
 
     void update_volume();
+    void add_molecule(Molecule *m);
+    void remove_molecule(Molecule *m);
 
     static bool cmp(Cell *c1, Cell *c2);
 };
