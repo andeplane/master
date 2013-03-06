@@ -1,5 +1,4 @@
-#ifndef MOLECULE_H
-#define MOLECULE_H
+#pragma once
 class System;
 
 #include <iostream>
@@ -35,5 +34,3 @@ public:
     void collide_with(Molecule *m, Random *rnd, const double &cr);
     double squared_distance_from_initial_position();
 };
-
-#endif

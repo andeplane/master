@@ -102,7 +102,6 @@ void System::initialize(Settings *settings_) {
     printf("Mean free paths per cell: %.2f \n",min( min(Lx/settings->cells_x/mfp,Ly/settings->cells_y/mfp), Lz/settings->cells_z/mfp));
     printf("%d atoms per molecule\n",(int)eff_num);
     printf("%d molecules per cell\n",N/number_of_cells);
-    printf("Eff_num: %f\n",eff_num);
 
 
     printf("dt = %f\n\n",dt);
@@ -188,5 +187,4 @@ void System::init_velocities() {
         m->v[2] = rnd->nextGauss()*sqrt(temperature);
         ek += 0.5*(m->v[0]*m->v[0] + m->v[1]*m->v[1] + m->v[2]*m->v[2]);
     }
-    cout << "Initial temperature: " << unit_converter->temperature_to_SI(2*ek/(3*N)) << endl;
 }
