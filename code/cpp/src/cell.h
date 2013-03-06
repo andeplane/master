@@ -2,10 +2,9 @@
 
 class System;
 #include <random.h>
-#include "molecule.h"
-#include "system.h"
 #include <armadillo>
-#include <CVector.h>
+class system;
+class molecule;
 
 using namespace arma;
 using namespace std;

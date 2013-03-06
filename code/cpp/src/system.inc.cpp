@@ -1,8 +1,3 @@
-#include <system.h>
-#include <Image.h>
-#include <defines.h>
-#include <dsmc_io.h>
-
 void System::initialize(Settings *settings_) {
     settings = settings_;
 

@@ -3,23 +3,20 @@
 class Molecule;
 class Cell;
 class Sorter;
-class Wall;
 class Grid;
 class DSMC_IO;
+class Random;
+class Settings;
+class UnitConverter;
 
+#include <iostream>
 #include <fstream>
-#include "molecule.h"
-#include "cell.h"
-#include "sorter.h"
-#include "random.h"
 #include <vector>
 #include <CIniFile.h>
-#include <grid.h>
 #include <settings.h>
-#include <unitconverter.h>
+
 
 using namespace std;
-using namespace arma;
 
 class System {
 private:

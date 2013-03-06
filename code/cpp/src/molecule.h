@@ -1,10 +1,9 @@
 #pragma once
 class System;
+class Random;
 
 #include <iostream>
 #include <armadillo>
-#include <system.h>
-#include <random.h>
 
 using namespace arma;
 using namespace std;

@@ -1,8 +1,11 @@
-#include "defines.h"
-#include "molecule.h"
+#include <molecule.h>
+
+#include <defines.h>
 #include <iostream>
 #include <math.h>
-#include <CVector.h>
+#include <system.h>
+#include <random.h>
+#include <grid.h>
 using namespace std;
 
 Molecule::Molecule(System *_system) {

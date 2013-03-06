@@ -1,6 +1,10 @@
 #include <sorter.h>
+
 #include <algorithm>
 #include <vector>
+#include <cell.h>
+#include <system.h>
+#include <molecule.h>
 
 Sorter::Sorter(System *_system) {
     system = _system;

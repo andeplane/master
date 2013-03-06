@@ -1,10 +1,9 @@
-#ifndef SORTER_H
-#define SORTER_H
-
+#pragma once
 class System;
 
 #include "system.h"
-using namespace arma;
+
+
 
 class Sorter {
 
@@ -15,5 +14,3 @@ public:
     Sorter(System *system);
     void sort_system();
 };
-
-#endif

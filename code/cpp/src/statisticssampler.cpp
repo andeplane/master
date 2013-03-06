@@ -5,9 +5,9 @@
 #include <cell.h>
 #include <math.h>
 #include <sorter.h>
-#include <CIniFile.h>
 #include <unitconverter.h>
 #include <dsmc_io.h>
+#include <system.h>
 
 using namespace arma;
 

@@ -1,5 +1,8 @@
 #include <dsmc_io.h>
+
 #include <fstream>
+#include <system.h>
+#include <molecule.h>
 
 using namespace std;
 

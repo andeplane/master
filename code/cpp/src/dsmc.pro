@@ -23,7 +23,8 @@ SOURCES += main.cpp \
     unitconverter.cpp \
     Image.cpp \
     settings.cpp \
-    dsmc_io.cpp
+    dsmc_io.cpp \
+    threadcontrol.cpp
 
 HEADERS += \
     system.h \
@@ -44,7 +45,8 @@ HEADERS += \
     Image.h \
     defines.h \
     settings.h \
-    dsmc_io.h
+    dsmc_io.h \
+    threadcontrol.h
 
 OTHER_FILES += \
     ../dsmc.ini

@@ -1,10 +1,10 @@
 #pragma once
 
+class System;
+class Settings;
 #include <stdio.h>
-#include <system.h>
 #include <fstream>
 #include <CIniFile.h>
-#include <settings.h>
 
 class StatisticsSampler {
 

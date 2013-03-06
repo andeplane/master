@@ -1,6 +1,8 @@
 #pragma once
-#include <settings.h>
-#include <system.h>
+#include <stdio.h>
+
+class Settings;
+class System;
 
 class DSMC_IO
 {

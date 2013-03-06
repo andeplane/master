@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
-#include <system.h>
+class System;
+
+using namespace std;
 
 typedef enum {
     voxel_type_empty = 0,
