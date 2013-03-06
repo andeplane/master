@@ -13,11 +13,16 @@ Molecule::Molecule(System *_system) {
     mass = 1;
     atoms = 1;
     type = 0;
+    cell_index = 0;
     system = _system;
     type = "H";
     active = true;
     prev = NULL;
     next = NULL;
+
+    r.zeros();
+    v.zeros();
+    r_initial.zeros();
 }
 
 inline int sign(double a) {

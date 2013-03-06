@@ -13,9 +13,14 @@ public:
     int movie_every_n_frame;
     int number_of_particles;
     int timesteps;
+    int cells_per_node_x;
+    int cells_per_node_y;
+    int cells_per_node_z;
+    int nodes_x;
+    int nodes_y;
+    int nodes_z;
     double temperature;
     double wall_temperature;
-    double dt_factor;
     double acceleration;
     double max_x_acceleration;
     double density;

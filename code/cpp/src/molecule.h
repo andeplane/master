@@ -1,6 +1,7 @@
 #pragma once
 class System;
 class Random;
+class Cell;
 
 #include <iostream>
 using namespace std;
@@ -14,10 +15,11 @@ public:
 
     Molecule *next;
     Molecule *prev;
+    int       cell_index;
 
-    double *r;
-    double *v;
-    double *initial_r;
+    vec3 r;
+    vec3 v;
+    vec3 r_initial;
 
     System *system;
 

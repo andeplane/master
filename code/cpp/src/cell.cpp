@@ -10,12 +10,8 @@ using namespace std;
 Cell::Cell(System *_system) {
     system = _system;
     vr_max = 0;
-    particles = 0;
     pixels = 0;
     total_pixels = 0;
-
-    particle_capacity = 100;
-    particle_indices = new unsigned int[particle_capacity];
     first_molecule = NULL;
 }
 
@@ -23,21 +19,9 @@ bool Cell::cmp(Cell *c1, Cell *c2) {
     return c1->collision_pairs < c2->collision_pairs;
 }
 
-void Cell::resize(int n) {
-    delete [] particle_indices;
-    particle_capacity = n;
-    particle_indices = new unsigned int[n];
-}
-
-void Cell::reset() {
-    particles = 0;
-}
-
-int lolz = 0;
-
 void Cell::update_volume() {
     // Update the effective cell volume. A cell may contain 50% of solid material
-    volume = system->Lx*system->Ly*system->Lz/(system->settings->cells_x*system->settings->cells_y*system->settings->cells_z)*(float)pixels/total_pixels;
+    volume = system->volume/(system->settings->cells_x*system->settings->cells_y*system->settings->cells_z)*(float)pixels/total_pixels;
     collision_coefficient = 0.5*system->eff_num*M_PI*system->diam*system->diam*system->dt/volume;
 }
 
@@ -51,6 +35,8 @@ int Cell::prepare() {
 }
 
 int Cell::collide(Random *rnd) {
+    /*
+     *
     //* Skip cells with only one particle
     if( particles < 1 ) return 0;  // Skip to the next cell
 
@@ -93,6 +79,12 @@ int Cell::collide(Random *rnd) {
     vr_max = crm;
 
 	return collisions;
+    */
+    return 0;
+}
+
+void Cell::create_random_molecule() {
+
 }
 
 void Cell::add_molecule(Molecule *m) {
@@ -106,6 +98,7 @@ void Cell::add_molecule(Molecule *m) {
         m->prev = NULL;
         first_molecule->prev = m;
     }
+    m->cell = this;
 }
 
 void Cell::remove_molecule(Molecule *m) {
@@ -115,6 +108,7 @@ void Cell::remove_molecule(Molecule *m) {
             first_molecule->prev = NULL;
             first_molecule->next = NULL;
             first_molecule = NULL;
+            m->cell = NULL;
             return;
         }
 
@@ -131,4 +125,6 @@ void Cell::remove_molecule(Molecule *m) {
         m->prev = NULL;
         m->next = NULL;
     }
+
+    m->cell = this;
 }

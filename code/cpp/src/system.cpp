@@ -2,11 +2,11 @@
 
 #include <math.h>
 #include <fstream>
-#include "molecule.h"
-#include "cell.h"
-#include "sorter.h"
+#include <molecule.h>
+#include <cell.h>
+#include <sorter.h>
 #include <grid.h>
-#include "random.h"
+#include <random.h>
 #include <unitconverter.h>
 #include <dsmc_io.h>
 
@@ -16,38 +16,38 @@
 
 
 void System::step() {
-    time_t t0;
-
     steps += 1;
     t += dt;
-
-    accelerate();
-
-    //* Move all the particles
-    t0 = clock();
+    // accelerate();
     move();
-    time_consumption[MOVE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
-
-    //* Sort the particles into cells
-    t0 = clock();
-    // Arrange all particles in correct cells
-    sorter->sort_system();
-
-    time_consumption[SORT] += ((double)clock()-t0)/CLOCKS_PER_SEC;
-
-    t0 = clock();
     collisions += collide();
-    time_consumption[COLLIDE] += ((double)clock()-t0)/CLOCKS_PER_SEC;
-
 }
 
 void System::move() {
-    for(int n=0; n<N; n++ ) {
-        molecules[n]->move(dt,rnd);
+    int cidx;
+    Molecule *current_molecule;
+    for(int i=0;i<thread_control.cells.size();i++) {
+        Cell *c = thread_control.cells[i];
+        Molecule *m = c->first_molecule;
+        while(m != NULL) {
+            current_molecule = m;
+            m = m->next;
+
+            current_molecule->move(dt,rnd);
+            cidx = thread_control.cell_index_from_molecule(current_molecule);
+            if(cidx != current_molecule->cell_index) {
+                // We changed cell
+                thread_control.dummy_cells[cidx]->new_molecules.push_back(current_molecule);
+                thread_control.dummy_cells[m->cell_index]->real_cell->remove_molecule(current_molecule);
+            }
+        }
     }
+
+    thread_control.update_mpi();
 }
 
 int System::collide() {
+    /*
 	int col = 0;          // Count number of collisions
 	
 	//* Loop over cells and process collisions in each cell
@@ -61,12 +61,13 @@ int System::collide() {
     }
 
 	return col;
+    */
 }
 
 void System::accelerate() {
-    for(int n=0;n<N;n++) {
-        if(molecules[n]->r[0] < max_x_acceleration) {
-            molecules[n]->v[0] += acceleration*dt;
-        }
-    }
+//    for(int n=0;n<N;n++) {
+//        if(molecules[n]->r[0] < max_x_acceleration) {
+//            molecules[n]->v[0] += acceleration*dt;
+//        }
+//    }
 }

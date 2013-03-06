@@ -9,45 +9,35 @@
 #include <unitconverter.h>
 #include <settings.h>
 #include <dsmc_io.h>
-
+#include <mpi.h>
 
 using namespace std;
 
 int main(int args, char* argv[]) {
+    int numprocs, myid;
+
+    MPI_Init(&args,&argv) ;
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+
     Settings *settings = new Settings("../dsmc.ini");
     System system;
 
-    system.initialize(settings);
+    system.initialize(settings, myid);
 
-    StatisticsSampler *sampler = new StatisticsSampler(&system);
+    // StatisticsSampler *sampler = new StatisticsSampler(&system);
 
     for(int i=0;i<settings->timesteps;i++) {
-        system.io->save_state_to_movie_file();
+        // system.io->save_state_to_movie_file();
         system.step();
 
-        sampler->sample();
+        // sampler->sample();
     }
 
-    system.io->save_state_to_file_binary();
-    system.io->finalize();
+    // system.io->save_state_to_file_binary();
+    // system.io->finalize();
 
-    return 0;
-
-    // sampler.calculate_velocity_field();
-
-    // sampler.finish();
-
-    printf("100%%\n\n");
-    printf("Time consumption: \n");
-    printf("Sorting: %.2f s\n",system.time_consumption[SORT]);
-    printf("Moving: %.2f s\n",system.time_consumption[MOVE]);
-    printf("Collisions: %.2f s\n",system.time_consumption[COLLIDE]);
-    printf("Sampling: %.2f s\n",system.time_consumption[SAMPLE]);
-    printf("Summary:\n");
-    printf("Collisions: %d\n",system.collisions);
-
-    printf("System volume: %f\n",system.volume);
-    // printf("Average temperature: %.3f\n",sampler.get_temperature());
+    MPI_Finalize();
 
     return 0;
 }

@@ -9,6 +9,7 @@ class Random;
 class Settings;
 class UnitConverter;
 
+#include <threadcontrol.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -29,7 +30,6 @@ private:
 	int  collide();
 	void accelerate();
 public:
-    vector<Molecule*>molecules;
     vector< vector< vector<Cell*> > > cells;
 
     DSMC_IO *io;
@@ -38,15 +38,11 @@ public:
     UnitConverter * unit_converter;
 
     Random *rnd;
-
-	int N; 			// Number of molecules
-
     double Lx;
     double Ly;
     double Lz;
     double acceleration;
     double max_x_acceleration;
-	double volume;
 	double eff_num;
 	double mpv; 	// Most probable velocity
 	double mfp; 	// Mean free path
@@ -55,18 +51,21 @@ public:
     double temperature;
     double mass, diam, density;
     double wall_temperature;
-	double *time_consumption;
-
-    double *positions;
-    double *velocities;
-    double *initial_positions;
+    double cell_length_x;
+    double cell_length_y;
+    double cell_length_z;
+    double porosity_global;
+    double volume;
+    int    num_particles_global;
 
 	int collisions;
 	int steps;
+    int myid;
 
 	Sorter *sorter;
+    ThreadControl thread_control;
 
-    void initialize(Settings *settings_);
+    void initialize(Settings *settings_, int myid_);
 	void step();
     System() { }
 };

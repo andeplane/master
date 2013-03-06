@@ -42,25 +42,25 @@ unsigned char *Grid::get_voxel(const int &i, const int &j, const int &k) {
 }
 
 unsigned char *Grid::get_voxel(const double &x, const double &y, const double &z) {
-    int i =  clamp((int)(x/system->Lx*Nx),0,Nx-1);
-    int j =  clamp((int)(y/system->Ly*Ny),0,Ny-1);
-    int k =  clamp((int)(z/system->Lz*Nz),0,Nz-1);
+    int i =  x/system->Lx*Nx;
+    int j =  y/system->Ly*Ny;
+    int k =  z/system->Lz*Nz;
 
     return get_voxel(i,j,k);
 }
 
-unsigned char *Grid::get_voxel(double *r) {
-    int i =  clamp((int)(r[0]/system->Lx*Nx),0,Nx-1);
-    int j =  clamp((int)(r[1]/system->Ly*Ny),0,Ny-1);
-    int k =  clamp((int)(r[2]/system->Lz*Nz),0,Nz-1);
+unsigned char *Grid::get_voxel(const vec3 &r) {
+    int i =  r(0)/system->Lx*Nx;
+    int j =  r(1)/system->Ly*Ny;
+    int k =  r(2)/system->Lz*Nz;
 
     return get_voxel(i,j,k);
 }
 
-int Grid::get_index_of_voxel(double *r) {
-    int i =  clamp((int)(r[0]/system->Lx*Nx),0,Nx-1);
-    int j =  clamp((int)(r[1]/system->Ly*Ny),0,Ny-1);
-    int k =  clamp((int)(r[2]/system->Lz*Nz),0,Nz-1);
+int Grid::get_index_of_voxel(const vec3 &r) {
+    int i =  r(0)/system->Lx*Nx;
+    int j =  r(1)/system->Ly*Ny;
+    int k =  r(2)/system->Lz*Nz;
 
     return i + j*Nx + k*Nx*Ny;
 }

@@ -1,7 +1,9 @@
 #pragma once
 #include <vector>
+#include <armadillo>
 class System;
 
+using namespace arma;
 using namespace std;
 
 typedef enum {
@@ -27,7 +29,7 @@ public:
     Grid(string filename, System *system_);
     unsigned char *get_voxel(const int &i, const int &j, const int &k);
     unsigned char *get_voxel(const double &x, const double &y, const double &z);
-    unsigned char *get_voxel(double *r);
-    int get_index_of_voxel(double *r);
+    unsigned char *get_voxel(const vec3 &r);
+    int get_index_of_voxel(const vec3 &r);
     void read_matrix(string filename);
 };
