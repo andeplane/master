@@ -4,7 +4,6 @@
 #include <fstream>
 #include <molecule.h>
 #include <cell.h>
-#include <sorter.h>
 #include <grid.h>
 #include <random.h>
 #include <unitconverter.h>
@@ -18,56 +17,74 @@
 void System::step() {
     steps += 1;
     t += dt;
-    // accelerate();
+    accelerate();
     move();
     collisions += collide();
+    cout << steps << endl;
 }
 
 void System::move() {
     int cidx;
-    Molecule *current_molecule;
+    double sum_pos = 0;
+    double sum_pos_after = 0;
+
     for(int i=0;i<thread_control.cells.size();i++) {
         Cell *c = thread_control.cells[i];
-        Molecule *m = c->first_molecule;
-        while(m != NULL) {
-            current_molecule = m;
-            m = m->next;
+        int size = c->molecules.size();
 
-            current_molecule->move(dt,rnd);
-            cidx = thread_control.cell_index_from_molecule(current_molecule);
-            if(cidx != current_molecule->cell_index) {
+        for(int j=0;j<size;j++) {
+            Molecule *molecule = c->molecules[j];
+            molecule->move(dt,rnd);
+
+            // sum_pos += norm(molecule->r,2);
+
+            cidx = thread_control.cell_index_from_molecule(molecule);
+            if(cidx != molecule->cell_index) {
                 // We changed cell
-                thread_control.dummy_cells[cidx]->new_molecules.push_back(current_molecule);
-                thread_control.dummy_cells[m->cell_index]->real_cell->remove_molecule(current_molecule);
+                if(thread_control.dummy_cells[cidx]->node_id != myid) {
+                    // If this is another node, send it to that list
+                    thread_control.nodes_new_atoms_list[thread_control.dummy_cells[cidx]->node_id].push_back(molecule);
+                } else {
+                    // If it is this node, just add it to the dummy cell list
+                    thread_control.dummy_cells[cidx]->new_molecules.push_back(molecule);
+                }
             }
         }
     }
-
+    thread_control.update_local_cells();
     thread_control.update_mpi();
+
+//    for(int i=0;i<thread_control.cells.size();i++) {
+//        Cell *c = thread_control.cells[i];
+//        for(int j=0;j<c->molecules.size();j++) {
+//            Molecule *molecule = c->molecules[j];
+//            sum_pos_after += norm(molecule->r,2);
+//        }
+//    }
+
+    // cout << "Sum pos before: " << sum_pos << endl;
+    // cout << "Sum pos after: " << sum_pos_after << endl;
 }
 
 int System::collide() {
-    /*
 	int col = 0;          // Count number of collisions
-	
-	//* Loop over cells and process collisions in each cell
 
-    for(int i=0;i<settings->cells_x;i++) {
-        for(int j=0;j<settings->cells_y;j++) {
-            for(int k=0;k<settings->cells_z;k++) {
-                col += cells[i][j][k]->collide(rnd);
-            }
-        }
+    for(int i=0;i<thread_control.cells.size();i++) {
+        col += thread_control.cells[i]->collide(rnd);
     }
 
-	return col;
-    */
+    return col;
 }
 
 void System::accelerate() {
-//    for(int n=0;n<N;n++) {
-//        if(molecules[n]->r[0] < max_x_acceleration) {
-//            molecules[n]->v[0] += acceleration*dt;
-//        }
-//    }
+    // if(steps>100) return;
+    for(int i=0;i<thread_control.cells.size();i++) {
+        Cell *c = thread_control.cells[i];
+        for(int j=0;j<c->molecules.size();j++) {
+            Molecule *molecule = c->molecules[j];
+            if(molecule->r[0] < max_x_acceleration) {
+                molecule->v[0] += acceleration*dt;
+            }
+        }
+    }
 }

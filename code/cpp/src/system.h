@@ -61,8 +61,8 @@ public:
 	int collisions;
 	int steps;
     int myid;
+    int cells_x, cells_y, cells_z;
 
-	Sorter *sorter;
     ThreadControl thread_control;
 
     void initialize(Settings *settings_, int myid_);

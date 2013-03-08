@@ -22,6 +22,10 @@ void System::initialize(Settings *settings_, int myid_) {
     cell_length_y = Ly/(settings->cells_per_node_y*settings->nodes_y);
     cell_length_z = Lz/(settings->cells_per_node_z*settings->nodes_z);
 
+    cells_x = settings->nodes_x*settings->cells_per_node_x;
+    cells_y = settings->nodes_y*settings->cells_per_node_y;
+    cells_z = settings->nodes_z*settings->cells_per_node_z;
+
     temperature       = unit_converter->temperature_from_SI(settings->temperature);;
     wall_temperature = unit_converter->temperature_from_SI(settings->wall_temperature);
 
@@ -32,7 +36,7 @@ void System::initialize(Settings *settings_, int myid_) {
 
     if(myid==0) cout << "Loading world..." << endl;
     world_grid = new Grid(settings->ini_file.getstring("world"),this);
-    if(myid==0) cout << "Initializing cells..." << endl;
+    if(myid==0) cout << "Initializing thread system..." << endl;
     thread_control.setup(this);
 
     MPI_Allreduce(&thread_control.porosity,&porosity_global,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -47,17 +51,17 @@ void System::initialize(Settings *settings_, int myid_) {
     dt = settings->dt;
 
     if(myid==0) {
-        int number_of_cells = settings->cells_x*settings->cells_y*settings->cells_z;
+        int number_of_cells = cells_x*cells_y*cells_z;
 
         printf("done.\n\n");
         printf("%d molecules\n",num_particles_global);
-        printf("%d (%d x %d x %d) cells\n",number_of_cells,settings->cells_x,settings->cells_y,settings->cells_z);
+        printf("%d (%d x %d x %d) cells\n",number_of_cells,cells_x,cells_y,cells_z);
         printf("Porosity: %f\n",porosity_global);
         printf("System volume: %f\n",volume);
         printf("System size: %.2f x %.2f x %.2f μm\n",Lx,Ly,Lz);
         printf("System size (mfp): %.2f x %.2f x %.2f \n",Lx/mfp,Ly/mfp,Lz/mfp);
         printf("Global Kn: %.2f x %.2f x %.2f \n",mfp/Lx,mfp/Ly, mfp/Lz);
-        printf("Mean free paths per cell: %.2f \n",min( min(Lx/settings->cells_x/mfp,Ly/settings->cells_y/mfp), Lz/settings->cells_z/mfp));
+        printf("Mean free paths per cell: %.2f \n",min( min(Lx/cells_x/mfp,Ly/cells_y/mfp), Lz/cells_z/mfp));
         printf("%d atoms per molecule\n",(int)eff_num);
         printf("%d molecules per cell\n",num_particles_global/number_of_cells);
 

@@ -27,7 +27,4 @@ Settings::Settings(string filename) {
     Ly = ini_file.getdouble("Ly");
     Lz = ini_file.getdouble("Lz");
     dt = ini_file.getdouble("dt");
-    cells_x = ini_file.getint("cells_x");
-    cells_y = ini_file.getint("cells_y");
-    cells_z = ini_file.getint("cells_z");
 }

@@ -6,6 +6,7 @@ class System;
 class Molecule;
 class Settings;
 class DummyCell;
+class Cell;
 
 using namespace arma;
 using namespace std;
@@ -21,17 +22,23 @@ public:
     vec3 origo;
     System *system;
     Settings *settings;
+
     vector<Cell*> cells;
     vector<DummyCell*> dummy_cells;
     vector< vector<Molecule*> > nodes_new_atoms_list;
+    vector<Molecule*> free_molecules;
     double *mpi_data;
 
     ThreadControl();
     void setup(System *system);
     void setup_molecules();
+    void setup_cells();
+    void update_cells();
+    void update_cell_volume();
     void update_mpi();
+    void update_local_cells();
+    void calculate_porosity();
     int cell_index_from_molecule(Molecule *m);
-    int cell_index_from_ijk(const int &i, const int &j, const int &k);
+    inline int cell_index_from_ijk(const int &i, const int &j, const int &k);
     inline void find_position(Molecule *m);
-
 };

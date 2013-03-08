@@ -1,3 +1,4 @@
+/*
 #pragma once
 class System;
 
@@ -14,3 +15,5 @@ public:
     Sorter(System *system);
     void sort_system();
 };
+
+*/

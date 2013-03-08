@@ -15,7 +15,7 @@ public:
     int node_id;
     int index;
 
-    vector<Molecule*> *new_molecules;
+    vector<Molecule*> new_molecules;
     Cell *real_cell;
 
     DummyCell() { real_cell = NULL; }
@@ -34,8 +34,10 @@ public:
 	double vr_max;
     double collision_coefficient;
 
+    DummyCell *dummy_cell;
     System *system;
-    Molecule *first_molecule;
+    vector<Molecule*> molecules;
+    int num_molecules;
 
     Cell(System *system);
 	void reset();
@@ -46,7 +48,6 @@ public:
     void update_volume();
     void add_molecule(Molecule *m);
     void remove_molecule(Molecule *m);
-    void create_random_molecule();
 
     static bool cmp(Cell *c1, Cell *c2);
 };

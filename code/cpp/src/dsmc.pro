@@ -6,6 +6,8 @@ release {
     DEFINES += ARMA_NO_DEBUG
 }
 
+DEFINES += ARMA_NO_DEBUG
+
 SOURCES += main.cpp \
     system.cpp \
     cell.cpp \

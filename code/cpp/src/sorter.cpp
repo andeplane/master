@@ -1,3 +1,4 @@
+/*
 #include <sorter.h>
 
 #include <algorithm>
@@ -95,3 +96,4 @@ void Sorter::sort_system() {
     delete [] cell_y;
     delete [] cell_z;
 }
+*/

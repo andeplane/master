@@ -17,8 +17,6 @@ Molecule::Molecule(System *_system) {
     system = _system;
     type = "H";
     active = true;
-    prev = NULL;
-    next = NULL;
 
     r.zeros();
     v.zeros();
@@ -30,25 +28,25 @@ inline int sign(double a) {
 }
 
 double Molecule::squared_distance_from_initial_position() {
-    return pow(initial_r[0] - r[0],2)+pow(initial_r[1] - r[1],2)+pow(initial_r[2] - r[2],2);
+    return pow(r_initial(0) - r(0),2)+pow(r_initial(1) - r(1),2)+pow(r_initial(2) - r(2),2);
 }
 
 inline void Molecule::do_move(const double &dt) {
-    r[0] += v[0]*dt;
-    r[1] += v[1]*dt;
-    r[2] += v[2]*dt;
+    r(0) += v(0)*dt;
+    r(1) += v(1)*dt;
+    r(2) += v(2)*dt;
     fixR();
 }
 
 inline void Molecule::fixR() {
-    if(r[0] > system->Lx)  { r[0] -= system->Lx; initial_r[0] -= system->Lx; }
-    else if(r[0] < 0)         { r[0] += system->Lx; initial_r[0] += system->Lx; }
+    if(r(0) > system->Lx)  { r(0) -= system->Lx; r_initial(0) -= system->Lx; }
+    else if(r(0) < 0)         { r(0) += system->Lx; r_initial(0) += system->Lx; }
 
-    if(r[1] > system->Ly) { r[1] -= system->Ly; initial_r[1] -= system->Ly; }
-    else if(r[1] < 0)         { r[1] += system->Ly; initial_r[1] += system->Ly; }
+    if(r(1) > system->Ly) { r(1) -= system->Ly; r_initial(1) -= system->Ly; }
+    else if(r(1) < 0)         { r(1) += system->Ly; r_initial(1) += system->Ly; }
 
-    if(r[2] > system->Lz) { r[2] -= system->Lz; initial_r[2] -= system->Lz; }
-    else if(r[2] < 0)         { r[2] += system->Lz; initial_r[2] += system->Lz; }
+    if(r(2) > system->Lz) { r(2) -= system->Lz; r_initial(2) -= system->Lz; }
+    else if(r(2) < 0)         { r(2) += system->Lz; r_initial(2) += system->Lz; }
 }
 
 void Molecule::move(double dt, Random *rnd, int depth) {
@@ -72,7 +70,7 @@ void Molecule::move(double dt, Random *rnd, int depth) {
                     // cout << r[0] << " " << r[1] << " " << r[2] << endl;
                     // cout << "Voxel is boundary, accepted this move, removing tau from dt" << endl;
                     dt -= tau;
-                    while(system->world_grid->get_voxel(r)[0]>=voxel_type_wall) {
+                    while(*system->world_grid->get_voxel(r)>=voxel_type_wall) {
                         // cout << "Voxel is still boundary, going a bit back..." << endl;
                         dt += 0.1*tau;
                         do_move(-0.1*tau);
@@ -135,9 +133,9 @@ void Molecule::move(double dt, Random *rnd, int depth) {
         double t2_y = system->world_grid->tangents2[3*idx + 1];
         double t2_z = system->world_grid->tangents2[3*idx + 2];
 
-        v[0] = v_normal*n_x + v_tangent1*t1_x + v_tangent2*t2_x;
-        v[1] = v_normal*n_y + v_tangent1*t1_y + v_tangent2*t2_y;
-        v[2] = v_normal*n_z + v_tangent1*t1_z + v_tangent2*t2_z;
+        v(0) = v_normal*n_x + v_tangent1*t1_x + v_tangent2*t2_x;
+        v(1) = v_normal*n_y + v_tangent1*t1_y + v_tangent2*t2_y;
+        v(2) = v_normal*n_z + v_tangent1*t1_z + v_tangent2*t2_z;
     }
     else dt = 0;
 
@@ -148,9 +146,9 @@ void Molecule::move(double dt, Random *rnd, int depth) {
 
 void Molecule::collide_with(Molecule *m, Random *rnd, const double &cr) {
     double cos_th, sin_th, phi, vcmx, vcmy, vcmz, vrelx, vrely, vrelz, tmpx, tmpy, tmpz;
-    vcmx  = 0.5*(v[0] + m->v[0]);
-    vcmy  = 0.5*(v[1] + m->v[1]);
-    vcmz  = 0.5*(v[2] + m->v[2]);
+    vcmx  = 0.5*(v(0) + m->v(0));
+    vcmy  = 0.5*(v(1) + m->v(1));
+    vcmz  = 0.5*(v(2) + m->v(2));
 
     cos_th = 1.0 - 2.0*rnd->nextDouble();      // Cosine and sine of
     sin_th = sqrt(1.0 - cos_th*cos_th); // collision angle theta
@@ -161,15 +159,15 @@ void Molecule::collide_with(Molecule *m, Random *rnd, const double &cr) {
     vrely = cr*sin_th*cos(phi);          // relative velocity
     vrelz = cr*sin_th*sin(phi);
 
-    tmpx = atoms*(vcmx + 0.5*vrelx-v[0]);
-    tmpy = atoms*(vcmy + 0.5*vrely-v[1]);
-    tmpz = atoms*(vcmz + 0.5*vrelz-v[2]);
+    tmpx = atoms*(vcmx + 0.5*vrelx-v(0));
+    tmpy = atoms*(vcmy + 0.5*vrely-v(1));
+    tmpz = atoms*(vcmz + 0.5*vrelz-v(2));
 
-    v[0] = vcmx + 0.5*vrelx;
-    v[1] = vcmy + 0.5*vrely;
-    v[2] = vcmz + 0.5*vrelz;
+    v(0) = vcmx + 0.5*vrelx;
+    v(1) = vcmy + 0.5*vrely;
+    v(2) = vcmz + 0.5*vrelz;
 
-    m->v[0] = vcmx - 0.5*vrelx;
-    m->v[1] = vcmy - 0.5*vrely;
-    m->v[2] = vcmz - 0.5*vrelz;
+    m->v(0) = vcmx - 0.5*vrelx;
+    m->v(1) = vcmy - 0.5*vrely;
+    m->v(2) = vcmz - 0.5*vrelz;
 }

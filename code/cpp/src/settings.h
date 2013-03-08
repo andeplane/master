@@ -29,8 +29,4 @@ public:
     double Ly;
     double Lz;
     double dt;
-    int cells_x;
-    int cells_y;
-    int cells_z;
-
 };

@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 class System;
@@ -16,3 +17,4 @@ public:
     void sample();
     double kinetic_energy, temperature, mean_r_squared;
 };
+*/

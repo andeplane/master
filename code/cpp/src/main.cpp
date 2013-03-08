@@ -19,7 +19,6 @@ int main(int args, char* argv[]) {
     MPI_Init(&args,&argv) ;
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
-
     Settings *settings = new Settings("../dsmc.ini");
     System system;
 
@@ -28,7 +27,7 @@ int main(int args, char* argv[]) {
     // StatisticsSampler *sampler = new StatisticsSampler(&system);
 
     for(int i=0;i<settings->timesteps;i++) {
-        // system.io->save_state_to_movie_file();
+        system.io->save_state_to_movie_file();
         system.step();
 
         // sampler->sample();

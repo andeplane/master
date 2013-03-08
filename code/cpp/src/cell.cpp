@@ -11,8 +11,10 @@ Cell::Cell(System *_system) {
     system = _system;
     vr_max = 0;
     pixels = 0;
+    molecules.reserve(100);
+    num_molecules = 0;
     total_pixels = 0;
-    first_molecule = NULL;
+    dummy_cell = NULL;
 }
 
 bool Cell::cmp(Cell *c1, Cell *c2) {
@@ -21,13 +23,13 @@ bool Cell::cmp(Cell *c1, Cell *c2) {
 
 void Cell::update_volume() {
     // Update the effective cell volume. A cell may contain 50% of solid material
-    volume = system->volume/(system->settings->cells_x*system->settings->cells_y*system->settings->cells_z)*(float)pixels/total_pixels;
+    volume = system->volume/(system->cells_x*system->cells_y*system->cells_z)*(float)pixels/total_pixels;
     collision_coefficient = 0.5*system->eff_num*M_PI*system->diam*system->diam*system->dt/volume;
 }
 
 int Cell::prepare() {
     //* Determine number of candidate collision pairs to be selected in this cell
-    double select = collision_coefficient*particles*(particles-1)*vr_max;
+    double select = collision_coefficient*num_molecules*(num_molecules-1)*vr_max;
 
     collision_pairs = round(select);      // Number of pairs to be selected
 
@@ -36,11 +38,8 @@ int Cell::prepare() {
 
 int Cell::collide(Random *rnd) {
     /*
-     *
     //* Skip cells with only one particle
     if( particles < 1 ) return 0;  // Skip to the next cell
-
-    vector<Molecule*>&molecules = system->molecules;
 
     double crm = vr_max;     // Current maximum relative speed
 
@@ -61,7 +60,6 @@ int Cell::collide(Random *rnd) {
         molecule2 = molecules[ip2];
 
 		//* Calculate pair's relative speed
-
         cr = sqrt(pow(molecule1->v[0] - molecule2->v[0],2) + pow(molecule1->v[1] - molecule2->v[1],2) + pow(molecule1->v[2] - molecule2->v[2],2));
 
         if( cr > crm ) {         // If relative speed larger than crm,
@@ -83,48 +81,23 @@ int Cell::collide(Random *rnd) {
     return 0;
 }
 
-void Cell::create_random_molecule() {
-
-}
-
 void Cell::add_molecule(Molecule *m) {
-    if(first_molecule == NULL) {
-        first_molecule = m;
-        m->next = NULL;
-        m->prev = NULL;
-    }
-    else {
-        m->next = first_molecule;
-        m->prev = NULL;
-        first_molecule->prev = m;
-    }
-    m->cell = this;
+    molecules.push_back(m);
+    m->index_in_cell = num_molecules;
+    m->cell_index = index;
+    num_molecules++;
 }
 
 void Cell::remove_molecule(Molecule *m) {
-    if(first_molecule == m) {
-        if(m->next == NULL) {
-            // This is the first and only atom
-            first_molecule->prev = NULL;
-            first_molecule->next = NULL;
-            first_molecule = NULL;
-            m->cell = NULL;
-            return;
-        }
+    if(num_molecules>1) {
+        // Move the last molecule over here
+        molecules[m->index_in_cell] = molecules[num_molecules-1];
+        molecules[m->index_in_cell]->index_in_cell = m->index_in_cell;
+        molecules.erase(molecules.begin()+num_molecules-1);
 
-        // This is the first molecule in the list
-        first_molecule->next->prev = NULL; // Remove this atom from the next atom
-        first_molecule = m->next;          // Set the next atom as the first atom
-
-        first_molecule->prev = NULL;
-        first_molecule->next = NULL;
     } else {
-        m->prev->next = m->next; // Set this atoms next as the prev atoms next
-        m->next->prev = m->prev; // Set this atoms prev as the next atoms prev
-
-        m->prev = NULL;
-        m->next = NULL;
+        molecules.erase(molecules.begin());
     }
 
-    m->cell = this;
+    num_molecules--;
 }
