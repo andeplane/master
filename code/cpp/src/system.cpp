@@ -15,19 +15,17 @@
 
 
 void System::step() {
+    if(myid==0) cout << steps << endl;
     steps += 1;
     t += dt;
     accelerate();
     move();
     collisions += collide();
-    cout << steps << endl;
+    // if(myid==0) cout << steps << endl;
 }
 
 void System::move() {
     int cidx;
-    double sum_pos = 0;
-    double sum_pos_after = 0;
-
     for(int i=0;i<thread_control.cells.size();i++) {
         Cell *c = thread_control.cells[i];
         int size = c->molecules.size();
@@ -35,9 +33,6 @@ void System::move() {
         for(int j=0;j<size;j++) {
             Molecule *molecule = c->molecules[j];
             molecule->move(dt,rnd);
-
-            // sum_pos += norm(molecule->r,2);
-
             cidx = thread_control.cell_index_from_molecule(molecule);
             if(cidx != molecule->cell_index) {
                 // We changed cell
@@ -53,17 +48,6 @@ void System::move() {
     }
     thread_control.update_local_cells();
     thread_control.update_mpi();
-
-//    for(int i=0;i<thread_control.cells.size();i++) {
-//        Cell *c = thread_control.cells[i];
-//        for(int j=0;j<c->molecules.size();j++) {
-//            Molecule *molecule = c->molecules[j];
-//            sum_pos_after += norm(molecule->r,2);
-//        }
-//    }
-
-    // cout << "Sum pos before: " << sum_pos << endl;
-    // cout << "Sum pos after: " << sum_pos_after << endl;
 }
 
 int System::collide() {

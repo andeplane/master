@@ -17,12 +17,14 @@ void ThreadControl::setup(System *system_) {
     idy = (myid/settings->nodes_z) % settings->nodes_y; // Node id in y-direction
     idz = myid % settings->nodes_z; // Node id in z-direction
 
-    origo(0) = idx*system->cell_length_x;
-    origo(1) = idy*system->cell_length_y;
-    origo(2) = idz*system->cell_length_z;
-
+    origo(0) = idx*(system->Lx/settings->nodes_x);
+    origo(1) = idy*(system->Ly/settings->nodes_y);
+    origo(2) = idz*(system->Lz/settings->nodes_z);
+    if(myid==0) cout << "Setting up cells..." << endl;
     setup_cells();
+    if(myid==0) cout << "Updating cell volume..." << endl;
     update_cell_volume();
+    if(myid==0) cout << "Setting up molecules..." << endl;
     setup_molecules();
     mpi_data = new double[9*2*system->num_particles_global];
 }
@@ -53,11 +55,11 @@ void ThreadControl::setup_molecules() {
 inline void ThreadControl::find_position(Molecule *m) {
     bool did_collide = true;
     while(did_collide) {
-        m->r(0) = system->Lx*system->rnd->nextDouble();
-        m->r(1) = system->Ly*system->rnd->nextDouble();
-        m->r(2) = system->Lz*system->rnd->nextDouble();
+        m->r(0) = origo(0) + system->Lx/settings->nodes_x*system->rnd->nextDouble();
+        m->r(1) = origo(1) + system->Ly/settings->nodes_y*system->rnd->nextDouble();
+        m->r(2) = origo(2) + system->Lz/settings->nodes_z*system->rnd->nextDouble();
 
-        did_collide = system->world_grid->get_voxel(m->r)[0]>=voxel_type_wall;
+        did_collide = *system->world_grid->get_voxel(m->r)>=voxel_type_wall;
     }
 
     m->r_initial(0) = m->r(0);
@@ -144,7 +146,6 @@ void ThreadControl::calculate_porosity() {
             }
         }
     }
-
     porosity = (float)filled_pixels / all_pixels;
 }
 

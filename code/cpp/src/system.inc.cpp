@@ -2,10 +2,11 @@
 #include <mpi.h>
 
 void System::initialize(Settings *settings_, int myid_) {
+    myid = myid_;
+
     if(myid==0) cout << "Initializing system..." << endl;
 
     settings = settings_;
-    myid = myid_;
     steps = 0;
     collisions = 0;
     t = 0;
@@ -71,6 +72,6 @@ void System::initialize(Settings *settings_, int myid_) {
 
 void System::init_randoms() {
     long seed = time(NULL);
-    seed = -1;
+    seed = 1 + myid;
     rnd = new Random(-seed);
 }
