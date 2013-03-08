@@ -42,10 +42,11 @@ void System::initialize(Settings *settings_, int myid_) {
 
     MPI_Allreduce(&thread_control.porosity,&porosity_global,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     MPI_Allreduce(&thread_control.num_particles,&num_particles_global,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+    porosity_global /= thread_control.num_nodes;
 
     volume = Lx*Ly*Lz*porosity_global;
-
     eff_num = density*volume/num_particles_global;
+
     mfp = volume/(sqrt(2.0)*M_PI*diam*diam*num_particles_global*eff_num);
     mpv = sqrt(temperature);  // Most probable initial velocity
 

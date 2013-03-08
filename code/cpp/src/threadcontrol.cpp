@@ -148,16 +148,6 @@ void ThreadControl::calculate_porosity() {
 }
 
 void ThreadControl::update_local_cells() {
-//    cout << "Updating local cells" << endl;
-
-//    if(myid==0) {
-//        for(int i=0;i<cells.size();i++) {
-//            Cell *c = cells[i];
-//            cout << "This is cell " << c->index << endl;
-//            cout << "My dummy has index" << c->dummy_cell->index << endl;
-//        }
-//    }
-
     for(int i=0;i<cells.size();i++) {
         Cell *c = cells[i];
         DummyCell *dc = c->dummy_cell;
@@ -171,8 +161,13 @@ void ThreadControl::update_local_cells() {
     }
 }
 
+double comm_time = 0;
+
 void ThreadControl::update_mpi() {
     MPI_Barrier(MPI_COMM_WORLD);
+    double t0;
+    if(myid==0) t0=MPI_Wtime();
+
     // cout << "Mpi update staring on node " << myid << endl;
 
     for(int i=0;i<num_nodes;i++) {
@@ -196,7 +191,6 @@ void ThreadControl::update_mpi() {
                         } else {
                             m = new Molecule(system);
                         }
-
 
                         m->atoms = system->eff_num;
                         m->r(0) = mpi_data[9*n+0];
@@ -248,6 +242,10 @@ void ThreadControl::update_mpi() {
         }
     }
     MPI_Barrier(MPI_COMM_WORLD);
+    if(myid==0) comm_time += MPI_Wtime()-t0;
+    if(!(system->steps%500)) {
+        if(myid==0) cout << "MPI-COMM TOTAL: " << comm_time << " seconds." << endl;
+    }
 }
 
 ThreadControl::ThreadControl() {

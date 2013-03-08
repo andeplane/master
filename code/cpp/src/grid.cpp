@@ -28,7 +28,6 @@ void Grid::read_matrix(string filename) {
 
 Grid::Grid(string filename, System *system_)
 {
-    cout << "Loading file " << filename << endl;
     system = system_;
     read_matrix(filename);
 }
