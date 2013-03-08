@@ -230,6 +230,7 @@ void ThreadControl::update_mpi() {
             dummy_cells[m->cell_index]->real_cell->remove_molecule(m);
             num_particles--;
             free_molecules.push_back(m);
+
         }
 
         molecules.clear();
