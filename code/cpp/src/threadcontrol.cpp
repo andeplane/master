@@ -158,6 +158,7 @@ void ThreadControl::update_local_cells() {
             dummy_cells[m->cell_index]->real_cell->remove_molecule(m);
             c->add_molecule(m);
         }
+        dc->new_molecules.clear();
     }
 }
 
@@ -223,6 +224,7 @@ void ThreadControl::update_mpi() {
             cells[m->cell_index]->remove_molecule(m);
             free_molecules.push_back(m);
         }
+        molecules.clear();
 
         MPI_Send(&count, 1, MPI_INT, i, 100,
                      MPI_COMM_WORLD);
