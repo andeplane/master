@@ -26,7 +26,7 @@ void ThreadControl::setup(System *system_) {
     update_cell_volume();
     if(myid==0) cout << "Setting up molecules..." << endl;
     setup_molecules();
-    mpi_data = new double[9*2*system->num_particles_global];
+    mpi_data = new double[9*2*settings->number_of_particles];
 }
 
 void ThreadControl::update_cell_volume() {
@@ -95,7 +95,7 @@ void ThreadControl::setup_cells() {
                 DummyCell *dc = new DummyCell();
                 dc->node_id = node_id;
                 dc->index = cell_index_from_ijk(i,j,k);
-                dc->new_molecules.reserve(100);
+                // dc->new_molecules.reserve(1000);
                 dummy_cells.push_back(dc);
 
                 if(node_id == myid) {
@@ -103,14 +103,12 @@ void ThreadControl::setup_cells() {
                     c->index = cell_index_from_ijk(i,j,k);
                     c->vr_max = 3*system->mpv;
                     cells.push_back(c);
-
                     dc->real_cell = c;
                     c->dummy_cell = dc;
                 }
             }
         }
     }
-
     calculate_porosity();
 }
 
@@ -150,6 +148,16 @@ void ThreadControl::calculate_porosity() {
 }
 
 void ThreadControl::update_local_cells() {
+//    cout << "Updating local cells" << endl;
+
+//    if(myid==0) {
+//        for(int i=0;i<cells.size();i++) {
+//            Cell *c = cells[i];
+//            cout << "This is cell " << c->index << endl;
+//            cout << "My dummy has index" << c->dummy_cell->index << endl;
+//        }
+//    }
+
     for(int i=0;i<cells.size();i++) {
         Cell *c = cells[i];
         DummyCell *dc = c->dummy_cell;
@@ -164,8 +172,10 @@ void ThreadControl::update_local_cells() {
 }
 
 void ThreadControl::update_mpi() {
+    MPI_Barrier(MPI_COMM_WORLD);
+    // cout << "Mpi update staring on node " << myid << endl;
+
     for(int i=0;i<num_nodes;i++) {
-        int count = 0;
         vector<Molecule*> &molecules = nodes_new_atoms_list[i];
 
         if(i==myid) {
@@ -175,18 +185,18 @@ void ThreadControl::update_mpi() {
                 int num_received;
                 MPI_Recv(&num_received, 1, MPI_INT, j, 100,
                              MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-
                 if(num_received) {
                     MPI_Recv(mpi_data, num_received, MPI_DOUBLE, j, 100,
                                  MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
                     for(int n=0;n<num_received/9;n++) {
                         Molecule *m;
-                        if(free_molecules.size()) {
+                        if(free_molecules.size()>0) {
                             m = free_molecules.back();
-                            free_molecules.erase(--free_molecules.end());
+                            free_molecules.erase(free_molecules.end()-1);
                         } else {
                             m = new Molecule(system);
                         }
+
 
                         m->atoms = system->eff_num;
                         m->r(0) = mpi_data[9*n+0];
@@ -202,29 +212,32 @@ void ThreadControl::update_mpi() {
                         m->r_initial(2) = mpi_data[9*n+8];
 
                         dummy_cells[cell_index_from_molecule(m)]->real_cell->add_molecule(m);
+                        num_particles++;
                     }
                 }
             }
 
             continue;
         }
+        int count = 0;
 
         for(int n=0;n<molecules.size();n++) {
             Molecule *m = molecules[n];
             mpi_data[count++] = m->r(0);
             mpi_data[count++] = m->r(1);
             mpi_data[count++] = m->r(2);
-
             mpi_data[count++] = m->v(0);
             mpi_data[count++] = m->v(1);
             mpi_data[count++] = m->v(2);
-
             mpi_data[count++] = m->r_initial(0);
             mpi_data[count++] = m->r_initial(1);
             mpi_data[count++] = m->r_initial(2);
-            cells[m->cell_index]->remove_molecule(m);
+
+            dummy_cells[m->cell_index]->real_cell->remove_molecule(m);
+            num_particles--;
             free_molecules.push_back(m);
         }
+
         molecules.clear();
 
         MPI_Send(&count, 1, MPI_INT, i, 100,
@@ -234,6 +247,7 @@ void ThreadControl::update_mpi() {
                          MPI_COMM_WORLD);
         }
     }
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 ThreadControl::ThreadControl() {
