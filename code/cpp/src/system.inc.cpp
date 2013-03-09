@@ -12,7 +12,6 @@ void System::initialize(Settings *settings_, int myid_) {
     t = 0;
 
     init_randoms();
-    io = new DSMC_IO(this);
     unit_converter = new UnitConverter();
 
     Lx   = settings->Lx;
@@ -51,6 +50,8 @@ void System::initialize(Settings *settings_, int myid_) {
     mpv = sqrt(temperature);  // Most probable initial velocity
 
     dt = settings->dt;
+
+    io = new DSMC_IO(this);
 
     if(myid==0) {
         int number_of_cells = cells_x*cells_y*cells_z;

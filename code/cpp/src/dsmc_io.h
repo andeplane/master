@@ -18,6 +18,7 @@ public:
     void finalize();
     bool movie_file_open;
     int  movie_frames;
+    double *positions;
 
     FILE *energy_file;
     FILE *movie_file;

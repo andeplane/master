@@ -38,8 +38,9 @@ int Cell::prepare() {
 }
 
 int Cell::collide(Random *rnd) {
-    /*
+
     //* Skip cells with only one particle
+    /*
     if( particles < 1 ) return 0;  // Skip to the next cell
 
     double crm = vr_max;     // Current maximum relative speed

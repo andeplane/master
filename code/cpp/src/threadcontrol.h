@@ -27,7 +27,13 @@ public:
     vector<DummyCell*> dummy_cells;
     vector< vector<Molecule*> > nodes_new_atoms_list;
     vector<Molecule*> free_molecules;
+    vector<Molecule*> all_molecules;
+
     double *mpi_data;
+    double *positions;
+    double *velocities;
+    double *initial_positions;
+    int allocated_particle_data;
 
     ThreadControl();
     void setup(System *system);

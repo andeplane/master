@@ -4,9 +4,8 @@ class Random;
 class Cell;
 
 #include <iostream>
-#include <armadillo>
+
 using namespace std;
-using namespace arma;
 
 class Molecule {
 public:
@@ -17,9 +16,9 @@ public:
     int       cell_index;
     int       index_in_cell;
 
-    vec3 r;
-    vec3 v;
-    vec3 r_initial;
+    double *r;
+    double *v;
+    double *r_initial;
 
     System *system;
 

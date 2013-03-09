@@ -12,7 +12,6 @@ SOURCES += main.cpp \
     system.cpp \
     cell.cpp \
     molecule.cpp \
-    sorter.cpp \
     statisticssampler.cpp \
     Random.cpp \
     grid.cpp \
@@ -32,7 +31,6 @@ HEADERS += \
     system.h \
     cell.h \
     molecule.h \
-    sorter.h \
     statisticssampler.h \
     Random.h \
     grid.h \
@@ -69,7 +67,7 @@ unix:!mac {
     QMAKE_CXXFLAGS +=
     QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CXXFLAGS
     QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CXXFLAGS
-    QMAKE_CXX = g++-4.7
+    QMAKE_CXX = mpic++
 }
 
 

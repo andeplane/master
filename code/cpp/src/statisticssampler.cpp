@@ -5,7 +5,6 @@
 #include <molecule.h>
 #include <cell.h>
 #include <math.h>
-#include <sorter.h>
 #include <unitconverter.h>
 #include <dsmc_io.h>
 #include <system.h>
@@ -31,7 +30,7 @@ void StatisticsSampler::sample() {
             Molecule *m = system->thread_control.cells[i]->molecules[j];
 
             // Note that number of atoms is note used because they cancel out in monoatomic systems
-            kinetic_energy += 0.5*m->mass*(m->v(0)*m->v(0) + m->v(1)*m->v(1) + m->v(2)*m->v(2));
+            kinetic_energy += 0.5*m->mass*(m->v[0]*m->v[0] + m->v[1]*m->v[1] + m->v[2]*m->v[2]);
             mean_r_squared += m->squared_distance_from_initial_position();
         }
     }
@@ -47,7 +46,8 @@ void StatisticsSampler::sample() {
     if(system->myid == 0) {
         kinetic_energy_global /= system->num_particles_global;
         mean_r_squared_global /= system->num_particles_global;
-        temperature = 2.0/3*kinetic_energy;
+        temperature = 2.0/3*kinetic_energy_global;
+
         fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy), system->unit_converter->temperature_to_SI(temperature));
         cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  system->collisions <<  endl;
     }

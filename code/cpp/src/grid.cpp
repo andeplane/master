@@ -48,71 +48,18 @@ unsigned char *Grid::get_voxel(const double &x, const double &y, const double &z
     return get_voxel(i,j,k);
 }
 
-unsigned char *Grid::get_voxel(const vec3 &r) {
-    int i =  r(0)/system->Lx*Nx;
-    int j =  r(1)/system->Ly*Ny;
-    int k =  r(2)/system->Lz*Nz;
+unsigned char *Grid::get_voxel(double *r) {
+    int i =  r[0]/system->Lx*Nx;
+    int j =  r[1]/system->Ly*Ny;
+    int k =  r[2]/system->Lz*Nz;
 
     return get_voxel(i,j,k);
 }
 
-int Grid::get_index_of_voxel(const vec3 &r) {
-    int i =  r(0)/system->Lx*Nx;
-    int j =  r(1)/system->Ly*Ny;
-    int k =  r(2)/system->Lz*Nz;
+int Grid::get_index_of_voxel(double *r) {
+    int i =  r[0]/system->Lx*Nx;
+    int j =  r[1]/system->Ly*Ny;
+    int k =  r[2]/system->Lz*Nz;
 
     return i + j*Nx + k*Nx*Ny;
 }
-
-/*
-void Grid::calculate_normals() {
-    for(int i=0;i<cols;i++) {
-        for(int j=0;j<rows;j++) {
-            for(int k=0;k<slices;k++) {
-                GridPoint *p = get_grid_point(i,j,k);
-
-                for(int di=-1;di<=1;di++) {
-                    for(int dj=-1;dj<=1;dj++) {
-                        for(int dk=-1;dk<=1;dk++) {
-                            p->normal.x -= get_grid_point(i+di,j+dj, k+dk)->is_wall*di;
-                            p->normal.y -= get_grid_point(i+di,j+dj, k+dk)->is_wall*dj;
-                            p->normal.z -= get_grid_point(i+di,j+dj, k+dk)->is_wall*dk;
-                        }
-                    }
-                }
-                p->normal = p->normal.Normalize();
-            }
-        }
-    }
-}
-
-void Grid::calculate_inner_points() {
-    for(int i=0;i<cols;i++) {
-        for(int j=0;j<rows;j++) {
-            for(int k=0;k<slices;k++) {
-                GridPoint *p = get_grid_point(i,j,k);
-
-                if(p->is_wall && p->normal.Length() > 0) {
-                    p->is_wall_boundary = true;
-                }
-            }
-        }
-    }
-}
-
-void Grid::calculate_tangents() {
-    for(int i=0;i<cols;i++) {
-        for(int j=0;j<rows;j++) {
-            for(int k=0;k<slices;k++) {
-                GridPoint *p = get_grid_point(i,j,k);
-                p->tangent1 = CVector(1,1,1);
-                p->tangent1.RandomUniform();
-                p->tangent1 = p->tangent1 - p->normal*p->normal.Dot(p->tangent1);
-                p->tangent1.Normalize();
-                p->tangent2 = p->normal.Cross(p->tangent1);
-                p->tangent2.Normalize();
-            }
-        }
-    }
-}
-*/

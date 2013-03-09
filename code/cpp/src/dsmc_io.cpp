@@ -4,6 +4,7 @@
 #include <system.h>
 #include <molecule.h>
 #include <cell.h>
+#include <mpi.h>
 
 using namespace std;
 
@@ -36,15 +37,17 @@ void DSMC_IO::save_state_to_file_xyz() {
 }
 
 void DSMC_IO::save_state_to_movie_file() {
-    if(system->myid != 0) return;
+    /*
     if(settings->create_movie && !(system->steps % settings->movie_every_n_frame)) {
         if(!movie_file_open) {
-            movie_file = fopen("movie.xyz","w");
+            char *filename = new char[100];
+            sprintf(filename,'movie%04d.bin',system->myid);
+            movie_file = fopen(filename,"w");
             movie_file_open = true;
         }
 
-        fprintf(movie_file,"%d\n",system->thread_control.num_particles);
-        fprintf(movie_file,"Random comment that must be here\n");
+        file.write (reinterpret_cast<char*>(&system->thread_control.num_particles), sizeof(int));
+
 
         for(int i=0;i<system->thread_control.cells.size();i++) {
             Cell *c = system->thread_control.cells[i];
@@ -54,6 +57,7 @@ void DSMC_IO::save_state_to_movie_file() {
             }
         }
     }
+    */
 }
 
 void DSMC_IO::save_state_to_file_binary() {

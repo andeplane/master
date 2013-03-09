@@ -17,9 +17,9 @@ void ThreadControl::setup(System *system_) {
     idy = (myid/settings->nodes_z) % settings->nodes_y; // Node id in y-direction
     idz = myid % settings->nodes_z; // Node id in z-direction
 
-    origo(0) = idx*(system->Lx/settings->nodes_x);
-    origo(1) = idy*(system->Ly/settings->nodes_y);
-    origo(2) = idz*(system->Lz/settings->nodes_z);
+    origo[0] = idx*(system->Lx/settings->nodes_x);
+    origo[1] = idy*(system->Ly/settings->nodes_y);
+    origo[2] = idz*(system->Lz/settings->nodes_z);
     if(myid==0) cout << "Setting up cells..." << endl;
     setup_cells();
     if(myid==0) cout << "Updating cell volume..." << endl;
@@ -38,33 +38,45 @@ void ThreadControl::update_cell_volume() {
 }
 
 void ThreadControl::setup_molecules() {
-    free_molecules.reserve(1000);
     num_particles = settings->number_of_particles*porosity/num_nodes;
+    allocated_particle_data = num_particles*10;
+
+    free_molecules.reserve(1000);
+    all_molecules.reserve(2*num_particles);
+
+    positions = new double[3*allocated_particle_data];
+    velocities = new double[3*allocated_particle_data];
+    initial_positions = new double[3*allocated_particle_data];
 
     for(int n=0;n<num_particles;n++) {
         Molecule *m = new Molecule(system);
+        m->r = &positions[3*all_molecules.size()];
+        m->v = &velocities[3*all_molecules.size()];
+        m->r_initial = &initial_positions[3*all_molecules.size()];
+
         m->atoms = system->eff_num;
-        m->v(0) = 0.6; //system->rnd->nextGauss()*sqrt(system->temperature);
-        m->v(1) = 0; //system->rnd->nextGauss()*sqrt(system->temperature);
-        m->v(2) = 0; //system->rnd->nextGauss()*sqrt(system->temperature);
+        m->v[0] = system->rnd->nextGauss()*sqrt(system->temperature);
+        m->v[1] = system->rnd->nextGauss()*sqrt(system->temperature);
+        m->v[2] = system->rnd->nextGauss()*sqrt(system->temperature);
         find_position(m);
         dummy_cells[cell_index_from_molecule(m)]->real_cell->add_molecule(m);
+        all_molecules.push_back(m);
     }
 }
 
 inline void ThreadControl::find_position(Molecule *m) {
     bool did_collide = true;
     while(did_collide) {
-        m->r(0) = origo(0) + system->Lx/settings->nodes_x*system->rnd->nextDouble();
-        m->r(1) = origo(1) + system->Ly/settings->nodes_y*system->rnd->nextDouble();
-        m->r(2) = origo(2) + system->Lz/settings->nodes_z*system->rnd->nextDouble();
+        m->r[0] = origo[0] + system->Lx/settings->nodes_x*system->rnd->nextDouble();
+        m->r[1] = origo[1] + system->Ly/settings->nodes_y*system->rnd->nextDouble();
+        m->r[2] = origo[2] + system->Lz/settings->nodes_z*system->rnd->nextDouble();
 
         did_collide = *system->world_grid->get_voxel(m->r)>=voxel_type_wall;
     }
 
-    m->r_initial(0) = m->r(0);
-    m->r_initial(1) = m->r(1);
-    m->r_initial(2) = m->r(2);
+    m->r_initial[0] = m->r[0];
+    m->r_initial[1] = m->r[1];
+    m->r_initial[2] = m->r[2];
 }
 
 inline int ThreadControl::cell_index_from_ijk(const int &i, const int &j, const int &k) {
@@ -72,9 +84,9 @@ inline int ThreadControl::cell_index_from_ijk(const int &i, const int &j, const 
 }
 
 int ThreadControl::cell_index_from_molecule(Molecule *m) {
-    int i = m->r(0)/system->Lx*system->cells_x;
-    int j = m->r(1)/system->Ly*system->cells_y;
-    int k = m->r(2)/system->Lz*system->cells_z;
+    int i = m->r[0]/system->Lx*system->cells_x;
+    int j = m->r[1]/system->Ly*system->cells_y;
+    int k = m->r[2]/system->Lz*system->cells_z;
 
     return cell_index_from_ijk(i,j,k);
 }
@@ -190,20 +202,25 @@ void ThreadControl::update_mpi() {
                             free_molecules.erase(free_molecules.end()-1);
                         } else {
                             m = new Molecule(system);
+                            m->r = &positions[3*all_molecules.size()];
+                            m->v = &velocities[3*all_molecules.size()];
+                            m->r_initial = &initial_positions[3*all_molecules.size()];
+
+                            all_molecules.push_back(m);
                         }
 
                         m->atoms = system->eff_num;
-                        m->r(0) = mpi_data[9*n+0];
-                        m->r(1) = mpi_data[9*n+1];
-                        m->r(2) = mpi_data[9*n+2];
+                        m->r[0] = mpi_data[9*n+0];
+                        m->r[1] = mpi_data[9*n+1];
+                        m->r[2] = mpi_data[9*n+2];
 
-                        m->v(0) = mpi_data[9*n+3];
-                        m->v(1) = mpi_data[9*n+4];
-                        m->v(2) = mpi_data[9*n+5];
+                        m->v[0] = mpi_data[9*n+3];
+                        m->v[1] = mpi_data[9*n+4];
+                        m->v[2] = mpi_data[9*n+5];
 
-                        m->r_initial(0) = mpi_data[9*n+6];
-                        m->r_initial(1) = mpi_data[9*n+7];
-                        m->r_initial(2) = mpi_data[9*n+8];
+                        m->r_initial[0] = mpi_data[9*n+6];
+                        m->r_initial[1] = mpi_data[9*n+7];
+                        m->r_initial[2] = mpi_data[9*n+8];
 
                         dummy_cells[cell_index_from_molecule(m)]->real_cell->add_molecule(m);
                         num_particles++;
@@ -217,15 +234,15 @@ void ThreadControl::update_mpi() {
 
         for(int n=0;n<molecules.size();n++) {
             Molecule *m = molecules[n];
-            mpi_data[count++] = m->r(0);
-            mpi_data[count++] = m->r(1);
-            mpi_data[count++] = m->r(2);
-            mpi_data[count++] = m->v(0);
-            mpi_data[count++] = m->v(1);
-            mpi_data[count++] = m->v(2);
-            mpi_data[count++] = m->r_initial(0);
-            mpi_data[count++] = m->r_initial(1);
-            mpi_data[count++] = m->r_initial(2);
+            mpi_data[count++] = m->r[0];
+            mpi_data[count++] = m->r[1];
+            mpi_data[count++] = m->r[2];
+            mpi_data[count++] = m->v[0];
+            mpi_data[count++] = m->v[1];
+            mpi_data[count++] = m->v[2];
+            mpi_data[count++] = m->r_initial[0];
+            mpi_data[count++] = m->r_initial[1];
+            mpi_data[count++] = m->r_initial[2];
 
             dummy_cells[m->cell_index]->real_cell->remove_molecule(m);
             num_particles--;
