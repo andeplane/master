@@ -40,23 +40,21 @@ int Cell::prepare() {
 int Cell::collide(Random *rnd) {
 
     //* Skip cells with only one particle
-    /*
-    if( particles < 1 ) return 0;  // Skip to the next cell
+
+    if( num_molecules < 2 ) return 0;  // Skip to the next cell
 
     double crm = vr_max;     // Current maximum relative speed
 
 	//* Loop over total number of candidate collision pairs
-    int isel, collisions = 0, k, kk, ip1, ip2;
+    int isel, collisions = 0, ip1, ip2;
     double cr;
 
     Molecule *molecule1, *molecule2;
 
     for( isel=0; isel<collision_pairs; isel++ ) {
 		//* Pick two particles at random out of this cell
-        k = (int)(rnd->nextDouble()*particles);
-        kk = ((int)(k+1+rnd->nextDouble()*(particles-1))) % particles;
-        ip1 = particle_indices[k];
-        ip2 = particle_indices[kk];
+        ip1 = (int)(rnd->nextDouble()*num_molecules);
+        ip2 = ((int)(ip1+1+rnd->nextDouble()*(num_molecules-1))) % num_molecules;
 
         molecule1 = molecules[ip1];
         molecule2 = molecules[ip2];
@@ -79,8 +77,6 @@ int Cell::collide(Random *rnd) {
     vr_max = crm;
 
 	return collisions;
-    */
-    return 0;
 }
 
 void Cell::add_molecule(Molecule *m) {

@@ -27,8 +27,9 @@ private:
     void init_cells();
 	void move();
     void init_randoms();
-	int  collide();
+    void collide();
 	void accelerate();
+
 public:
     vector< vector< vector<Cell*> > > cells;
 
@@ -58,7 +59,7 @@ public:
     double volume;
     int    num_particles_global;
 
-	int collisions;
+    long collisions;
 	int steps;
     int myid;
     int cells_x, cells_y, cells_z;

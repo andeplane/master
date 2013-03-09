@@ -22,8 +22,6 @@ void ThreadControl::setup(System *system_) {
     origo[2] = idz*(system->Lz/settings->nodes_z);
     if(myid==0) cout << "Setting up cells..." << endl;
     setup_cells();
-    if(myid==0) cout << "Updating cell volume..." << endl;
-    update_cell_volume();
     if(myid==0) cout << "Setting up molecules..." << endl;
     setup_molecules();
     mpi_data = new double[9*2*settings->number_of_particles];
@@ -128,25 +126,24 @@ void ThreadControl::calculate_porosity() {
     int filled_pixels = 0;
     int all_pixels = 0;
 
-    int i_start = float(this->idx)/system->cells_x*system->world_grid->Nx;
-    int i_end   = float(this->idx+1)/system->cells_x*system->world_grid->Nx;
+    int i_start = float(this->idx)*settings->cells_per_node_x/system->cells_x*system->world_grid->Nx;
+    int i_end   = float(this->idx+1)*settings->cells_per_node_x/system->cells_x*system->world_grid->Nx;
 
-    int j_start = float(this->idy)/system->cells_y*system->world_grid->Ny;
-    int j_end   = float(this->idy+1)/system->cells_y*system->world_grid->Ny;
+    int j_start = float(this->idy)*settings->cells_per_node_y/system->cells_y*system->world_grid->Ny;
+    int j_end   = float(this->idy+1)*settings->cells_per_node_y/system->cells_y*system->world_grid->Ny;
 
-    int k_start = float(this->idz)/system->cells_z*system->world_grid->Nz;
-    int k_end   = float(this->idz+1)/system->cells_z*system->world_grid->Nz;
+    int k_start = float(this->idz)*settings->cells_per_node_z/system->cells_z*system->world_grid->Nz;
+    int k_end   = float(this->idz+1)*settings->cells_per_node_z/system->cells_z*system->world_grid->Nz;
     int cell_index, c_x, c_y, c_z;
 
     for(int k=k_start;k<k_end;k++) {
         for(int j=j_start;j<j_end;j++) {
             for(int i=i_start;i<i_end;i++) {
-                c_x = (i-i_start)*settings->cells_per_node_x/(float)system->world_grid->Nx;
-                c_y = (j-j_start)*settings->cells_per_node_y/(float)system->world_grid->Ny;
-                c_z = (k-k_start)*settings->cells_per_node_z/(float)system->world_grid->Nz;
-
-                cell_index = c_x + c_y*settings->cells_per_node_x + c_z*settings->cells_per_node_x*settings->cells_per_node_y;
-                Cell *c = cells[cell_index];
+                c_x = i*system->cells_x/(float)system->world_grid->Nx;
+                c_y = j*system->cells_y/(float)system->world_grid->Ny;
+                c_z = k*system->cells_z/(float)system->world_grid->Nz;
+                cell_index = cell_index_from_ijk(c_x,c_y,c_z);
+                Cell *c = dummy_cells[cell_index]->real_cell;
 
                 c->total_pixels++;
                 all_pixels++;
@@ -202,6 +199,7 @@ void ThreadControl::update_mpi() {
                             free_molecules.erase(free_molecules.end()-1);
                         } else {
                             m = new Molecule(system);
+                            m->atoms = system->eff_num;
                             m->r = &positions[3*all_molecules.size()];
                             m->v = &velocities[3*all_molecules.size()];
                             m->r_initial = &initial_positions[3*all_molecules.size()];

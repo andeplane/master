@@ -21,7 +21,7 @@ void System::step() {
     t += dt;
     accelerate();
     move();
-    collisions += collide();
+    collide();
     int num_p = 0;
     MPI_Allreduce(&thread_control.num_particles,&num_p,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
     int num_local = 0;
@@ -61,14 +61,11 @@ void System::move() {
     thread_control.update_mpi();
 }
 
-int System::collide() {
-	int col = 0;          // Count number of collisions
-
+void System::collide() {
     for(int i=0;i<thread_control.cells.size();i++) {
-        col += thread_control.cells[i]->collide(rnd);
+        thread_control.cells[i]->prepare();
+        collisions += thread_control.cells[i]->collide(rnd);
     }
-
-    return col;
 }
 
 void System::accelerate() {

@@ -1,12 +1,9 @@
 #include <dsmc_io.h>
 
-#include <fstream>
 #include <system.h>
 #include <molecule.h>
 #include <cell.h>
 #include <mpi.h>
-
-using namespace std;
 
 DSMC_IO::DSMC_IO(System *system_) {
     system = system_;
@@ -37,27 +34,31 @@ void DSMC_IO::save_state_to_file_xyz() {
 }
 
 void DSMC_IO::save_state_to_movie_file() {
-    /*
     if(settings->create_movie && !(system->steps % settings->movie_every_n_frame)) {
         if(!movie_file_open) {
             char *filename = new char[100];
-            sprintf(filename,'movie%04d.bin',system->myid);
-            movie_file = fopen(filename,"w");
+            sprintf(filename,"movie%04d.bin",system->myid);
+            movie_file = new ofstream(filename,ios::out | ios::binary);
             movie_file_open = true;
+            positions = new double[3*system->thread_control.allocated_particle_data];
         }
 
-        file.write (reinterpret_cast<char*>(&system->thread_control.num_particles), sizeof(int));
-
-
+        int count = 0;
         for(int i=0;i<system->thread_control.cells.size();i++) {
             Cell *c = system->thread_control.cells[i];
             for(int j=0;j<c->molecules.size();j++) {
                 Molecule *m = c->molecules[j];
-                fprintf(movie_file,"H %.10f %.10f %.10f\n", m->r(0),m->r(1), m->r(2));
+                positions[count++] = m->r[0];
+                positions[count++] = m->r[1];
+                positions[count++] = m->r[2];
             }
         }
+
+        count /= 3; // This should represent the number of particles
+
+        movie_file->write (reinterpret_cast<char*>(&count), sizeof(int));
+        movie_file->write (reinterpret_cast<char*>(positions), 3*count*sizeof(double));
     }
-    */
 }
 
 void DSMC_IO::save_state_to_file_binary() {
@@ -112,9 +113,10 @@ void DSMC_IO::load_state_from_file_binary() {
 }
 
 void DSMC_IO::finalize() {
-    if(system->myid != 0) return;
     if(movie_file_open) {
-        fclose(movie_file);
+        movie_file->close();
     }
+
+    if(system->myid != 0) return;
     fclose(energy_file);
 }

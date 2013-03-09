@@ -37,10 +37,13 @@ void StatisticsSampler::sample() {
 
     double kinetic_energy_global = 0;
     double mean_r_squared_global = 0;
+    long collisions_global = 0;
 
-     MPI_Reduce(&kinetic_energy, &kinetic_energy_global, 1, MPI_DOUBLE,
+    MPI_Reduce(&kinetic_energy, &kinetic_energy_global, 1, MPI_DOUBLE,
                     MPI_SUM, 0, MPI_COMM_WORLD);
-     MPI_Reduce(&mean_r_squared, &mean_r_squared_global, 1, MPI_DOUBLE,
+    MPI_Reduce(&mean_r_squared, &mean_r_squared_global, 1, MPI_DOUBLE,
+                   MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&system->collisions, &collisions_global, 1, MPI_LONG,
                    MPI_SUM, 0, MPI_COMM_WORLD);
 
     if(system->myid == 0) {
@@ -49,7 +52,7 @@ void StatisticsSampler::sample() {
         temperature = 2.0/3*kinetic_energy_global;
 
         fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy), system->unit_converter->temperature_to_SI(temperature));
-        cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  system->collisions <<  endl;
+        cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  collisions_global <<  endl;
     }
 }
 

@@ -26,7 +26,7 @@ void System::initialize(Settings *settings_, int myid_) {
     cells_y = settings->nodes_y*settings->cells_per_node_y;
     cells_z = settings->nodes_z*settings->cells_per_node_z;
 
-    temperature       = unit_converter->temperature_from_SI(settings->temperature);;
+    temperature      = unit_converter->temperature_from_SI(settings->temperature);;
     wall_temperature = unit_converter->temperature_from_SI(settings->wall_temperature);
 
     acceleration = settings->acceleration;
@@ -52,6 +52,8 @@ void System::initialize(Settings *settings_, int myid_) {
     dt = settings->dt;
 
     io = new DSMC_IO(this);
+    if(myid==0) cout << "Updating cell volume..." << endl;
+    thread_control.update_cell_volume();
 
     if(myid==0) {
         int number_of_cells = cells_x*cells_y*cells_z;

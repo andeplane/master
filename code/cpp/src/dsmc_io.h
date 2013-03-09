@@ -1,5 +1,8 @@
 #pragma once
 #include <stdio.h>
+#include <fstream>
+
+using namespace std;
 
 class Settings;
 class System;
@@ -21,5 +24,5 @@ public:
     double *positions;
 
     FILE *energy_file;
-    FILE *movie_file;
+    ofstream *movie_file;
 };
