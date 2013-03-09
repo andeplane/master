@@ -37,6 +37,9 @@ void System::initialize(Settings *settings_, int myid_) {
     if(myid==0) cout << "Loading world..." << endl;
     world_grid = new Grid(settings->ini_file.getstring("world"),this);
     if(myid==0) cout << "Initializing thread system..." << endl;
+
+
+    io = new DSMC_IO(this);
     thread_control.setup(this);
 
     MPI_Allreduce(&thread_control.porosity,&porosity_global,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -51,7 +54,6 @@ void System::initialize(Settings *settings_, int myid_) {
 
     dt = settings->dt;
 
-    io = new DSMC_IO(this);
     if(myid==0) cout << "Updating cell volume..." << endl;
     thread_control.update_cell_volume();
 

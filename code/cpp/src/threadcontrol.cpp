@@ -6,6 +6,7 @@
 #include <random.h>
 #include <grid.h>
 #include <mpi.h>
+#include <dsmc_io.h>
 
 void ThreadControl::setup(System *system_) {
     system = system_;
@@ -45,6 +46,11 @@ void ThreadControl::setup_molecules() {
     positions = new double[3*allocated_particle_data];
     velocities = new double[3*allocated_particle_data];
     initial_positions = new double[3*allocated_particle_data];
+
+    if(settings->load_previous_state) {
+        system->io->load_state_from_file_binary();
+        return;
+    }
 
     for(int n=0;n<num_particles;n++) {
         Molecule *m = new Molecule(system);
@@ -259,9 +265,7 @@ void ThreadControl::update_mpi() {
     }
     MPI_Barrier(MPI_COMM_WORLD);
     if(myid==0) comm_time += MPI_Wtime()-t0;
-    if(!(system->steps%500)) {
-        if(myid==0) cout << "MPI-COMM TOTAL: " << comm_time << " seconds." << endl;
-    }
+
 }
 
 ThreadControl::ThreadControl() {
