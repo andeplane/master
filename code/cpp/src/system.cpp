@@ -12,7 +12,7 @@
 #include <time.h>
 #include <defines.h>
 #include <system.inc.cpp>
-
+#include <dsmctimer.h>
 
 void System::step() {
     // if(myid==0) cout << steps << endl;
@@ -21,10 +21,13 @@ void System::step() {
     t += dt;
     accelerate();
     move();
+    timer->start_colliding();
     collide();
+    timer->end_colliding();
 }
 
 void System::move() {
+    timer->start_moving();
     int cidx;
     for(int i=0;i<thread_control.cells.size();i++) {
         Cell *c = thread_control.cells[i];
@@ -48,7 +51,11 @@ void System::move() {
         }
     }
     thread_control.update_local_cells();
+    timer->end_moving();
+
+    timer->start_mpi();
     thread_control.update_mpi();
+    timer->end_mpi();
 }
 
 void System::collide() {
@@ -59,14 +66,16 @@ void System::collide() {
 }
 
 void System::accelerate() {
-    // if(steps>100) return;
+    int k = 0;
     for(int i=0;i<thread_control.cells.size();i++) {
         Cell *c = thread_control.cells[i];
         for(int j=0;j<c->molecules.size();j++) {
             Molecule *molecule = c->molecules[j];
             if(molecule->r[0] < max_x_acceleration) {
+                k++;
                 molecule->v[0] += acceleration*dt;
             }
         }
     }
+    // if(myid==0) cout << "Accelerated " << k << "particles." << endl;
 }

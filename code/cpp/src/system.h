@@ -8,6 +8,7 @@ class DSMC_IO;
 class Random;
 class Settings;
 class UnitConverter;
+class DSMCTimer;
 
 #include <threadcontrol.h>
 #include <iostream>
@@ -34,11 +35,13 @@ public:
     vector< vector< vector<Cell*> > > cells;
 
     DSMC_IO *io;
+    DSMCTimer *timer;
     Grid *world_grid;
     Settings *settings;
     UnitConverter * unit_converter;
-
     Random *rnd;
+
+
     double Lx;
     double Ly;
     double Lz;

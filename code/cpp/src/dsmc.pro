@@ -25,7 +25,8 @@ SOURCES += main.cpp \
     Image.cpp \
     settings.cpp \
     dsmc_io.cpp \
-    threadcontrol.cpp
+    threadcontrol.cpp \
+    dsmctimer.cpp
 
 HEADERS += \
     system.h \
@@ -46,7 +47,8 @@ HEADERS += \
     defines.h \
     settings.h \
     dsmc_io.h \
-    threadcontrol.h
+    threadcontrol.h \
+    dsmctimer.h
 
 OTHER_FILES += \
     ../dsmc.ini

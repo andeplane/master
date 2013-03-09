@@ -10,6 +10,7 @@
 #include <settings.h>
 #include <dsmc_io.h>
 #include <mpi.h>
+#include <dsmctimer.h>
 
 using namespace std;
 
@@ -35,6 +36,14 @@ int main(int args, char* argv[]) {
 
     system.io->save_state_to_file_binary();
     system.io->finalize();
+    system.timer->gather_all_nodes(&system);
+    if(myid==0) {
+        cout << "System initialize took " << system.timer->system_initialize_global << " seconds." << endl;
+        cout << "Moving took            " << system.timer->moving_global << " seconds." << endl;
+        cout << "Colliding took         " << system.timer->colliding_global << " seconds." << endl;
+        cout << "MPI took               " << system.timer->mpi_global << " seconds." << endl;
+    }
+
 
     MPI_Finalize();
 

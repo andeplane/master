@@ -1,8 +1,11 @@
 #include <system.h>
 #include <mpi.h>
+#include <dsmctimer.h>
 
 void System::initialize(Settings *settings_, int myid_) {
     myid = myid_;
+    timer = new DSMCTimer();
+    timer->start_system_initialize();
 
     if(myid==0) cout << "Initializing system..." << endl;
 
@@ -37,7 +40,6 @@ void System::initialize(Settings *settings_, int myid_) {
     if(myid==0) cout << "Loading world..." << endl;
     world_grid = new Grid(settings->ini_file.getstring("world"),this);
     if(myid==0) cout << "Initializing thread system..." << endl;
-
 
     io = new DSMC_IO(this);
     thread_control.setup(this);
@@ -74,6 +76,8 @@ void System::initialize(Settings *settings_, int myid_) {
 
         printf("dt = %f\n\n",dt);
     }
+
+    timer->end_system_initialize();
 }
 
 void System::init_randoms() {
