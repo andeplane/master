@@ -66,6 +66,8 @@ void System::collide() {
 }
 
 void System::accelerate() {
+    if(steps > 500) return;
+
     int k = 0;
     for(int i=0;i<thread_control.cells.size();i++) {
         Cell *c = thread_control.cells[i];
