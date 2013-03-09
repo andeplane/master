@@ -1,4 +1,4 @@
-/*
+
 #include <statisticssampler.h>
 
 #include <armadillo>
@@ -9,6 +9,8 @@
 #include <unitconverter.h>
 #include <dsmc_io.h>
 #include <system.h>
+#include <mpi.h>
+#include <threadcontrol.h>
 
 using namespace arma;
 
@@ -24,21 +26,31 @@ void StatisticsSampler::sample() {
     kinetic_energy = 0;
     mean_r_squared = 0;
 
-    for(int n=0;n<system->N;n++) {
-        Molecule *m = system->molecules[n];
+    for(int i=0;i<system->thread_control.cells.size();i++) {
+        for(int j=0;j<system->thread_control.cells[i]->molecules.size();j++) {
+            Molecule *m = system->thread_control.cells[i]->molecules[j];
 
-        // Note that number of atoms is note used because they cancel out in monoatomic systems
-        kinetic_energy += 0.5*m->mass*(m->v[0]*m->v[0] + m->v[1]*m->v[1] + m->v[2]*m->v[2]);
-        mean_r_squared += m->squared_distance_from_initial_position();
+            // Note that number of atoms is note used because they cancel out in monoatomic systems
+            kinetic_energy += 0.5*m->mass*(m->v(0)*m->v(0) + m->v(1)*m->v(1) + m->v(2)*m->v(2));
+            mean_r_squared += m->squared_distance_from_initial_position();
+        }
     }
 
-    kinetic_energy /= system->N;
-    mean_r_squared /= system->N;
-    temperature = 2.0/3*kinetic_energy;
+    double kinetic_energy_global = 0;
+    double mean_r_squared_global = 0;
 
-    fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy), system->unit_converter->temperature_to_SI(temperature));
+     MPI_Reduce(&kinetic_energy, &kinetic_energy_global, 1, MPI_DOUBLE,
+                    MPI_SUM, 0, MPI_COMM_WORLD);
+     MPI_Reduce(&mean_r_squared, &mean_r_squared_global, 1, MPI_DOUBLE,
+                   MPI_SUM, 0, MPI_COMM_WORLD);
 
-    cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  system->collisions <<  endl;
+    if(system->myid == 0) {
+        kinetic_energy_global /= system->num_particles_global;
+        mean_r_squared_global /= system->num_particles_global;
+        temperature = 2.0/3*kinetic_energy;
+        fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy), system->unit_converter->temperature_to_SI(temperature));
+        cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  system->collisions <<  endl;
+    }
 }
 
 /*

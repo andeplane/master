@@ -12,7 +12,7 @@ DSMC_IO::DSMC_IO(System *system_) {
     settings = system->settings;
     movie_frames = 0;
     movie_file_open = false;
-    energy_file = fopen("energy.txt","w");
+    if(system->myid==0) energy_file = fopen("energy.txt","w");
 }
 
 void DSMC_IO::save_state_to_file_xyz() {
@@ -36,6 +36,7 @@ void DSMC_IO::save_state_to_file_xyz() {
 }
 
 void DSMC_IO::save_state_to_movie_file() {
+    if(system->myid != 0) return;
     if(settings->create_movie && !(system->steps % settings->movie_every_n_frame)) {
         if(!movie_file_open) {
             movie_file = fopen("movie.xyz","w");
@@ -107,6 +108,7 @@ void DSMC_IO::load_state_from_file_binary() {
 }
 
 void DSMC_IO::finalize() {
+    if(system->myid != 0) return;
     if(movie_file_open) {
         fclose(movie_file);
     }
