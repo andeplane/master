@@ -18,7 +18,7 @@ void DSMC_IO::save_state_to_movie_file() {
     if(settings->create_movie && !(system->steps % settings->movie_every_n_frame)) {
         if(!movie_file_open) {
             char *filename = new char[100];
-            sprintf(filename,"movie%04d.bin",system->myid);
+            sprintf(filename,"state_files/movie%04d.bin",system->myid);
             movie_file = new ofstream(filename,ios::out | ios::binary);
             movie_file_open = true;
             data = new double[3*system->thread_control.allocated_particle_data];
@@ -50,7 +50,7 @@ void DSMC_IO::save_state_to_file_binary() {
     int N = thread_control.num_particles;
 
     char *filename = new char[100];
-    sprintf(filename,"state%04d.bin",system->myid);
+    sprintf(filename,"state_files/state%04d.bin",system->myid);
 
     ofstream file (filename, ios::out | ios::binary);
     double *tmp_data = new double[9*N];
@@ -88,7 +88,7 @@ void DSMC_IO::load_state_from_file_binary() {
     ThreadControl &thread_control = system->thread_control;
 
     char *filename = new char[100];
-    sprintf(filename,"state%04d.bin",system->myid);
+    sprintf(filename,"state_files/state%04d.bin",system->myid);
     ifstream file (filename, ios::in | ios::binary);
 
     file.read(reinterpret_cast<char*>(&N),sizeof(int));

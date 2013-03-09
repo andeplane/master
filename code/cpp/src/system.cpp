@@ -22,16 +22,6 @@ void System::step() {
     accelerate();
     move();
     collide();
-    int num_p = 0;
-    MPI_Allreduce(&thread_control.num_particles,&num_p,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-    int num_local = 0;
-    for(int i=0;i<thread_control.cells.size();i++) {
-        num_local += thread_control.cells[i]->molecules.size();
-    }
-
-    // cout << myid << " has " << num_local << " particles. Globally: " << num_p << ". And tmp: " << thread_control.tmp_molecules.size() <<  endl;
-
-    // if(myid==0) cout << steps << endl;
 }
 
 void System::move() {

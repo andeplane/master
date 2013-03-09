@@ -33,8 +33,8 @@ int main(int args, char* argv[]) {
         sampler->sample();
     }
 
-    // system.io->save_state_to_file_binary();
-    // system.io->finalize();
+    system.io->save_state_to_file_binary();
+    system.io->finalize();
 
     MPI_Finalize();
 
