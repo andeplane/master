@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CIniFile.h>
+#include <cinifile.h>
 
 class Settings
 {

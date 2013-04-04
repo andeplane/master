@@ -13,16 +13,12 @@ SOURCES += main.cpp \
     cell.cpp \
     molecule.cpp \
     statisticssampler.cpp \
-    Random.cpp \
+    random.cpp \
     grid.cpp \
-    Stdafx.cpp \
-    CVector.cpp \
-    CUtil.cpp \
-    CMath.cpp \
+    cutil.cpp \
     system.inc.cpp \
-    CBitMap.cpp \
     unitconverter.cpp \
-    Image.cpp \
+    image.cpp \
     settings.cpp \
     dsmc_io.cpp \
     threadcontrol.cpp \
@@ -33,17 +29,12 @@ HEADERS += \
     cell.h \
     molecule.h \
     statisticssampler.h \
-    Random.h \
+    random.h \
     grid.h \
-    Stdafx.h \
-    CVector.h \
-    CUtil.h \
-    CMatrix.h \
-    CMath.h \
-    CIniFile.h \
-    CBitMap.h \
+    cutil.h \
+    cinifile.h \
     unitconverter.h \
-    Image.h \
+    image.h \
     defines.h \
     settings.h \
     dsmc_io.h \
@@ -71,7 +62,6 @@ unix:!mac {
     QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CXXFLAGS
     QMAKE_CXX = mpic++
 }
-
 
 QMAKE_CXX_RELEASE = $$QMAKE_CXX
 QMAKE_CXX_DEBUG = $$QMAKE_CXX

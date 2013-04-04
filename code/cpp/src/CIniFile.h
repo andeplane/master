@@ -5,8 +5,7 @@
 
 #include <string>
 #include <vector>
-#include <CUtil.h>
-#include <CVector.h>
+#include <cutil.h>
 #include <iostream>
 
 
@@ -96,33 +95,7 @@ class CIniFile  {
 	return items[i].dval;
     }
     throw string("Could not find any parameter '" + name +"'");
-  }
-
-  CVector getvector(string name) {
-    CVector res(0,0,0);
-    for (unsigned int i=0;i<items.size();i++) {
-      if (items[i].name==CUtil::trim(name)) {
-	string s = items[i].strval;
-	vector<string> tok;
-	CUtil::Tokenize(s, tok,",");
-	if (tok.size()!=3) throw string("Error reading vector parameter: " +name+ " (not a vector)");
-	try {
-	  res.x = strtod (tok[0].c_str(),0);
-	  res.y = strtod (tok[1].c_str(),0);
-	  res.z = strtod (tok[2].c_str(),0);
-	  
-	} catch (...) {
-	  throw string("Error reading vector parameter: " + name);
-	}
-	return res;
-	
-      }
-    }
-    throw string("Could not find parameter '" + name +"'");
-  }
-
-
-   
+  }  
 
   CIniFile() { }
   ~CIniFile() { }

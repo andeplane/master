@@ -14,7 +14,7 @@ class DSMCTimer;
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <CIniFile.h>
+#include <cinifile.h>
 #include <settings.h>
 
 

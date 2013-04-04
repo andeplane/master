@@ -1,4 +1,4 @@
-#include "Image.h"
+#include "image.h"
 
 mat Image::readBMP(const char* filename)
 {

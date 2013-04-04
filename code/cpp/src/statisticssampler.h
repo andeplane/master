@@ -4,7 +4,7 @@ class System;
 class Settings;
 #include <stdio.h>
 #include <fstream>
-#include <CIniFile.h>
+#include <cinifile.h>
 
 class StatisticsSampler {
 

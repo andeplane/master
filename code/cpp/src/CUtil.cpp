@@ -1,7 +1,4 @@
-#include "Stdafx.h"
-
-
-#include <CUtil.h>
+#include <cutil.h>
 
 void CUtil::Tokenize(const string& str,
                       vector<string>& tokens,
