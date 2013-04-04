@@ -6,6 +6,7 @@ using namespace std;
 
 class Settings;
 class System;
+class Grid;
 
 class DSMC_IO
 {
@@ -18,6 +19,7 @@ public:
     void load_state_from_file_binary();
     void save_state_to_movie_file();
     void finalize();
+    void read_grid_matrix(string filename, Grid *grid);
     bool movie_file_open;
     int  movie_frames;
     double *data;

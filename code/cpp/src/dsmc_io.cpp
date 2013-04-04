@@ -5,6 +5,7 @@
 #include <cell.h>
 #include <mpi.h>
 #include <threadcontrol.h>
+#include <grid.h>
 
 DSMC_IO::DSMC_IO(System *system_) {
     system = system_;
@@ -53,6 +54,12 @@ void DSMC_IO::save_state_to_file_binary() {
     sprintf(filename,"state_files/state%04d.bin",system->myid);
 
     ofstream file (filename, ios::out | ios::binary);
+
+    if(!file.is_open()) {
+        cout << "Error, could not open file " << filename << endl;
+        exit(1);
+    }
+
     double *tmp_data = new double[9*N];
 
     int count = 0;
@@ -90,6 +97,10 @@ void DSMC_IO::load_state_from_file_binary() {
     char *filename = new char[100];
     sprintf(filename,"state_files/state%04d.bin",system->myid);
     ifstream file (filename, ios::in | ios::binary);
+    if(!file.is_open()) {
+        cout << "Error, could not open file " << filename << endl;
+        exit(1);
+    }
 
     file.read(reinterpret_cast<char*>(&N),sizeof(int));
 
@@ -131,4 +142,30 @@ void DSMC_IO::finalize() {
 
     if(system->myid != 0) return;
     fclose(energy_file);
+}
+
+void DSMC_IO::read_grid_matrix(string filename, Grid *grid) {
+    ifstream file (filename.c_str(), ios::in | ios::binary);
+    if(!file.is_open()) {
+        cout << "Error, could not open file " << filename << endl;
+        exit(1);
+    }
+    int Nx, Ny, Nz, points;
+
+    file.read (reinterpret_cast<char*>(&Nx), sizeof(int));
+    file.read (reinterpret_cast<char*>(&Ny), sizeof(int));
+    file.read (reinterpret_cast<char*>(&Nz), sizeof(int));
+    points = Nx*Ny*Nz;
+    grid->Nx = Nx; grid->Ny = Ny; grid->Nz = Nz; grid->points = points;
+
+    grid->voxels = new unsigned char[points];
+    grid->normals   = new float[3*points];
+    grid->tangents1 = new float[3*points];
+    grid->tangents2 = new float[3*points];
+
+    file.read (reinterpret_cast<char*>(grid->voxels), points*sizeof(unsigned char));
+    file.read (reinterpret_cast<char*>(grid->normals), 3*points*sizeof(float));
+    file.read (reinterpret_cast<char*>(grid->tangents1), 3*points*sizeof(float));
+    file.read (reinterpret_cast<char*>(grid->tangents2), 3*points*sizeof(float));
+    file.close();
 }

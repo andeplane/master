@@ -2,6 +2,7 @@
 #include <vector>
 #include <armadillo>
 class System;
+class DSMC_IO;
 
 using namespace arma;
 using namespace std;
@@ -31,5 +32,5 @@ public:
     unsigned char *get_voxel(const double &x, const double &y, const double &z);
     unsigned char *get_voxel(double *r);
     int get_index_of_voxel(double *r);
-    void read_matrix(string filename);
+    void read_matrix(string filename, DSMC_IO *io);
 };

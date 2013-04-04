@@ -2,34 +2,20 @@
 
 #include <fstream>
 #include <system.h>
+#include <dsmc_io.h>
 
 #define min(a,b)                      (((a) < (b)) ? (a) : (b))
 #define max(a,b)                      (((a) > (b)) ? (a) : (b))
 #define clamp(value, lb, ub)          max( lb, min( ub, value ))
 
-void Grid::read_matrix(string filename) {
-    ifstream file (filename.c_str(), ios::in | ios::binary);
-    file.read (reinterpret_cast<char*>(&Nx), sizeof(int));
-    file.read (reinterpret_cast<char*>(&Ny), sizeof(int));
-    file.read (reinterpret_cast<char*>(&Nz), sizeof(int));
-    points = Nx*Ny*Nz;
-
-    voxels = new unsigned char[points];
-    normals   = new float[3*points];
-    tangents1 = new float[3*points];
-    tangents2 = new float[3*points];
-
-    file.read (reinterpret_cast<char*>(voxels), points*sizeof(unsigned char));
-    file.read (reinterpret_cast<char*>(normals), 3*points*sizeof(float));
-    file.read (reinterpret_cast<char*>(tangents1), 3*points*sizeof(float));
-    file.read (reinterpret_cast<char*>(tangents2), 3*points*sizeof(float));
-    file.close();
+void Grid::read_matrix(string filename, DSMC_IO *io) {
+    io->read_grid_matrix(filename, this);
 }
 
 Grid::Grid(string filename, System *system_)
 {
     system = system_;
-    read_matrix(filename);
+    read_matrix(filename,system->io);
 }
 
 unsigned char *Grid::get_voxel(const int &i, const int &j, const int &k) {
