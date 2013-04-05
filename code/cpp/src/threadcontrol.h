@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <armadillo>
+#include <structs.h>
 
 class System;
 class Molecule;
@@ -15,7 +16,10 @@ class ThreadControl
 {
 public:
     int myid;
-    int idx, idy, idz;
+    int my_vector_index[3];
+    int num_processors[3];
+    int neighbor_nodes[6];
+
     int num_nodes;
     double porosity;
     int num_particles;
@@ -25,11 +29,10 @@ public:
 
     vector<Cell*> cells;
     vector<DummyCell*> dummy_cells;
-    vector< vector<Molecule*> > nodes_new_atoms_list;
-    vector<Molecule*> free_molecules;
-    vector<Molecule*> all_molecules;
+    vector< vector<struct Molecule> > nodes_new_atoms_list;
 
-    double *mpi_data;
+    double *mpi_send_buffer;
+    double *mpi_receive_buffer;
     double *positions;
     double *velocities;
     double *initial_positions;
@@ -38,13 +41,14 @@ public:
     ThreadControl();
     void setup(System *system);
     void setup_molecules();
+    void setup_topology();
     void setup_cells();
     void update_cells();
     void update_cell_volume();
-    void update_mpi();
-    void update_local_cells();
+    void update_mpi(int dimension);
     void calculate_porosity();
-    int cell_index_from_molecule(Molecule *m);
+    void add_molecule_to_cell(struct Molecule molecule, int cell_index);
+    int cell_index_from_position(double *r);
     inline int cell_index_from_ijk(const int &i, const int &j, const int &k);
-    inline void find_position(Molecule *m);
+    inline void find_position(double *r);
 };

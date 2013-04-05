@@ -9,13 +9,14 @@ class Random;
 class Settings;
 class UnitConverter;
 class DSMCTimer;
+class MoleculeMover;
 
 #include <threadcontrol.h>
+
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <cinifile.h>
-#include <settings.h>
 
 
 using namespace std;
@@ -40,13 +41,11 @@ public:
     Settings *settings;
     UnitConverter * unit_converter;
     Random *rnd;
+    MoleculeMover *mover;
 
-
-    double Lx;
-    double Ly;
-    double Lz;
-    double acceleration;
-    double max_x_acceleration;
+    double Lx; double Ly; double Lz;
+    double length[3];
+    double acceleration; double max_x_acceleration;
 	double eff_num;
 	double mpv; 	// Most probable velocity
 	double mfp; 	// Mean free path

@@ -1,6 +1,7 @@
 #include <system.h>
 #include <mpi.h>
 #include <dsmctimer.h>
+#include <moleculemover.h>
 
 void System::initialize(Settings *settings_, int myid_) {
     myid = myid_;
@@ -20,6 +21,10 @@ void System::initialize(Settings *settings_, int myid_) {
     Lx   = settings->Lx;
     Ly   = settings->Ly;
     Lz   = settings->Lz;
+
+    length[0] = settings->Lx;
+    length[1] = settings->Ly;
+    length[2] = settings->Lz;
 
     cell_length_x = Lx/(settings->cells_per_node_x*settings->nodes_x);
     cell_length_y = Ly/(settings->cells_per_node_y*settings->nodes_y);
@@ -42,6 +47,9 @@ void System::initialize(Settings *settings_, int myid_) {
     if(myid==0) cout << "Loading world..." << endl;
     world_grid = new Grid(settings->ini_file.getstring("world"),this);
     if(myid==0) cout << "Initializing thread system..." << endl;
+
+    mover = new MoleculeMover();
+    mover->initialize(this);
 
     thread_control.setup(this);
 
