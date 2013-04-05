@@ -15,8 +15,6 @@
 #include <dsmctimer.h>
 
 void System::step() {
-    if(myid==0) cout << steps << endl;
-
     steps += 1;
     t += dt;
     accelerate();
