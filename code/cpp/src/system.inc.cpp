@@ -37,8 +37,6 @@ void System::initialize(Settings *settings_, int myid_) {
     temperature      = unit_converter->temperature_from_SI(settings->temperature);;
     wall_temperature = unit_converter->temperature_from_SI(settings->wall_temperature);
 
-    acceleration = settings->acceleration;
-    max_x_acceleration = settings->max_x_acceleration;
     density = settings->density;
     diam = settings->diam;
 

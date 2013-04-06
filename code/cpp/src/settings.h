@@ -19,10 +19,10 @@ public:
     int nodes_x;
     int nodes_y;
     int nodes_z;
+    int gravity_direction;
     double temperature;
     double wall_temperature;
-    double acceleration;
-    double max_x_acceleration;
+    double gravity;
     double density;
     double diam;
     double Lx;

@@ -17,11 +17,11 @@
 void System::step() {
     steps += 1;
     t += dt;
-    // accelerate();
+    accelerate();
     move();
-//    timer->start_colliding();
-//    collide();
-//    timer->end_colliding();
+    timer->start_colliding();
+    collide();
+    timer->end_colliding();
 }
 
 void System::move() {
@@ -60,14 +60,12 @@ void System::collide() {
 }
 
 void System::accelerate() {
-    int k = 0;
+    if(settings->gravity_direction < 0) return;
+
     for(int i=0;i<thread_control.cells.size();i++) {
         Cell *c = thread_control.cells[i];
         for(int j=0;j<c->num_molecules;j++) {
-            if(c->r[3*j+0] < max_x_acceleration) {
-                k++;
-                c->v[3*j+0] += acceleration*dt;
-            }
+            c->v[3*j+settings->gravity_direction] += settings->gravity*dt;
         }
     }
 }

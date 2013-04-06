@@ -16,11 +16,11 @@ Settings::Settings(string filename) {
     nodes_x = ini_file.getint("nodes_x");
     nodes_y = ini_file.getint("nodes_y");
     nodes_z = ini_file.getint("nodes_z");
+    gravity_direction = ini_file.getint("gravity_direction");
 
     temperature = ini_file.getdouble("temperature");
     wall_temperature = ini_file.getdouble("wall_temperature");
-    acceleration = ini_file.getdouble("acceleration");
-    max_x_acceleration = ini_file.getdouble("max_x_acceleration");
+    gravity = ini_file.getdouble("gravity");
     density = ini_file.getdouble("density");
     diam = ini_file.getdouble("diam");
     Lx = ini_file.getdouble("Lx");
