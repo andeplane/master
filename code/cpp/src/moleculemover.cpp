@@ -48,9 +48,10 @@ void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, i
     double *r = &current_cell->r[3*molecule_index];
     double *r0 = &current_cell->r0[3*molecule_index];
     double *v = &current_cell->v[3*molecule_index];
-    int idx = grid->get_index_of_voxel(r);
 
     do_move(r,v,r0,dt);
+
+    int idx = grid->get_index_of_voxel(r);
 
     // We have to calculate time until collision
     if(voxels[idx]>=voxel_type_wall) { // Is wall
@@ -100,19 +101,19 @@ void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, i
         double v_tangent2 = sqrt_temp*rnd->nextGauss();
 
         // Normal vector
-        double n_x = grid->normals[3*idx + 0];
-        double n_y = grid->normals[3*idx + 1];
-        double n_z = grid->normals[3*idx + 2];
+        double n_x = grid->normals[3*molecule_index + 0];
+        double n_y = grid->normals[3*molecule_index + 1];
+        double n_z = grid->normals[3*molecule_index + 2];
 
         // Tangent vector 1
-        double t1_x = grid->tangents1[3*idx + 0];
-        double t1_y = grid->tangents1[3*idx + 1];
-        double t1_z = grid->tangents1[3*idx + 2];
+        double t1_x = grid->tangents1[3*molecule_index + 0];
+        double t1_y = grid->tangents1[3*molecule_index + 1];
+        double t1_z = grid->tangents1[3*molecule_index + 2];
 
         // Tangent vector 2
-        double t2_x = grid->tangents2[3*idx + 0];
-        double t2_y = grid->tangents2[3*idx + 1];
-        double t2_z = grid->tangents2[3*idx + 2];
+        double t2_x = grid->tangents2[3*molecule_index + 0];
+        double t2_y = grid->tangents2[3*molecule_index + 1];
+        double t2_z = grid->tangents2[3*molecule_index + 2];
 
         v[0] = v_normal*n_x + v_tangent1*t1_x + v_tangent2*t2_x;
         v[1] = v_normal*n_y + v_tangent1*t1_y + v_tangent2*t2_y;
@@ -121,6 +122,6 @@ void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, i
     else dt = 0;
 
     if(dt > 1e-10 && depth < 5) {
-        move_molecule(idx,dt,rnd,depth+1);
+        move_molecule(molecule_index,dt,rnd,depth+1);
     }
 }

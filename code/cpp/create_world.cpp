@@ -217,6 +217,7 @@ int main (int args, char *argv[]) {
     	tangent1[i] = 0;
 		tangent2[i] = 0;
     }
+
     cout << "Creating normals..." << endl;
     calculate_normals(Nx,Ny,Nz,normal,M);
     cout << "Creating tangents..." << endl;

@@ -18,7 +18,7 @@ int main(int args, char *argv[]) {
 	ifstream **movie_files = new ifstream*[cpus];
 	for(int cpu=0;cpu<cpus;cpu++) {
 		char *filename = new char[100];
-		sprintf(filename,"build/state_files/movie%04d.bin",cpu);
+		sprintf(filename,"release/state_files/movie%04d.bin",cpu);
 		movie_files[cpu] = new ifstream(filename,ios::in | ios::binary);
 	}
 	cout << cpus << " state files opened." << endl;

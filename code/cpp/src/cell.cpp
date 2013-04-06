@@ -44,6 +44,9 @@ void Cell::collide_molecules(const int &ip0, const int &ip1, const double &v_rel
     double vcmx  = 0.5*(v[3*ip0+0] + v[3*ip1+0]);
     double vcmy  = 0.5*(v[3*ip0+1] + v[3*ip1+1]);
     double vcmz  = 0.5*(v[3*ip0+2] + v[3*ip1+2]);
+    double vx0 = v[3*ip0+0];
+    double vy0 = v[3*ip0+1];
+    double vz0 = v[3*ip0+2];
 
     double cos_th = 1.0 - 2.0*rnd->nextDouble();      // Cosine and sine of
     double sin_th = sqrt(1.0 - cos_th*cos_th);        // collision angle theta
