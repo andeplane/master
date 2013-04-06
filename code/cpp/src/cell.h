@@ -55,7 +55,7 @@ public:
     int collide(Random *rnd);
     void collide_molecules(const int &ip0, const int &ip1, const double &v_rel, Random *rnd);
     void update_volume();
-    void add_molecule(struct Molecule m);
+    void add_molecule(Molecule &m);
     void add_molecule(double *r_, double *v_, double *r0_);
     void add_molecule(double *r_, double *v_);
     void update_molecule_cells(int dimension);

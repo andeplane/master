@@ -17,7 +17,7 @@
 void System::step() {
     steps += 1;
     t += dt;
-    accelerate();
+    // accelerate();
     move();
     timer->start_colliding();
     collide();
@@ -48,6 +48,8 @@ void System::move() {
         Cell *cell = thread_control.cells[i];
         cell->update_molecule_arrays();
     }
+
+
 }
 
 void System::collide() {

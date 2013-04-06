@@ -67,9 +67,6 @@ void ThreadControl::setup_molecules() {
     num_particles = settings->number_of_particles*porosity/num_nodes;
 
     if(settings->load_previous_state) {
-        cout << "LOADING IS NOT CREATED YET!" << endl;
-        exit(1);
-
         system->io->load_state_from_file_binary();
         return;
     }
@@ -244,7 +241,7 @@ void ThreadControl::update_mpi(int dimension) {
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
-void ThreadControl::add_molecule_to_cell(struct Molecule molecule, int cell_index) {
+void ThreadControl::add_molecule_to_cell(struct Molecule &molecule, int cell_index) {
     // We changed cell, and in the dimension we work on right now
     DummyCell *dummy_cell = dummy_cells[cell_index];
     if(dummy_cell->node_id != myid) {

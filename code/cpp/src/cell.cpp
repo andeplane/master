@@ -120,7 +120,7 @@ void Cell::update_molecule_cells(int dimension) {
     }
 }
 
-void Cell::add_molecule(struct Molecule m) {
+void Cell::add_molecule(struct Molecule &m) {
     add_molecule(m.r,m.v,m.r0);
 }
 
@@ -158,15 +158,14 @@ void Cell::add_molecule(double *r_, double *v_) {
     num_molecules++;
 }
 
-
 void Cell::update_molecule_arrays() {
     int remaining_molecules = 0;
     for(int n=0;n<num_molecules;n++) {
         if(!atom_moved[n]) {
             for(int a=0;a<3;a++) {
-                r[3*remaining_molecules+0]  = r[3*n+0];
-                v[3*remaining_molecules+0]  = v[3*n+0];
-                r0[3*remaining_molecules+0] = r0[3*n+0];
+                r[3*remaining_molecules+a]  = r[3*n+a];
+                v[3*remaining_molecules+a]  = v[3*n+a];
+                r0[3*remaining_molecules+a] = r0[3*n+a];
             }
 
             atom_moved[remaining_molecules] = false;
