@@ -15,10 +15,10 @@ Cell::Cell(System *_system) {
     num_molecules = 0;
     total_pixels = 0;
     dummy_cell = NULL;
-    r         = new double[3*100000];
-    v        = new double[3*100000];
-    r0 = new double[3*100000];
-    atom_moved        = new bool[100000];
+    r         = new double[3*MAX_PARTICLE_NUM];
+    v        = new double[3*MAX_PARTICLE_NUM];
+    r0 = new double[3*MAX_PARTICLE_NUM];
+    atom_moved        = new bool[MAX_PARTICLE_NUM];
 }
 
 bool Cell::cmp(Cell *c1, Cell *c2) {

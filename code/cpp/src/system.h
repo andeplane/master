@@ -11,8 +11,9 @@ class UnitConverter;
 class DSMCTimer;
 class MoleculeMover;
 
-#include <threadcontrol.h>
+#define MAX_PARTICLE_NUM 500000
 
+#include <threadcontrol.h>
 #include <iostream>
 #include <fstream>
 #include <vector>

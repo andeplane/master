@@ -32,8 +32,8 @@ void ThreadControl::setup(System *system_) {
     setup_cells();
     if(myid==0) cout << "Setting up molecules..." << endl;
     setup_molecules();
-    mpi_send_buffer   = new double[9*100000];
-    mpi_receive_buffer= new double[9*100000];
+    mpi_send_buffer   = new double[9*MAX_PARTICLE_NUM];
+    mpi_receive_buffer= new double[9*MAX_PARTICLE_NUM];
 }
 
 void ThreadControl::setup_topology() {
@@ -180,7 +180,6 @@ void ThreadControl::update_mpi(int dimension) {
 
     for(int lower_dim=0;lower_dim<=1;lower_dim++) {
         int node_id = neighbor_nodes[2*dimension+lower_dim];
-
         if(node_id == myid) continue;
 
         vector<struct Molecule> &molecules = nodes_new_atoms_list[node_id];
