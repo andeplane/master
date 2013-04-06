@@ -36,7 +36,6 @@ int Cell::prepare() {
     double select = collision_coefficient*num_molecules*(num_molecules-1)*vr_max;
 
     collision_pairs = round(select);      // Number of pairs to be selected
-
     return collision_pairs;
 }
 
