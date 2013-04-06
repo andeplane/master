@@ -54,7 +54,7 @@ mac {
     QMAKE_CXXFLAGS +=
     QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CXXFLAGS
     QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CXXFLAGS
-    QMAKE_CXX = icc
+    QMAKE_CXX = mpic++
 }
 
 unix:!mac {

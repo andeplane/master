@@ -34,6 +34,12 @@ void ThreadControl::setup(System *system_) {
     setup_molecules();
     mpi_send_buffer   = new double[9*MAX_PARTICLE_NUM];
     mpi_receive_buffer= new double[9*MAX_PARTICLE_NUM];
+    new_atoms_buffer = new double*[6];
+
+    for(int i=0;i<6;i++) {
+        new_atoms_buffer[i] = new double[9*MAX_PARTICLE_NUM];
+        num_new_atoms[i] = 0;
+    }
 }
 
 void ThreadControl::setup_topology() {
@@ -65,7 +71,6 @@ void ThreadControl::update_cell_volume() {
 
 void ThreadControl::setup_molecules() {
     num_particles = settings->number_of_particles*porosity/num_nodes;
-
     if(settings->load_previous_state) {
         system->io->load_state_from_file_binary();
         return;
@@ -121,7 +126,7 @@ void ThreadControl::setup_cells() {
                 int node_id = c_idx*settings->nodes_y*settings->nodes_z + c_idy*settings->nodes_z + c_idz;
 
                 DummyCell *dc = new DummyCell();
-                dc->index_vector[0] = i; dc->index_vector[1] = j; dc->index_vector[2] = k;
+                dc->node_index_vector[0] = c_idx; dc->node_index_vector[1] = c_idy; dc->node_index_vector[2] = c_idz;
                 dc->node_id = node_id;
                 dc->index = cell_index_from_ijk(i,j,k);
                 dummy_cells.push_back(dc);
@@ -178,8 +183,8 @@ void ThreadControl::update_mpi(int dimension) {
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Status status;
 
-    for(int lower_dim=0;lower_dim<=1;lower_dim++) {
-        int node_id = neighbor_nodes[2*dimension+lower_dim];
+    for(int higher_dim=0;higher_dim<=1;higher_dim++) {
+        int node_id = neighbor_nodes[2*dimension+higher_dim];
         if(node_id == myid) continue;
 
         vector<struct Molecule> &molecules = nodes_new_atoms_list[node_id];
@@ -188,6 +193,8 @@ void ThreadControl::update_mpi(int dimension) {
 
         for(int n=0;n<molecules.size();n++) {
             struct Molecule &m = molecules[n];
+
+            // cout << myid << " sent a molecule at " << m.r[0] << " " << m.r[1] << " " << m.r[2] << endl;
             mpi_send_buffer[9*n+0] = m.r[0];
             mpi_send_buffer[9*n+1] = m.r[1];
             mpi_send_buffer[9*n+2] = m.r[2];
@@ -217,21 +224,14 @@ void ThreadControl::update_mpi(int dimension) {
         }
 
         for(int n=0;n<num_receive;n++) {
-            struct Molecule m;
-            m.r[0] = mpi_receive_buffer[9*n+0];
-            m.r[1] = mpi_receive_buffer[9*n+1];
-            m.r[2] = mpi_receive_buffer[9*n+2];
+            double *r = &mpi_receive_buffer[9*n+0];
+            double *v = &mpi_receive_buffer[9*n+3];
+            double *r0 = &mpi_receive_buffer[9*n+6];
 
-            m.v[0] = mpi_receive_buffer[9*n+3];
-            m.v[1] = mpi_receive_buffer[9*n+4];
-            m.v[2] = mpi_receive_buffer[9*n+5];
-
-            m.r0[0] = mpi_receive_buffer[9*n+6];
-            m.r0[1] = mpi_receive_buffer[9*n+7];
-            m.r0[2] = mpi_receive_buffer[9*n+8];
-            int cell_index = cell_index_from_position(m.r);
+            int cell_index = cell_index_from_position(r);
             DummyCell *dummy_cell = dummy_cells[cell_index];
-            dummy_cell->real_cell->add_molecule(m);
+            dummy_cell->real_cell->add_molecule(r,v,r0);
+            // cout << myid << " received a molecule at " << r[0] << " " << r[1] << " " << r[2] << " which is in cell " << cell_index << endl;
         }
 
         molecules.clear();
@@ -254,6 +254,11 @@ void ThreadControl::add_molecule_to_cell(struct Molecule &molecule, int cell_ind
     }
 }
 
+void ThreadControl::reset_new_atoms_list() {
+    for(int i=0;i<6;i++) num_new_atoms[i] = 0;
+}
+
 ThreadControl::ThreadControl() {
 
 }
+

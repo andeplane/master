@@ -15,9 +15,11 @@
 #include <dsmctimer.h>
 
 void System::step() {
+    thread_control.reset_new_atoms_list();
     steps += 1;
     t += dt;
     accelerate();
+
     move();
     timer->start_colliding();
     collide();
@@ -26,7 +28,6 @@ void System::step() {
 
 void System::move() {
     timer->start_moving();
-
     for(int i=0;i<thread_control.cells.size();i++) {
         Cell *cell = thread_control.cells[i];
         mover->move_molecules(cell,dt,rnd);
@@ -35,28 +36,43 @@ void System::move() {
     timer->end_moving();
 
     for(int dimension = 0;dimension<3;dimension++) {
+        timer->start_moving();
         for(int i=0;i<thread_control.cells.size();i++) {
             Cell *cell = thread_control.cells[i];
             cell->update_molecule_cells(dimension);
         }
+        timer->end_moving();
         timer->start_mpi();
         thread_control.update_mpi(dimension);
         timer->end_mpi();
     }
 
+    timer->start_moving();
     for(int i=0;i<thread_control.cells.size();i++) {
         Cell *cell = thread_control.cells[i];
         cell->update_molecule_arrays();
     }
+    timer->end_moving();
 }
 
 void System::collide() {
+    int molecules = 0;
+    int molecules_squared = 0;
+    int max = 0;
     for(int i=0;i<thread_control.cells.size();i++) {
         Cell *cell = thread_control.cells[i];
-
+        int mol = cell->num_molecules;
+        if(mol>max) max = mol;
+        molecules += mol;
+        molecules_squared += mol*mol;
         cell->prepare();
         collisions += cell->collide(rnd);
     }
+    molecules /= thread_control.cells.size();
+    molecules_squared /= thread_control.cells.size();
+//    cout << "<Molecules> = " << molecules << endl;
+//    cout << "Var(Molecules) = " << molecules_squared - molecules*molecules << endl;
+//    cout << "Max: " << max << endl;
 }
 
 void System::accelerate() {

@@ -20,6 +20,8 @@ int main(int args, char* argv[]) {
     MPI_Init(&args,&argv) ;
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+    double t_start = MPI_Wtime();
+
     Settings *settings = new Settings("../dsmc.ini");
     System system;
 
@@ -36,10 +38,27 @@ int main(int args, char* argv[]) {
     system.io->finalize();
     system.timer->gather_all_nodes(&system);
     if(myid==0) {
-        cout << "System initialize took " << system.timer->system_initialize_global << " seconds." << endl;
-        cout << "Moving took            " << system.timer->moving_global << " seconds." << endl;
-        cout << "Colliding took         " << system.timer->colliding_global << " seconds." << endl;
-        cout << "MPI took               " << system.timer->mpi_global << " seconds." << endl;
+        double system_initialize_percentage = system.timer->fraction_system_initialize();
+        double fraction_moving = system.timer->fraction_moving();
+        double fraction_colliding = system.timer->fraction_colliding();
+        double fraction_io = system.timer->fraction_io();
+        double fraction_mpi = system.timer->fraction_mpi();
+        double fraction_total = fraction_moving + fraction_colliding + fraction_io + fraction_mpi;
+        double time_total = system.timer->system_initialize + system.timer->moving + system.timer->colliding + system.timer->io + system.timer->mpi;
+
+        double total_time = MPI_Wtime() - t_start;
+        cout.precision(2);
+        cout << endl << "Program finished after " << total_time << " seconds. Time analysis:" << endl;
+        cout << fixed
+             << "      System initialize : " << system.timer->system_initialize << " s ( " << 100*system_initialize_percentage << "% )" <<  endl
+             << "      Moving            : " << system.timer->moving << " s ( " << 100*fraction_moving << "% )" <<  endl
+             << "      Colliding         : " << system.timer->colliding << " s ( " << 100*fraction_colliding << "% )" <<  endl
+             << "      Disk IO           : " << system.timer->io << " s ( " << 100*fraction_io << "% )" <<  endl
+             << "      MPI communication : " << system.timer->mpi << " s ( " << 100*fraction_mpi << "% )" <<  endl << endl
+             << "      TOTAL             : " << time_total << " s ( " << 100*fraction_total << "% )" <<  endl;
+        cout << endl << settings->timesteps / total_time << " timesteps / second. " << endl;
+        cout << system.num_particles_global*settings->timesteps / (1000*total_time) << "k atom-timesteps / second. " << endl;
+        cout << system.num_particles_global*settings->timesteps / (1000*total_time*numprocs) << "k atom-timesteps / second (per node). " << endl;
     }
 
 

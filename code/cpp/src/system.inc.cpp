@@ -15,7 +15,9 @@ void System::initialize(Settings *settings_, int myid_) {
     collisions = 0;
     t = 0;
 
+
     init_randoms();
+    long seed = *rnd->idum;
     unit_converter = new UnitConverter();
 
     Lx   = settings->Lx;
@@ -44,11 +46,11 @@ void System::initialize(Settings *settings_, int myid_) {
 
     if(myid==0) cout << "Loading world..." << endl;
     world_grid = new Grid(settings->ini_file.getstring("world"),this);
-    if(myid==0) cout << "Initializing thread system..." << endl;
 
     mover = new MoleculeMover();
     mover->initialize(this);
 
+    if(myid==0) cout << "Initializing thread control..." << endl;
     thread_control.setup(this);
 
     MPI_Allreduce(&thread_control.porosity,&porosity_global,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -80,6 +82,7 @@ void System::initialize(Settings *settings_, int myid_) {
         printf("Mean free paths per cell: %.2f \n",min( min(Lx/cells_x/mfp,Ly/cells_y/mfp), Lz/cells_z/mfp));
         printf("%d atoms per molecule\n",(int)eff_num);
         printf("%d molecules per cell\n",num_particles_global/number_of_cells);
+        printf("Random seed: %ld\n",seed);
 
         printf("dt = %f\n\n",dt);
     }
@@ -89,6 +92,6 @@ void System::initialize(Settings *settings_, int myid_) {
 
 void System::init_randoms() {
     long seed = time(NULL);
-    seed = 1 + myid;
+    seed = 3 + myid;
     rnd = new Random(-seed);
 }

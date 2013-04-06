@@ -16,7 +16,7 @@ class DummyCell {
 public:
     int node_id;
     int index;
-    int index_vector[3];
+    int node_index_vector[3];
 
     vector<Molecule*> new_molecules;
     Cell *real_cell;

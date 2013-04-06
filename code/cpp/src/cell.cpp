@@ -33,6 +33,8 @@ void Cell::update_volume() {
 
 int Cell::prepare() {
     //* Determine number of candidate collision pairs to be selected in this cell
+    if(num_molecules < 1) return 0;
+
     double select = collision_coefficient*num_molecules*(num_molecules-1)*vr_max;
 
     collision_pairs = round(select);      // Number of pairs to be selected
@@ -103,21 +105,38 @@ int Cell::collide(Random *rnd) {
 }
 
 void Cell::update_molecule_cells(int dimension) {
+    ThreadControl &thread_control = system->thread_control;
     for(int n=0;n<num_molecules;n++) {
         if(atom_moved[n]) continue; // Skip atoms that are already moved
 
         int cell_index = system->thread_control.cell_index_from_position(&r[3*n]);
         DummyCell *dummy_cell = system->thread_control.dummy_cells[cell_index];
+        int delta_this_dimension = dummy_cell->node_index_vector[dimension] - this->dummy_cell->node_index_vector[dimension];
 
-        if(cell_index != this->index && (dummy_cell->index_vector[dimension] == this->dummy_cell->index_vector[dimension])) {
-            struct Molecule molecule;
-            for(int a=0;a<3;a++) {
-                molecule.r[a]  = r[3*n+a];
-                molecule.v[a]  = v[3*n+a];
-                molecule.r0[a] = r0[3*n+a];
+        if(cell_index != this->index) {
+            // We changed cell, and in the dimension we work on right now
+            DummyCell *dummy_cell = thread_control.dummy_cells[cell_index];
+
+            if(dummy_cell->node_id != system->myid) {
+                if(delta_this_dimension != 0) {
+                    struct Molecule molecule;
+                    for(int a=0;a<3;a++) {
+                        molecule.r[a]  = r[3*n+a];
+                        molecule.v[a]  = v[3*n+a];
+                        molecule.r0[a] = r0[3*n+a];
+                    }
+
+                    // If this is another node, send it to that list
+                    int node_id = dummy_cell->node_id;
+                    thread_control.nodes_new_atoms_list[node_id].push_back(molecule);
+                    atom_moved[n] = true;
+                    // cout << system->myid << " moving atom to cell " << cell_index << " on node " << node_id << endl;
+                }
+            } else {
+                // If it is this node, just add it to the dummy cell list
+                dummy_cell->real_cell->add_molecule(&r[3*n],&v[3*n],&r0[3*n]);
+                atom_moved[n] = true;
             }
-            system->thread_control.add_molecule_to_cell(molecule,cell_index);
-            atom_moved[n] = true;
         }
     }
 }
@@ -164,11 +183,17 @@ void Cell::update_molecule_arrays() {
     int remaining_molecules = 0;
     for(int n=0;n<num_molecules;n++) {
         if(!atom_moved[n]) {
-            for(int a=0;a<3;a++) {
-                r[3*remaining_molecules+a]  = r[3*n+a];
-                v[3*remaining_molecules+a]  = v[3*n+a];
-                r0[3*remaining_molecules+a] = r0[3*n+a];
-            }
+            r[3*remaining_molecules+0]  = r[3*n+0];
+            r[3*remaining_molecules+1]  = r[3*n+1];
+            r[3*remaining_molecules+2]  = r[3*n+2];
+
+            v[3*remaining_molecules+0]  = v[3*n+0];
+            v[3*remaining_molecules+1]  = v[3*n+1];
+            v[3*remaining_molecules+2]  = v[3*n+2];
+
+            r0[3*remaining_molecules+0] = r0[3*n+0];
+            r0[3*remaining_molecules+1] = r0[3*n+1];
+            r0[3*remaining_molecules+2] = r0[3*n+2];
 
             atom_moved[remaining_molecules] = false;
             remaining_molecules++;
