@@ -2,7 +2,6 @@
 #include <cell.h>
 #include <math.h>
 #include <time.h>
-#include <molecule.h>
 #include <system.h>
 
 using namespace std;
@@ -15,7 +14,6 @@ Cell::Cell(System *_system) {
     num_molecules = 0;
     total_pixels = 0;
     dummy_cell = NULL;
-    test_value = 1338;
 }
 
 bool Cell::cmp(Cell *c1, Cell *c2) {

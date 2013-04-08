@@ -7,7 +7,6 @@ class System;
 class Molecule;
 class Cell;
 
-using namespace arma;
 using namespace std;
 
 class DummyCell {
@@ -17,12 +16,11 @@ public:
     int node_delta_index_vector[3]; // Same as above, but with this node as origo
 
     int index;
-    int test_value;
 
     vector<Molecule*> new_molecules;
     Cell *real_cell;
 
-    DummyCell() { real_cell = NULL; test_value = 1337; }
+    DummyCell() { real_cell = NULL; }
 };
 
 class Cell {
@@ -32,7 +30,6 @@ public:
     int total_pixels;
     int index;
     int collision_pairs;
-    int test_value;
 
     double x0, y0, z0;
     double Lx, Ly, Lz;

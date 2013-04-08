@@ -2,6 +2,7 @@
 #include <mpi.h>
 #include <dsmctimer.h>
 #include <moleculemover.h>
+#include <settings.h>
 
 void System::initialize(Settings *settings_, int myid_) {
     myid = myid_;

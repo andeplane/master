@@ -1,7 +1,5 @@
 #include <statisticssampler.h>
 
-#include <armadillo>
-#include <molecule.h>
 #include <cell.h>
 #include <math.h>
 #include <unitconverter.h>
@@ -9,8 +7,7 @@
 #include <system.h>
 #include <mpi.h>
 #include <threadcontrol.h>
-
-using namespace arma;
+#include <settings.h>
 
 StatisticsSampler::StatisticsSampler(System *system_) {
     system = system_;

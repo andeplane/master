@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include <armadillo>
 
 class System;
 class Molecule;
@@ -8,7 +7,6 @@ class Settings;
 class DummyCell;
 class Cell;
 
-using namespace arma;
 using namespace std;
 
 class ThreadControl
@@ -22,7 +20,7 @@ public:
     int num_nodes;
     double porosity;
     int num_molecules;
-    vec3 origo;
+    double *origo;
     System *system;
     Settings *settings;
 

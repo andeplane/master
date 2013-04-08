@@ -1,8 +1,7 @@
 #include <threadcontrol.h>
 #include <system.h>
 #include <settings.h>
-#include <cell.h>
-#include <molecule.h>
+#include <cell.h>orig
 #include <random.h>
 #include <grid.h>
 #include <mpi.h>
@@ -20,6 +19,7 @@ void ThreadControl::setup(System *system_) {
     num_processors[0] = settings->nodes_x;
     num_processors[1] = settings->nodes_y;
     num_processors[2] = settings->nodes_z;
+    origo = new double[3];
 
     setup_topology();
 

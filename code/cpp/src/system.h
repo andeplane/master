@@ -16,7 +16,6 @@ class MoleculeMover;
 #include <fstream>
 #include <vector>
 #include <cinifile.h>
-#include <settings.h>
 
 #define MAX_MOLECULE_NUM 1000000
 

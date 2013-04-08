@@ -1,10 +1,8 @@
 #pragma once
 #include <vector>
-#include <armadillo>
 class System;
 class DSMC_IO;
 
-using namespace arma;
 using namespace std;
 
 typedef enum {

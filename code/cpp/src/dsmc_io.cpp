@@ -1,12 +1,11 @@
 #include <dsmc_io.h>
 
 #include <system.h>
-#include <molecule.h>
 #include <cell.h>
 #include <mpi.h>
 #include <threadcontrol.h>
 #include <grid.h>
-
+#include <settings.h>
 DSMC_IO::DSMC_IO(System *system_) {
     system = system_;
     settings = system->settings;

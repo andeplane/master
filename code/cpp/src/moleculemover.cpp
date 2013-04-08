@@ -5,7 +5,7 @@
 #include <random.h>
 #include <grid.h>
 #include <threadcontrol.h>
-
+#include <settings.h>
 MoleculeMover::MoleculeMover()
 {
 

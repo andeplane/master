@@ -1,11 +1,9 @@
 #include <iostream>
 #include "math.h"
 #include "time.h"
-#include <armadillo>
 #include <fstream>
 #include <system.h>
 #include <statisticssampler.h>
-#include <defines.h>
 #include <unitconverter.h>
 #include <settings.h>
 #include <dsmc_io.h>
