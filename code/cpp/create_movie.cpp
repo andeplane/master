@@ -12,7 +12,7 @@ int main(int args, char *argv[]) {
 	}
 	int cpus = atoi(argv[1]);
 	int timesteps = atoi(argv[2]);
-	double *positions = new double[3*100000];
+	double *positions = new double[3*1000000];
 	ofstream file ("movie.xyz", ios::out);
 	
 	ifstream **movie_files = new ifstream*[cpus];

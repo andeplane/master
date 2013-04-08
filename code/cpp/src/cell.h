@@ -46,7 +46,7 @@ public:
 
     Cell(System *system);
 	void reset();
-    int prepare();
+    unsigned long prepare();
     void resize(int n);
     int collide(Random *rnd);
     void collide_molecules(double *v0, double *v1, const double &v_rel, Random *rnd);

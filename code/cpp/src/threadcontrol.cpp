@@ -29,6 +29,7 @@ void ThreadControl::setup(System *system_) {
 
     if(myid==0) cout << "Setting up cells..." << endl;
     setup_cells();
+    calculate_porosity();
     if(myid==0) cout << "Setting up molecules..." << endl;
     setup_molecules();
 
@@ -99,8 +100,6 @@ void ThreadControl::setup_molecules() {
         DummyCell *dummy_cell = dummy_cells[cell_index_from_position(&r[3*n])];
         dummy_cell->real_cell->add_molecule(n,this->molecule_index_in_cell,this->molecule_cell_index);
     }
-
-    cout << myid << " has " << num_molecules << " molecules." << endl;
 }
 
 inline void ThreadControl::find_position(double *r) {
@@ -167,7 +166,6 @@ void ThreadControl::setup_cells() {
             }
         }
     }
-    calculate_porosity();
 }
 
 void ThreadControl::calculate_porosity() {

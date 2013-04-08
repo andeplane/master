@@ -23,15 +23,19 @@ bool Cell::cmp(Cell *c1, Cell *c2) {
 }
 
 void Cell::update_volume() {
+    if(total_pixels==0) {
+        volume = 0;
+        collision_coefficient = 0;
+        return;
+    }
     // Update the effective cell volume. A cell may contain 50% of solid material
     volume = system->volume/(system->cells_x*system->cells_y*system->cells_z)*(float)pixels/total_pixels;
     collision_coefficient = 0.5*system->eff_num*M_PI*system->diam*system->diam*system->dt/volume;
 }
 
-int Cell::prepare() {
+unsigned long Cell::prepare() {
     //* Determine number of candidate collision pairs to be selected in this cell
     double select = collision_coefficient*num_molecules*(num_molecules-1)*vr_max;
-
     collision_pairs = round(select);      // Number of pairs to be selected
 
     return collision_pairs;

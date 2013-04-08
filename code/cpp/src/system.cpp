@@ -19,9 +19,7 @@ void System::step() {
     t += dt;
     accelerate();
     move();
-    timer->start_colliding();
     collide();
-    timer->end_colliding();
 }
 
 void System::move() {
@@ -47,11 +45,40 @@ void System::move() {
 }
 
 void System::collide() {
+    timer->start_colliding();
+
+//    unsigned long cols = 0;
+//    unsigned long cols_squared = 0;
+//    unsigned long num_molecules = 0;
+//    unsigned long num_molecules_squared = 0;
+
     for(int i=0;i<thread_control.cells.size();i++) {
-        thread_control.cells[i]->prepare();
         Cell *cell = thread_control.cells[i];
+
+        unsigned long col = cell->prepare();
+//        cols += col;
+//        cols_squared += col*col;
+//        num_molecules += cell->num_molecules;
+//        num_molecules_squared += cell->num_molecules*cell->num_molecules;
+
         collisions += cell->collide(rnd);
     }
+
+//    num_molecules /= thread_control.cells.size();
+//    num_molecules_squared /= thread_control.cells.size();
+
+//    cout << "Num collisions: " << cols << endl;
+
+//    cols /= thread_control.cells.size();
+//    cols_squared /= thread_control.cells.size();
+
+//    cout << "<N> = " << num_molecules << endl;
+//    cout << "Var(N) = " << num_molecules_squared - num_molecules*num_molecules << endl;
+
+//    cout << "<cols> = " << cols << endl;
+//    cout << "Var(cols) = " << cols_squared - cols*cols << endl;
+
+    timer->end_colliding();
 }
 
 void System::accelerate() {

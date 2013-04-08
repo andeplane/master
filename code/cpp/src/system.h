@@ -62,7 +62,7 @@ public:
     double volume;
     int    num_molecules_global;
 
-    long collisions;
+    unsigned long collisions;
 	int steps;
     int myid;
     int cells_x, cells_y, cells_z;
