@@ -9,6 +9,8 @@
 #include <dsmc_io.h>
 #include <structs.h>
 
+inline int sign(int a) { return (a>0) ? 1 : -1; }
+
 void ThreadControl::setup(System *system_) {
     system = system_;
     settings = system->settings;
@@ -32,14 +34,18 @@ void ThreadControl::setup(System *system_) {
     setup_cells();
     if(myid==0) cout << "Setting up molecules..." << endl;
     setup_molecules();
-    mpi_send_buffer   = new double[9*MAX_PARTICLE_NUM];
     mpi_receive_buffer= new double[9*MAX_PARTICLE_NUM];
-    new_atoms_buffer = new double*[6];
 
+    molecules_to_be_moved = new double*[6];
+    num_molecules_to_be_moved = new int[6];
     for(int i=0;i<6;i++) {
-        new_atoms_buffer[i] = new double[9*MAX_PARTICLE_NUM];
-        num_new_atoms[i] = 0;
+        molecules_to_be_moved[i] = new double[9*MAX_PARTICLE_NUM];
+        num_molecules_to_be_moved[i] = 0;
     }
+
+    new_molecules = new double[9*MAX_PARTICLE_NUM];
+    molecule_moved = new bool[MAX_PARTICLE_NUM];
+    num_new_molecules = 0;
 }
 
 void ThreadControl::setup_topology() {
@@ -112,21 +118,32 @@ int ThreadControl::cell_index_from_position(double *r) {
     return cell_index_from_ijk(i,j,k);
 }
 
+int relative_node_index(int index0, int index1, int cells) {
+    if(index0 != index1 && index0 == 0 && index1 == cells-1) return -1;
+    if(index0 != index1 && index0 == cells-1 && index1 == 0) return 1;
+    else return index1-index0;
+}
+
 void ThreadControl::setup_cells() {
     int num_cells_global = num_nodes*settings->cells_per_node_x*settings->cells_per_node_y*settings->cells_per_node_z;
-    nodes_new_atoms_list.resize(num_nodes);
     dummy_cells.reserve(num_cells_global);
 
     for(int i=0;i<system->cells_x;i++) {
         for(int j=0;j<system->cells_y;j++) {
             for(int k=0;k<system->cells_z;k++) {
-                int c_idx = i/settings->cells_per_node_x;
-                int c_idy = j/settings->cells_per_node_y;
-                int c_idz = k/settings->cells_per_node_z;
-                int node_id = c_idx*settings->nodes_y*settings->nodes_z + c_idy*settings->nodes_z + c_idz;
+
+                int cell_node_id_x = i/settings->cells_per_node_x;
+                int cell_node_id_y = j/settings->cells_per_node_y;
+                int cell_node_id_z = k/settings->cells_per_node_z;
+                int node_id = cell_node_id_x*settings->nodes_y*settings->nodes_z + cell_node_id_y*settings->nodes_z + cell_node_id_z;
 
                 DummyCell *dc = new DummyCell();
-                dc->node_index_vector[0] = c_idx; dc->node_index_vector[1] = c_idy; dc->node_index_vector[2] = c_idz;
+                dc->node_index_vector[0] = cell_node_id_x; dc->node_index_vector[1] = cell_node_id_y; dc->node_index_vector[2] = cell_node_id_z;
+                dc->node_delta_index_vector[0] = relative_node_index(my_vector_index[0],cell_node_id_x,system->cells_x);
+                dc->node_delta_index_vector[1] = relative_node_index(my_vector_index[1],cell_node_id_y,system->cells_y);
+                dc->node_delta_index_vector[2] = relative_node_index(my_vector_index[2],cell_node_id_z,system->cells_z);
+
+
                 dc->node_id = node_id;
                 dc->index = cell_index_from_ijk(i,j,k);
                 dummy_cells.push_back(dc);
@@ -184,35 +201,18 @@ void ThreadControl::update_mpi(int dimension) {
     MPI_Status status;
 
     for(int higher_dim=0;higher_dim<=1;higher_dim++) {
-        int node_id = neighbor_nodes[2*dimension+higher_dim];
+        int neighbor_node_index = 2*dimension+higher_dim;
+        int node_id = neighbor_nodes[neighbor_node_index];
         if(node_id == myid) continue;
 
-        vector<struct Molecule> &molecules = nodes_new_atoms_list[node_id];
-        int num_send = molecules.size();
+        int num_send = num_molecules_to_be_moved[neighbor_node_index];
         int num_receive = 0;
-
-        for(int n=0;n<molecules.size();n++) {
-            struct Molecule &m = molecules[n];
-
-            // cout << myid << " sent a molecule at " << m.r[0] << " " << m.r[1] << " " << m.r[2] << endl;
-            mpi_send_buffer[9*n+0] = m.r[0];
-            mpi_send_buffer[9*n+1] = m.r[1];
-            mpi_send_buffer[9*n+2] = m.r[2];
-
-            mpi_send_buffer[9*n+3] = m.v[0];
-            mpi_send_buffer[9*n+4] = m.v[1];
-            mpi_send_buffer[9*n+5] = m.v[2];
-
-            mpi_send_buffer[9*n+6] = m.r0[0];
-            mpi_send_buffer[9*n+7] = m.r0[1];
-            mpi_send_buffer[9*n+8] = m.r0[2];
-        }
 
         if(node_id<myid) {
             MPI_Send(&num_send,1,MPI_INT,node_id,10,MPI_COMM_WORLD);
             MPI_Recv(&num_receive,1,MPI_INT,MPI_ANY_SOURCE,10,MPI_COMM_WORLD,&status);
 
-            MPI_Send(mpi_send_buffer,9*num_send,MPI_DOUBLE,node_id,20,MPI_COMM_WORLD);
+            MPI_Send(molecules_to_be_moved[neighbor_node_index],9*num_send,MPI_DOUBLE,node_id,20,MPI_COMM_WORLD);
             MPI_Recv(mpi_receive_buffer,9*num_receive,MPI_DOUBLE,MPI_ANY_SOURCE,20,MPI_COMM_WORLD,&status);
         }
         else {
@@ -220,42 +220,55 @@ void ThreadControl::update_mpi(int dimension) {
             MPI_Send(&num_send,1,MPI_INT,node_id,10,MPI_COMM_WORLD);
 
             MPI_Recv(mpi_receive_buffer,9*num_receive,MPI_DOUBLE,MPI_ANY_SOURCE,20,MPI_COMM_WORLD,&status);
-            MPI_Send(mpi_send_buffer,9*num_send,MPI_DOUBLE,node_id,20,MPI_COMM_WORLD);
+            MPI_Send(molecules_to_be_moved[neighbor_node_index],9*num_send,MPI_DOUBLE,node_id,20,MPI_COMM_WORLD);
         }
 
-        for(int n=0;n<num_receive;n++) {
-            double *r = &mpi_receive_buffer[9*n+0];
-            double *v = &mpi_receive_buffer[9*n+3];
-            double *r0 = &mpi_receive_buffer[9*n+6];
+        memcpy(&new_molecules[9*num_new_molecules], mpi_receive_buffer, 9*num_receive*sizeof(double));
+        memset(&molecule_moved[num_new_molecules],0,num_receive*sizeof(bool));
+        num_new_molecules += num_receive;
 
-            int cell_index = cell_index_from_position(r);
-            DummyCell *dummy_cell = dummy_cells[cell_index];
-            dummy_cell->real_cell->add_molecule(r,v,r0);
-            // cout << myid << " received a molecule at " << r[0] << " " << r[1] << " " << r[2] << " which is in cell " << cell_index << endl;
-        }
-
-        molecules.clear();
+        num_molecules_to_be_moved[neighbor_node_index] = 0;
     }
-
-    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void ThreadControl::add_molecule_to_cell(struct Molecule &molecule, int cell_index) {
-    // We changed cell, and in the dimension we work on right now
-    DummyCell *dummy_cell = dummy_cells[cell_index];
-    if(dummy_cell->node_id != myid) {
-        // If this is another node, send it to that list
-        int node_id = dummy_cell->node_id;
-        nodes_new_atoms_list[node_id].push_back(molecule);
+    cout << "WARNING, NOT IMPLEMENTED" << endl;
+}
 
-    } else {
-        // If it is this node, just add it to the dummy cell list
-        dummy_cell->real_cell->add_molecule(molecule);
+void ThreadControl::update_new_molecules(int dimension) {
+    for(int n=0;n<num_new_molecules;n++) {
+        if(molecule_moved[n]) continue; // Skip molecules that are already moved
+        double *r  = &new_molecules[9*n];
+
+        int cell_index = cell_index_from_position(r);
+        DummyCell *dummy_cell = dummy_cells[cell_index];
+
+        if(dummy_cell->node_delta_index_vector[dimension] != 0) {
+            // We changed cell, and in the dimension we work on right now
+            int higher_dim = dummy_cell->node_delta_index_vector[dimension]>0;
+            int neighbor_node_id = 2*dimension+higher_dim;
+            // Copy the 9 doubles over to the list
+            memcpy(&molecules_to_be_moved[neighbor_node_id][ 9*num_molecules_to_be_moved[neighbor_node_id] ],&new_molecules[9*n],9*sizeof(double));
+            num_molecules_to_be_moved[neighbor_node_id]++;
+
+            molecule_moved[n] = true;
+        }
     }
 }
 
-void ThreadControl::reset_new_atoms_list() {
-    for(int i=0;i<6;i++) num_new_atoms[i] = 0;
+void ThreadControl::add_new_molecules_to_cells() {
+    for(int n=0;n<num_new_molecules;n++) {
+        if(molecule_moved[n]) continue; // Skip molecules that are already moved
+        double *r  = &new_molecules[9*n+0];
+        double *v  = &new_molecules[9*n+3];
+        double *r0  = &new_molecules[9*n+6];
+
+        int cell_index = cell_index_from_position(r);
+        DummyCell *dummy_cell = dummy_cells[cell_index];
+        dummy_cell->real_cell->add_molecule(r,v,r0);
+    }
+
+    num_new_molecules = 0;
 }
 
 ThreadControl::ThreadControl() {

@@ -8,6 +8,8 @@
 
 using namespace std;
 
+inline int sign(int a) { return (a>0) ? 1 : -1; }
+
 Cell::Cell(System *_system) {
     system = _system;
     vr_max = 0;
@@ -104,6 +106,22 @@ int Cell::collide(Random *rnd) {
 	return collisions;
 }
 
+void Cell::update_molecule_cells_local() {
+    ThreadControl &thread_control = system->thread_control;
+    for(int n=0;n<num_molecules;n++) {
+        if(atom_moved[n]) continue; // Skip atoms that are already moved
+
+        int cell_index = system->thread_control.cell_index_from_position(&r[3*n]);
+        DummyCell *dummy_cell = thread_control.dummy_cells[cell_index];
+
+        if(cell_index != this->index && dummy_cell->node_id == system->myid) {
+            // If it is this node, just add it to the dummy cell list
+            dummy_cell->real_cell->add_molecule(&r[3*n],&v[3*n],&r0[3*n]);
+            atom_moved[n] = true;
+        }
+    }
+}
+
 void Cell::update_molecule_cells(int dimension) {
     ThreadControl &thread_control = system->thread_control;
     for(int n=0;n<num_molecules;n++) {
@@ -111,38 +129,22 @@ void Cell::update_molecule_cells(int dimension) {
 
         int cell_index = system->thread_control.cell_index_from_position(&r[3*n]);
         DummyCell *dummy_cell = system->thread_control.dummy_cells[cell_index];
-        int delta_this_dimension = dummy_cell->node_index_vector[dimension] - this->dummy_cell->node_index_vector[dimension];
 
-        if(cell_index != this->index) {
+        if(dummy_cell->node_delta_index_vector[dimension] != 0) {
             // We changed cell, and in the dimension we work on right now
-            DummyCell *dummy_cell = thread_control.dummy_cells[cell_index];
+            int higher_dim = dummy_cell->node_delta_index_vector[dimension]>0;
+            int neighbor_node_id = 2*dimension+higher_dim;
+            int num_molecules_to_be_moved = thread_control.num_molecules_to_be_moved[neighbor_node_id];
 
-            if(dummy_cell->node_id != system->myid) {
-                if(delta_this_dimension != 0) {
-                    struct Molecule molecule;
-                    for(int a=0;a<3;a++) {
-                        molecule.r[a]  = r[3*n+a];
-                        molecule.v[a]  = v[3*n+a];
-                        molecule.r0[a] = r0[3*n+a];
-                    }
-
-                    // If this is another node, send it to that list
-                    int node_id = dummy_cell->node_id;
-                    thread_control.nodes_new_atoms_list[node_id].push_back(molecule);
-                    atom_moved[n] = true;
-                    // cout << system->myid << " moving atom to cell " << cell_index << " on node " << node_id << endl;
-                }
-            } else {
-                // If it is this node, just add it to the dummy cell list
-                dummy_cell->real_cell->add_molecule(&r[3*n],&v[3*n],&r0[3*n]);
-                atom_moved[n] = true;
+            for(int a=0;a<3;a++) {
+                thread_control.molecules_to_be_moved[neighbor_node_id][9*num_molecules_to_be_moved+0+a] = r[3*n+a];
+                thread_control.molecules_to_be_moved[neighbor_node_id][9*num_molecules_to_be_moved+3+a] = v[3*n+a];
+                thread_control.molecules_to_be_moved[neighbor_node_id][9*num_molecules_to_be_moved+6+a] = r0[3*n+a];
             }
+            thread_control.num_molecules_to_be_moved[neighbor_node_id]++;
+            atom_moved[n] = true;
         }
     }
-}
-
-void Cell::add_molecule(struct Molecule &m) {
-    add_molecule(m.r,m.v,m.r0);
 }
 
 void Cell::add_molecule(double *r_, double *v_, double *r0_) {

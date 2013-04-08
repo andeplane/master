@@ -29,16 +29,19 @@ public:
 
     vector<Cell*> cells;
     vector<DummyCell*> dummy_cells;
-    vector< vector<struct Molecule> > nodes_new_atoms_list;
-    double **new_atoms_buffer;
-    unsigned int num_new_atoms[6];
 
-    double *mpi_send_buffer;
     double *mpi_receive_buffer;
     double *positions;
     double *velocities;
     double *initial_positions;
-    int allocated_particle_data;
+
+    double **molecules_to_be_moved;
+    int *num_molecules_to_be_moved;
+
+    double *new_molecules;
+    bool *molecule_moved;
+    int num_new_molecules;
+
 
     ThreadControl();
     void setup(System *system);
@@ -51,7 +54,8 @@ public:
     void calculate_porosity();
     void add_molecule_to_cell(Molecule &molecule, int cell_index);
     int cell_index_from_position(double *r);
-    void reset_new_atoms_list();
     inline int cell_index_from_ijk(const int &i, const int &j, const int &k);
     inline void find_position(double *r);
+    void update_new_molecules(int dimension);
+    void add_new_molecules_to_cells();
 };

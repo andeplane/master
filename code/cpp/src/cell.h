@@ -14,9 +14,11 @@ using namespace std;
 
 class DummyCell {
 public:
-    int node_id;
     int index;
-    int node_index_vector[3];
+
+    int node_id;
+    int node_index_vector[3]; // <node_x, node_y, node_z>
+    int node_delta_index_vector[3]; // Same as above, but with this node as origo
 
     vector<Molecule*> new_molecules;
     Cell *real_cell;
@@ -41,7 +43,6 @@ public:
     System *system;
 
     int num_molecules;
-    int new_molecules;
 
     double *r;
     double *v;
@@ -55,10 +56,10 @@ public:
     int collide(Random *rnd);
     void collide_molecules(const int &ip0, const int &ip1, const double &v_rel, Random *rnd);
     void update_volume();
-    void add_molecule(Molecule &m);
     void add_molecule(double *r_, double *v_, double *r0_);
     void add_molecule(double *r_, double *v_);
     void update_molecule_cells(int dimension);
+    void update_molecule_cells_local();
     void update_molecule_arrays();
 
     static bool cmp(Cell *c1, Cell *c2);

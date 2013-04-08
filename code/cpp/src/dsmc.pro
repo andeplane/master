@@ -3,10 +3,10 @@ CONFIG += console
 CONFIG -= qt
 
 release {
-    DEFINES += ARMA_NO_DEBUG
+    # DEFINES += DEBUG_MPI
 }
 
-DEFINES += ARMA_NO_DEBUG
+DEFINES +=
 
 SOURCES += main.cpp \
     system.cpp \

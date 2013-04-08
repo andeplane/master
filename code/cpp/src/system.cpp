@@ -15,7 +15,6 @@
 #include <dsmctimer.h>
 
 void System::step() {
-    thread_control.reset_new_atoms_list();
     steps += 1;
     t += dt;
     accelerate();
@@ -41,6 +40,8 @@ void System::move() {
             Cell *cell = thread_control.cells[i];
             cell->update_molecule_cells(dimension);
         }
+        thread_control.update_new_molecules(dimension);
+
         timer->end_moving();
         timer->start_mpi();
         thread_control.update_mpi(dimension);
@@ -50,8 +51,14 @@ void System::move() {
     timer->start_moving();
     for(int i=0;i<thread_control.cells.size();i++) {
         Cell *cell = thread_control.cells[i];
+        cell->update_molecule_cells_local();
+    }
+
+    for(int i=0;i<thread_control.cells.size();i++) {
+        Cell *cell = thread_control.cells[i];
         cell->update_molecule_arrays();
     }
+    thread_control.add_new_molecules_to_cells();
     timer->end_moving();
 }
 
@@ -70,9 +77,6 @@ void System::collide() {
     }
     molecules /= thread_control.cells.size();
     molecules_squared /= thread_control.cells.size();
-//    cout << "<Molecules> = " << molecules << endl;
-//    cout << "Var(Molecules) = " << molecules_squared - molecules*molecules << endl;
-//    cout << "Max: " << max << endl;
 }
 
 void System::accelerate() {
