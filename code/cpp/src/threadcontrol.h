@@ -1,8 +1,9 @@
 #pragma once
 #include <vector>
 
+#define MAX_MOLECULE_NUM 100000
+
 class System;
-class Molecule;
 class Settings;
 class DummyCell;
 class Cell;
@@ -37,6 +38,7 @@ public:
     double *r;
     double *v;
     double *r0;
+
     unsigned long *molecule_index_in_cell;
     unsigned long *molecule_cell_index;
     bool *molecule_moved;

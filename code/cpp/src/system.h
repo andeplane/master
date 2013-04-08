@@ -1,6 +1,5 @@
 #pragma once
 
-class Molecule;
 class Cell;
 class Sorter;
 class Grid;
@@ -16,8 +15,6 @@ class MoleculeMover;
 #include <fstream>
 #include <vector>
 #include <cinifile.h>
-
-#define MAX_MOLECULE_NUM 1000000
 
 using namespace std;
 

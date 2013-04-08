@@ -1,10 +1,8 @@
 #pragma once
+#include <vector>
 
+class Random;
 class System;
-#include <random.h>
-#include <armadillo>
-class System;
-class Molecule;
 class Cell;
 
 using namespace std;
@@ -17,7 +15,6 @@ public:
 
     int index;
 
-    vector<Molecule*> new_molecules;
     Cell *real_cell;
 
     DummyCell() { real_cell = NULL; }

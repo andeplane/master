@@ -3,6 +3,7 @@
 #include <math.h>
 #include <time.h>
 #include <system.h>
+#include <random.h>
 
 using namespace std;
 
