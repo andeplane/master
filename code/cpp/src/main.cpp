@@ -25,6 +25,13 @@ int main(int args, char* argv[]) {
     Settings *settings = new Settings("../dsmc.ini");
     System system;
 
+    int num_nodes = settings->nodes_x*settings->nodes_y*settings->nodes_z;
+    if(numprocs != num_nodes) {
+        if(myid==0) cout << "Wrong number of processors. " << endl << "Config files says " << num_nodes << ". MPI started with " << numprocs << "." << endl;
+        MPI_Finalize();
+        return(0);
+    }
+
     system.initialize(settings, myid);
     StatisticsSampler *sampler = new StatisticsSampler(&system);
 

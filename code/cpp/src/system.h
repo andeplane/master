@@ -45,9 +45,8 @@ public:
     MoleculeMover *mover;
 
 
-    double Lx;
-    double Ly;
-    double Lz;
+    double Lx; double Ly; double Lz;
+    double length[3];
 	double eff_num;
 	double mpv; 	// Most probable velocity
 	double mfp; 	// Mean free path

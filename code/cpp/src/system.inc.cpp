@@ -22,6 +22,10 @@ void System::initialize(Settings *settings_, int myid_) {
     Ly   = settings->Ly;
     Lz   = settings->Lz;
 
+    length[0] = Lx;
+    length[1] = Ly;
+    length[2] = Lz;
+
     cell_length_x = Lx/(settings->cells_per_node_x*settings->nodes_x);
     cell_length_y = Ly/(settings->cells_per_node_y*settings->nodes_y);
     cell_length_z = Lz/(settings->cells_per_node_z*settings->nodes_z);
