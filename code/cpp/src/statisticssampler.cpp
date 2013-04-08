@@ -24,31 +24,25 @@ void StatisticsSampler::sample() {
     double t_in_nano_seconds = system->unit_converter->time_to_SI(system->t)*1e9;
     kinetic_energy = 0;
     mean_r_squared = 0;
+    double mass = 1;
+    double *v = system->thread_control.v;
 
-    for(int i=0;i<system->thread_control.cells.size();i++) {
-        for(int j=0;j<system->thread_control.cells[i]->molecules.size();j++) {
-            Molecule *m = system->thread_control.cells[i]->molecules[j];
+    for(int n=0;n<system->thread_control.num_molecules;n++) {
+        // Note that number of atoms is note used because they cancel out in monoatomic systems
 
-            // Note that number of atoms is note used because they cancel out in monoatomic systems
-            kinetic_energy += 0.5*m->mass*(m->v[0]*m->v[0] + m->v[1]*m->v[1] + m->v[2]*m->v[2]);
-            mean_r_squared += m->squared_distance_from_initial_position();
-        }
+        kinetic_energy += 0.5*(v[3*n+0]*v[3*n+0] + v[3*n+1]*v[3*n+1] + v[3*n+2]*v[3*n+2]);
     }
 
     double kinetic_energy_global = 0;
-    double mean_r_squared_global = 0;
     long collisions_global = 0;
 
     MPI_Reduce(&kinetic_energy, &kinetic_energy_global, 1, MPI_DOUBLE,
                     MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&mean_r_squared, &mean_r_squared_global, 1, MPI_DOUBLE,
-                   MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&system->collisions, &collisions_global, 1, MPI_LONG,
                    MPI_SUM, 0, MPI_COMM_WORLD);
 
     if(system->myid == 0) {
-        kinetic_energy_global /= system->num_particles_global;
-        mean_r_squared_global /= system->num_particles_global;
+        kinetic_energy_global /= system->num_molecules_global;
         temperature = 2.0/3*kinetic_energy_global;
 
         fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy), system->unit_converter->temperature_to_SI(temperature));

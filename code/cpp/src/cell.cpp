@@ -37,6 +37,28 @@ int Cell::prepare() {
     return collision_pairs;
 }
 
+void Cell::collide_molecules(double *v0, double *v1, const double &v_rel, Random *rnd) {
+    double vcmx  = 0.5*(v0[0] + v1[0]);
+    double vcmy  = 0.5*(v0[1] + v1[1]);
+    double vcmz  = 0.5*(v0[2] + v1[2]);
+
+    double cos_th = 1.0 - 2.0*rnd->nextDouble();      // Cosine and sine of
+    double sin_th = sqrt(1.0 - cos_th*cos_th);        // collision angle theta
+    double phi = 2*M_PI*rnd->nextDouble();
+
+    double vrelx = v_rel*cos_th;                   // Compute post-collision relative velocity
+    double vrely = v_rel*sin_th*cos(phi);
+    double vrelz = v_rel*sin_th*sin(phi);
+
+    v0[0] = vcmx + 0.5*vrelx;
+    v0[1] = vcmy + 0.5*vrely;
+    v0[2] = vcmz + 0.5*vrelz;
+
+    v1[0] = vcmx - 0.5*vrelx;
+    v1[1] = vcmy - 0.5*vrely;
+    v1[2] = vcmz - 0.5*vrelz;
+}
+
 int Cell::collide(Random *rnd) {
 
     //* Skip cells with only one particle
@@ -46,31 +68,31 @@ int Cell::collide(Random *rnd) {
     double crm = vr_max;     // Current maximum relative speed
 
 	//* Loop over total number of candidate collision pairs
-    int isel, collisions = 0, ip1, ip2;
-    double cr;
+    int collisions = 0;
 
-    Molecule *molecule1, *molecule2;
-
-    for( isel=0; isel<collision_pairs; isel++ ) {
+    for(int isel=0; isel<collision_pairs; isel++ ) {
 		//* Pick two particles at random out of this cell
-        ip1 = (int)(rnd->nextDouble()*num_molecules);
-        ip2 = ((int)(ip1+1+rnd->nextDouble()*(num_molecules-1))) % num_molecules;
+        int ip0 = (int)(rnd->nextDouble()*num_molecules);
+        int ip1 = ((int)(ip0+1+rnd->nextDouble()*(num_molecules-1))) % num_molecules;
 
-        molecule1 = molecules[ip1];
-        molecule2 = molecules[ip2];
+        ip0 = molecules[ip0];
+        ip1 = molecules[ip1];
 
 		//* Calculate pair's relative speed
-        cr = sqrt(pow(molecule1->v[0] - molecule2->v[0],2) + pow(molecule1->v[1] - molecule2->v[1],2) + pow(molecule1->v[2] - molecule2->v[2],2));
+        double *v0 = &system->thread_control.v[3*ip0];
+        double *v1 = &system->thread_control.v[3*ip1];
+        double v_rel = sqrt(pow(v0[0] - v1[0],2) + pow(v0[1] - v1[1],2) + pow(v0[2] - v1[2],2));
 
-        if( cr > crm ) {         // If relative speed larger than crm,
-            crm = cr;            // then reset crm to larger value
+        if( v_rel > crm ) {         // If relative speed larger than crm,
+            crm = v_rel;            // then reset crm to larger value
         }
 
 		//* Accept or reject candidate pair according to relative speed
-        if( cr > rnd->nextDouble()*vr_max ) {
+        if( v_rel > rnd->nextDouble()*vr_max ) {
 			//* If pair accepted, select post-collision velocities
+
 			collisions++;
-            molecule1->collide_with(molecule2,rnd, cr);
+            collide_molecules(v0,v1, v_rel, rnd);
 		} // Loop over pairs
 	}
 	
@@ -79,19 +101,27 @@ int Cell::collide(Random *rnd) {
 	return collisions;
 }
 
-void Cell::add_molecule(Molecule *m) {
-    molecules.push_back(m);
-    m->index_in_cell = num_molecules;
-    m->cell_index = index;
+void Cell::add_molecule(const int &molecule_index, unsigned long *index_in_cell, unsigned long *cell_index) {
+    molecules.push_back(molecule_index);
+    index_in_cell[molecule_index] = num_molecules;
+    cell_index[molecule_index] = index;
+
+//    molecules.push_back(m);
+//    m->index_in_cell = num_molecules;
+//    m->cell_index = index;
     num_molecules++;
 }
 
-void Cell::remove_molecule(Molecule *m) {
+void Cell::remove_molecule(const int &molecule_index, unsigned long *index_in_cell) {
     if(num_molecules>1) {
         // Move the last molecule over here
-        molecules[m->index_in_cell] = molecules[num_molecules-1];
-        molecules[m->index_in_cell]->index_in_cell = m->index_in_cell;
-        molecules.erase(molecules.begin()+num_molecules-1);
+        molecules[ index_in_cell[molecule_index] ] = molecules[num_molecules-1];
+        index_in_cell[ molecules[num_molecules-1] ] = index_in_cell[molecule_index];
+
+//        molecules[m->index_in_cell] = molecules[num_molecules-1];
+//        molecules[m->index_in_cell]->index_in_cell = m->index_in_cell;
+        molecules.pop_back();
+        // molecules.erase(molecules.begin()+num_molecules-1);
 
     } else {
         molecules.erase(molecules.begin());

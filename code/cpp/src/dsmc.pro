@@ -22,7 +22,8 @@ SOURCES += main.cpp \
     settings.cpp \
     dsmc_io.cpp \
     threadcontrol.cpp \
-    dsmctimer.cpp
+    dsmctimer.cpp \
+    moleculemover.cpp
 
 HEADERS += \
     system.h \
@@ -39,7 +40,8 @@ HEADERS += \
     settings.h \
     dsmc_io.h \
     threadcontrol.h \
-    dsmctimer.h
+    dsmctimer.h \
+    moleculemover.h
 
 OTHER_FILES += \
     ../dsmc.ini

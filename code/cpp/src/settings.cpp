@@ -7,7 +7,7 @@ Settings::Settings(string filename) {
     create_movie = ini_file.getbool("create_movie");
     statistics_interval = ini_file.getint("statistics_interval");
     movie_every_n_frame = ini_file.getint("movie_every_n_frame");
-    number_of_particles = ini_file.getint("N");
+    number_of_molecules = ini_file.getint("N");
     timesteps = ini_file.getint("timesteps");
 
     cells_per_node_x = ini_file.getint("cells_per_node_x");

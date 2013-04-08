@@ -11,7 +11,7 @@ public:
     bool create_movie;
     int statistics_interval;
     int movie_every_n_frame;
-    int number_of_particles;
+    int number_of_molecules;
     int timesteps;
     int cells_per_node_x;
     int cells_per_node_y;

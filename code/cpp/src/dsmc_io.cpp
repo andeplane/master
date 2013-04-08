@@ -22,19 +22,15 @@ void DSMC_IO::save_state_to_movie_file() {
             sprintf(filename,"state_files/movie%04d.bin",system->myid);
             movie_file = new ofstream(filename,ios::out | ios::binary);
             movie_file_open = true;
-            data = new double[3*system->thread_control.allocated_particle_data];
+            data = new double[3*MAX_MOLECULE_NUM];
             delete filename;
         }
 
         int count = 0;
-        for(unsigned int i=0;i<system->thread_control.cells.size();i++) {
-            Cell *c = system->thread_control.cells[i];
-            for(unsigned int j=0;j<c->molecules.size();j++) {
-                Molecule *m = c->molecules[j];
-                data[count++] = m->r[0];
-                data[count++] = m->r[1];
-                data[count++] = m->r[2];
-            }
+        for(unsigned int n=0;n<system->thread_control.num_molecules;n++) {
+            data[count++] = system->thread_control.r[3*n+0];
+            data[count++] = system->thread_control.r[3*n+1];
+            data[count++] = system->thread_control.r[3*n+2];
         }
 
         count /= 3; // This should represent the number of particles
@@ -48,7 +44,7 @@ void DSMC_IO::save_state_to_file_binary() {
     if(system->myid==0) cout << "Saving state to file..." << endl;
     ThreadControl &thread_control = system->thread_control;
 
-    int N = thread_control.num_particles;
+    int N = thread_control.num_molecules;
 
     char *filename = new char[100];
     sprintf(filename,"state_files/state%04d.bin",system->myid);
@@ -63,22 +59,19 @@ void DSMC_IO::save_state_to_file_binary() {
     double *tmp_data = new double[9*N];
 
     int count = 0;
-    for(unsigned int i=0;i<thread_control.cells.size();i++) {
-        Cell *c = thread_control.cells[i];
-        for(unsigned int j=0;j<c->molecules.size();j++) {
-            Molecule *m = c->molecules[j];
-            tmp_data[count++] = m->r[0];
-            tmp_data[count++] = m->r[1];
-            tmp_data[count++] = m->r[2];
+    for(unsigned int n=0;n<thread_control.num_molecules;n++) {
 
-            tmp_data[count++] = m->r_initial[0];
-            tmp_data[count++] = m->r_initial[1];
-            tmp_data[count++] = m->r_initial[2];
+        tmp_data[count++] = thread_control.r[3*n+0];
+        tmp_data[count++] = thread_control.r[3*n+1];
+        tmp_data[count++] = thread_control.r[3*n+2];
 
-            tmp_data[count++] = m->v[0];
-            tmp_data[count++] = m->v[1];
-            tmp_data[count++] = m->v[2];
-        }
+        tmp_data[count++] = thread_control.r0[3*n+0];
+        tmp_data[count++] = thread_control.r0[3*n+1];
+        tmp_data[count++] = thread_control.r0[3*n+2];
+
+        tmp_data[count++] = thread_control.v[3*n+0];
+        tmp_data[count++] = thread_control.v[3*n+1];
+        tmp_data[count++] = thread_control.v[3*n+2];
     }
 
     file.write (reinterpret_cast<char*>(&N), sizeof(int));
@@ -103,33 +96,31 @@ void DSMC_IO::load_state_from_file_binary() {
     }
 
     file.read(reinterpret_cast<char*>(&N),sizeof(int));
-
     double *tmp_data = new double[9*N];
 
     file.read(reinterpret_cast<char*>(tmp_data), 9*N*sizeof(double));
     file.close();
 
     for(int n=0;n<N;n++) {
-        Molecule *m = new Molecule(system);
-        m->atoms = system->eff_num;
-        m->r = &thread_control.positions[3*thread_control.all_molecules.size()];
-        m->v = &thread_control.velocities[3*thread_control.all_molecules.size()];
-        m->r_initial = &thread_control.initial_positions[3*thread_control.all_molecules.size()];
-        m->r[0] = tmp_data[9*n+0];
-        m->r[1] = tmp_data[9*n+1];
-        m->r[2] = tmp_data[9*n+2];
+        double *r = &thread_control.r[3*n];
+        double *v = &thread_control.r[3*n];
+        double *r0 = &thread_control.r[3*n];
 
-        m->r_initial[0] = tmp_data[9*n+3];
-        m->r_initial[1] = tmp_data[9*n+4];
-        m->r_initial[2] = tmp_data[9*n+5];
+        r[0] = tmp_data[9*n+0];
+        r[1] = tmp_data[9*n+1];
+        r[2] = tmp_data[9*n+2];
+        r0[0] = tmp_data[9*n+3];
+        r0[1] = tmp_data[9*n+4];
+        r0[2] = tmp_data[9*n+5];
+        v[0] = tmp_data[9*n+6];
+        v[1] = tmp_data[9*n+7];
+        v[2] = tmp_data[9*n+8];
 
-        m->v[0] = tmp_data[9*n+6];
-        m->v[1] = tmp_data[9*n+7];
-        m->v[2] = tmp_data[9*n+8];
-
-        thread_control.dummy_cells[thread_control.cell_index_from_molecule(m)]->real_cell->add_molecule(m);
-        thread_control.all_molecules.push_back(m);
+        DummyCell *dummy_cell = thread_control.dummy_cells[thread_control.cell_index_from_position(r)];
+        dummy_cell->real_cell->add_molecule(n,thread_control.molecule_index_in_cell,thread_control.molecule_cell_index);
     }
+
+    thread_control.num_molecules = N;
 
     delete filename;
     delete tmp_data;

@@ -9,6 +9,7 @@ class Random;
 class Settings;
 class UnitConverter;
 class DSMCTimer;
+class MoleculeMover;
 
 #include <threadcontrol.h>
 #include <iostream>
@@ -17,6 +18,7 @@ class DSMCTimer;
 #include <cinifile.h>
 #include <settings.h>
 
+#define MAX_MOLECULE_NUM 1000000
 
 using namespace std;
 
@@ -40,6 +42,7 @@ public:
     Settings *settings;
     UnitConverter * unit_converter;
     Random *rnd;
+    MoleculeMover *mover;
 
 
     double Lx;
@@ -58,7 +61,7 @@ public:
     double cell_length_z;
     double porosity_global;
     double volume;
-    int    num_particles_global;
+    int    num_molecules_global;
 
     long collisions;
 	int steps;

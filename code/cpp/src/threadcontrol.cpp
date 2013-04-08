@@ -25,7 +25,15 @@ void ThreadControl::setup(System *system_) {
     setup_cells();
     if(myid==0) cout << "Setting up molecules..." << endl;
     setup_molecules();
-    mpi_data = new double[9*2*settings->number_of_particles];
+
+    molecules_to_be_moved = new double*[6];
+    num_molecules_to_be_moved = new int[6];
+    for(int i=0;i<6;i++) {
+        molecules_to_be_moved[i] = new double[9*MAX_MOLECULE_NUM];
+        num_molecules_to_be_moved[i] = 0;
+    }
+
+    mpi_receive_buffer = new double[9*MAX_MOLECULE_NUM];
 }
 
 void ThreadControl::update_cell_volume() {
@@ -37,67 +45,57 @@ void ThreadControl::update_cell_volume() {
 }
 
 void ThreadControl::setup_molecules() {
-    num_particles = settings->number_of_particles*porosity/num_nodes;
-    allocated_particle_data = num_particles*10;
+    num_molecules = settings->number_of_molecules*porosity/num_nodes;
 
-    free_molecules.reserve(1000);
-    all_molecules.reserve(2*num_particles);
-
-    positions = new double[3*allocated_particle_data];
-    velocities = new double[3*allocated_particle_data];
-    initial_positions = new double[3*allocated_particle_data];
+    r = new double[3*MAX_MOLECULE_NUM];
+    v = new double[3*MAX_MOLECULE_NUM];
+    r0 = new double[3*MAX_MOLECULE_NUM];
+    molecule_index_in_cell = new unsigned long[MAX_MOLECULE_NUM];
+    molecule_cell_index    = new unsigned long[MAX_MOLECULE_NUM];
 
     if(settings->load_previous_state) {
         system->io->load_state_from_file_binary();
         return;
     }
 
-    for(int n=0;n<num_particles;n++) {
-        Molecule *m = new Molecule(system);
-        m->r = &positions[3*all_molecules.size()];
-        m->v = &velocities[3*all_molecules.size()];
-        m->r_initial = &initial_positions[3*all_molecules.size()];
-
-        m->atoms = system->eff_num;
-        m->v[0] = system->rnd->nextGauss()*sqrt(system->temperature);
-        m->v[1] = system->rnd->nextGauss()*sqrt(system->temperature);
-        m->v[2] = system->rnd->nextGauss()*sqrt(system->temperature);
-        find_position(m);
-        dummy_cells[cell_index_from_molecule(m)]->real_cell->add_molecule(m);
-        all_molecules.push_back(m);
+    for(int n=0;n<num_molecules;n++) {
+        v[3*n+0] = system->rnd->nextGauss()*sqrt(system->temperature);
+        v[3*n+1] = system->rnd->nextGauss()*sqrt(system->temperature);
+        v[3*n+2] = system->rnd->nextGauss()*sqrt(system->temperature);
+        find_position(&r[3*n]);
+        r0[3*n+0] = r[3*n+0];
+        r0[3*n+1] = r[3*n+1];
+        r0[3*n+2] = r[3*n+2];
+        DummyCell *dummy_cell = dummy_cells[cell_index_from_position(&r[3*n])];
+        dummy_cell->real_cell->add_molecule(n,this->molecule_index_in_cell,this->molecule_cell_index);
     }
 }
 
-inline void ThreadControl::find_position(Molecule *m) {
+inline void ThreadControl::find_position(double *r) {
     bool did_collide = true;
     while(did_collide) {
-        m->r[0] = origo[0] + system->Lx/settings->nodes_x*system->rnd->nextDouble();
-        m->r[1] = origo[1] + system->Ly/settings->nodes_y*system->rnd->nextDouble();
-        m->r[2] = origo[2] + system->Lz/settings->nodes_z*system->rnd->nextDouble();
+        r[0] = origo[0] + system->Lx/settings->nodes_x*system->rnd->nextDouble();
+        r[1] = origo[1] + system->Ly/settings->nodes_y*system->rnd->nextDouble();
+        r[2] = origo[2] + system->Lz/settings->nodes_z*system->rnd->nextDouble();
 
-        did_collide = *system->world_grid->get_voxel(m->r)>=voxel_type_wall;
+        did_collide = *system->world_grid->get_voxel(r)>=voxel_type_wall;
     }
-
-    m->r_initial[0] = m->r[0];
-    m->r_initial[1] = m->r[1];
-    m->r_initial[2] = m->r[2];
 }
 
 inline int ThreadControl::cell_index_from_ijk(const int &i, const int &j, const int &k) {
     return i*system->cells_y*system->cells_z + j*system->cells_z + k;
 }
 
-int ThreadControl::cell_index_from_molecule(Molecule *m) {
-    int i = m->r[0]/system->Lx*system->cells_x;
-    int j = m->r[1]/system->Ly*system->cells_y;
-    int k = m->r[2]/system->Lz*system->cells_z;
+int ThreadControl::cell_index_from_position(double *r) {
+    int i = r[0]/system->Lx*system->cells_x;
+    int j = r[1]/system->Ly*system->cells_y;
+    int k = r[2]/system->Lz*system->cells_z;
 
     return cell_index_from_ijk(i,j,k);
 }
 
 void ThreadControl::setup_cells() {
     int num_cells_global = num_nodes*settings->cells_per_node_x*settings->cells_per_node_y*settings->cells_per_node_z;
-    nodes_new_atoms_list.resize(num_nodes);
     dummy_cells.reserve(num_cells_global);
 
     for(int i=0;i<system->cells_x;i++) {
@@ -162,23 +160,8 @@ void ThreadControl::calculate_porosity() {
     porosity = (float)filled_pixels / all_pixels;
 }
 
-void ThreadControl::update_local_cells() {
-    for(int i=0;i<cells.size();i++) {
-        Cell *c = cells[i];
-        DummyCell *dc = c->dummy_cell;
-        for(int j=0;j<dc->new_molecules.size();j++) {
-            Molecule *m = dc->new_molecules[j];
-            // Remove from old cell
-            dummy_cells[m->cell_index]->real_cell->remove_molecule(m);
-            c->add_molecule(m);
-        }
-        dc->new_molecules.clear();
-    }
-}
-
-double comm_time = 0;
-
 void ThreadControl::update_mpi() {
+    /*
     MPI_Barrier(MPI_COMM_WORLD);
     double t0;
     if(myid==0) t0=MPI_Wtime();
@@ -227,7 +210,7 @@ void ThreadControl::update_mpi() {
                         m->r_initial[2] = mpi_data[9*n+8];
 
                         dummy_cells[cell_index_from_molecule(m)]->real_cell->add_molecule(m);
-                        num_particles++;
+                        num_molecules++;
                     }
                 }
             }
@@ -249,7 +232,7 @@ void ThreadControl::update_mpi() {
             mpi_data[count++] = m->r_initial[2];
 
             dummy_cells[m->cell_index]->real_cell->remove_molecule(m);
-            num_particles--;
+            num_molecules--;
             free_molecules.push_back(m);
 
         }
@@ -264,7 +247,7 @@ void ThreadControl::update_mpi() {
         }
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    if(myid==0) comm_time += MPI_Wtime()-t0;
+    if(myid==0) comm_time += MPI_Wtime()-t0;*/
 
 }
 

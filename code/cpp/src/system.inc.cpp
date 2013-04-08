@@ -1,6 +1,7 @@
 #include <system.h>
 #include <mpi.h>
 #include <dsmctimer.h>
+#include <moleculemover.h>
 
 void System::initialize(Settings *settings_, int myid_) {
     myid = myid_;
@@ -44,25 +45,27 @@ void System::initialize(Settings *settings_, int myid_) {
     thread_control.setup(this);
 
     MPI_Allreduce(&thread_control.porosity,&porosity_global,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    MPI_Allreduce(&thread_control.num_particles,&num_particles_global,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&thread_control.num_molecules,&num_molecules_global,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
     porosity_global /= thread_control.num_nodes;
 
     volume = Lx*Ly*Lz*porosity_global;
-    eff_num = density*volume/num_particles_global;
+    eff_num = density*volume/num_molecules_global;
 
-    mfp = volume/(sqrt(2.0)*M_PI*diam*diam*num_particles_global*eff_num);
+    mfp = volume/(sqrt(2.0)*M_PI*diam*diam*num_molecules_global*eff_num);
     mpv = sqrt(temperature);  // Most probable initial velocity
 
     dt = settings->dt;
 
     if(myid==0) cout << "Updating cell volume..." << endl;
     thread_control.update_cell_volume();
+    mover = new MoleculeMover();
+    mover->initialize(this);
 
     if(myid==0) {
         int number_of_cells = cells_x*cells_y*cells_z;
 
         printf("done.\n\n");
-        printf("%d molecules\n",num_particles_global);
+        printf("%d molecules\n",num_molecules_global);
         printf("%d (%d x %d x %d) cells\n",number_of_cells,cells_x,cells_y,cells_z);
         printf("Porosity: %f\n",porosity_global);
         printf("System volume: %f\n",volume);
@@ -71,7 +74,7 @@ void System::initialize(Settings *settings_, int myid_) {
         printf("Global Kn: %.2f x %.2f x %.2f \n",mfp/Lx,mfp/Ly, mfp/Lz);
         printf("Mean free paths per cell: %.2f \n",min( min(Lx/cells_x/mfp,Ly/cells_y/mfp), Lz/cells_z/mfp));
         printf("%d atoms per molecule\n",(int)eff_num);
-        printf("%d molecules per cell\n",num_particles_global/number_of_cells);
+        printf("%d molecules per cell\n",num_molecules_global/number_of_cells);
 
         printf("dt = %f\n\n",dt);
     }

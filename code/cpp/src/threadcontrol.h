@@ -18,22 +18,26 @@ public:
     int idx, idy, idz;
     int num_nodes;
     double porosity;
-    int num_particles;
+    int num_molecules;
     vec3 origo;
     System *system;
     Settings *settings;
 
     vector<Cell*> cells;
     vector<DummyCell*> dummy_cells;
-    vector< vector<Molecule*> > nodes_new_atoms_list;
-    vector<Molecule*> free_molecules;
-    vector<Molecule*> all_molecules;
+    double *mpi_receive_buffer;
+    double **molecules_to_be_moved;
+    int *num_molecules_to_be_moved;
 
-    double *mpi_data;
-    double *positions;
-    double *velocities;
-    double *initial_positions;
-    int allocated_particle_data;
+    double *new_molecules;
+    bool *molecule_moved;
+    int num_new_molecules;
+
+    double *r;
+    double *v;
+    double *r0;
+    unsigned long *molecule_index_in_cell;
+    unsigned long *molecule_cell_index;
 
     ThreadControl();
     void setup(System *system);
@@ -44,7 +48,7 @@ public:
     void update_mpi();
     void update_local_cells();
     void calculate_porosity();
-    int cell_index_from_molecule(Molecule *m);
+    int cell_index_from_position(double *r);
     inline int cell_index_from_ijk(const int &i, const int &j, const int &k);
-    inline void find_position(Molecule *m);
+    inline void find_position(double *r);
 };

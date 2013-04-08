@@ -38,7 +38,7 @@ public:
 
     DummyCell *dummy_cell;
     System *system;
-    vector<Molecule*> molecules;
+    vector<int> molecules;
     int num_molecules;
 
     Cell(System *system);
@@ -46,10 +46,11 @@ public:
     int prepare();
     void resize(int n);
     int collide(Random *rnd);
+    void collide_molecules(double *v0, double *v1, const double &v_rel, Random *rnd);
 
     void update_volume();
-    void add_molecule(Molecule *m);
-    void remove_molecule(Molecule *m);
+    void add_molecule(const int &molecule_index, unsigned long *index_in_cell, unsigned long *cell_index);
+    void remove_molecule(const int &molecule_index, unsigned long *index_in_cell);
 
     static bool cmp(Cell *c1, Cell *c2);
 };
