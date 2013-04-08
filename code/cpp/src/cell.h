@@ -7,21 +7,12 @@ class Cell;
 
 using namespace std;
 
-class DummyCell {
+class Cell {
 public:
     int node_id;
     int node_index_vector[3]; // <node_x, node_y, node_z>
     int node_delta_index_vector[3]; // Same as above, but with this node as origo
 
-    int index;
-
-    Cell *real_cell;
-
-    DummyCell() { real_cell = NULL; }
-};
-
-class Cell {
-public:
 	double volume;
     int pixels; // Used to calculate volume in a cell
     int total_pixels;
@@ -33,7 +24,7 @@ public:
 	double vr_max;
     double collision_coefficient;
 
-    DummyCell *dummy_cell;
+    bool is_dummy_cell;
     System *system;
     vector<int> molecules;
     int num_molecules;

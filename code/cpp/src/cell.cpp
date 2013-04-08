@@ -11,10 +11,8 @@ Cell::Cell(System *_system) {
     system = _system;
     vr_max = 0;
     pixels = 0;
-    molecules.reserve(100);
     num_molecules = 0;
     total_pixels = 0;
-    dummy_cell = NULL;
 }
 
 bool Cell::cmp(Cell *c1, Cell *c2) {

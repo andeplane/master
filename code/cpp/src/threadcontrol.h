@@ -25,8 +25,8 @@ public:
     System *system;
     Settings *settings;
 
-    vector<Cell*> cells;
-    vector<DummyCell*> dummy_cells;
+    vector<Cell*> all_cells;
+    vector<Cell*> my_cells;
     double *mpi_receive_buffer;
     double **molecules_to_be_moved;
     int *num_molecules_to_be_moved;

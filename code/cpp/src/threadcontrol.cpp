@@ -56,10 +56,10 @@ void ThreadControl::setup_topology() {
 }
 
 void ThreadControl::update_cell_volume() {
-    for(int i=0;i<cells.size();i++) {
-        Cell *c = cells[i];
-        c->vr_max = 3*system->mpv;
-        c->update_volume();
+    for(int i=0;i<my_cells.size();i++) {
+        Cell *cell = my_cells[i];
+        cell->vr_max = 3*system->mpv;
+        cell->update_volume();
     }
 }
 
@@ -98,9 +98,8 @@ void ThreadControl::setup_molecules() {
         r0[3*n+1] = r[3*n+1];
         r0[3*n+2] = r[3*n+2];
         molecule_moved[n] = false;
-
-        DummyCell *dummy_cell = dummy_cells[cell_index_from_position(&r[3*n])];
-        dummy_cell->real_cell->add_molecule(n,this->molecule_index_in_cell,this->molecule_cell_index);
+        Cell *cell = all_cells[cell_index_from_position(&r[3*n])];
+        cell->add_molecule(n,this->molecule_index_in_cell,this->molecule_cell_index);
     }
 }
 
@@ -135,7 +134,7 @@ int relative_node_index(int index0, int index1, int cells) {
 
 void ThreadControl::setup_cells() {
     int num_cells_global = num_nodes*settings->cells_per_node_x*settings->cells_per_node_y*settings->cells_per_node_z;
-    dummy_cells.reserve(num_cells_global);
+    all_cells.reserve(num_cells_global);
 
     for(int i=0;i<system->cells_x;i++) {
         for(int j=0;j<system->cells_y;j++) {
@@ -145,25 +144,22 @@ void ThreadControl::setup_cells() {
                 int cell_node_id_z = k/settings->cells_per_node_z;
                 int node_id = cell_node_id_x*settings->nodes_y*settings->nodes_z + cell_node_id_y*settings->nodes_z + cell_node_id_z;
 
-                DummyCell *dc = new DummyCell();
+                Cell *cell = new Cell(system);
 
-                dc->node_index_vector[0] = cell_node_id_x; dc->node_index_vector[1] = cell_node_id_y; dc->node_index_vector[2] = cell_node_id_z;
-                dc->node_delta_index_vector[0] = relative_node_index(my_vector_index[0],cell_node_id_x,system->cells_x);
-                dc->node_delta_index_vector[1] = relative_node_index(my_vector_index[1],cell_node_id_y,system->cells_y);
-                dc->node_delta_index_vector[2] = relative_node_index(my_vector_index[2],cell_node_id_z,system->cells_z);
+                cell->node_index_vector[0] = cell_node_id_x; cell->node_index_vector[1] = cell_node_id_y; cell->node_index_vector[2] = cell_node_id_z;
+                cell->node_delta_index_vector[0] = relative_node_index(my_vector_index[0],cell_node_id_x,system->cells_x);
+                cell->node_delta_index_vector[1] = relative_node_index(my_vector_index[1],cell_node_id_y,system->cells_y);
+                cell->node_delta_index_vector[2] = relative_node_index(my_vector_index[2],cell_node_id_z,system->cells_z);
 
-                dc->node_id = node_id;
-                dc->index = cell_index_from_ijk(i,j,k);
-                // dc->new_molecules.reserve(1000);
-                dummy_cells.push_back(dc);
+                cell->node_id = node_id;
+                cell->index = cell_index_from_ijk(i,j,k);
+                cell->is_dummy_cell = true;
+                all_cells.push_back(cell);
 
                 if(node_id == myid) {
-                    Cell *c = new Cell(system);
-                    c->index = cell_index_from_ijk(i,j,k);
-                    c->vr_max = 3*system->mpv;
-                    cells.push_back(c);
-                    dc->real_cell = c;
-                    c->dummy_cell = dc;
+                    cell->is_dummy_cell = false;
+                    cell->vr_max = 3*system->mpv;
+                    my_cells.push_back(cell);
                 }
             }
         }
@@ -191,7 +187,7 @@ void ThreadControl::calculate_porosity() {
                 c_y = j*system->cells_y/(float)system->world_grid->Ny;
                 c_z = k*system->cells_z/(float)system->world_grid->Nz;
                 cell_index = cell_index_from_ijk(c_x,c_y,c_z);
-                Cell *c = dummy_cells[cell_index]->real_cell;
+                Cell *c = all_cells[cell_index];
 
                 c->total_pixels++;
                 all_pixels++;
@@ -246,11 +242,11 @@ void ThreadControl::update_new_molecules(int dimension) {
         double *r  = &new_molecules[9*n];
 
         int cell_index = cell_index_from_position(r);
-        DummyCell *dummy_cell = dummy_cells[cell_index];
+        Cell *cell = all_cells[cell_index];
 
-        if(dummy_cell->node_delta_index_vector[dimension] != 0) {
+        if(cell->node_delta_index_vector[dimension] != 0) {
             // We changed cell, and in the dimension we work on right now
-            int higher_dim = dummy_cell->node_delta_index_vector[dimension]>0;
+            int higher_dim = cell->node_delta_index_vector[dimension]>0;
             int neighbor_node_id = 2*dimension+higher_dim;
             // Copy the 9 doubles over to the list
 
@@ -267,13 +263,13 @@ void ThreadControl::update_molecule_cells_local() {
         int cell_index_new = cell_index_from_position(&r[3*n]);
         int cell_index_old = molecule_cell_index[n];
 
-        DummyCell *dummy_cell_new = dummy_cells[cell_index_new];
-        DummyCell *dummy_cell_old = dummy_cells[cell_index_old];
+        Cell *new_cell = all_cells[cell_index_new];
+        Cell *old_cell = all_cells[cell_index_old];
 
-        if(cell_index_new != cell_index_old && dummy_cell_new->node_id == myid) {
+        if(cell_index_new != cell_index_old && new_cell->node_id == myid) {
             // We changed cell
-            dummy_cell_old->real_cell->remove_molecule(n,molecule_index_in_cell);
-            dummy_cell_new->real_cell->add_molecule(n,molecule_index_in_cell,molecule_cell_index);
+            old_cell->remove_molecule(n,molecule_index_in_cell);
+            new_cell->add_molecule(n,molecule_index_in_cell,molecule_cell_index);
         }
     }
 }
@@ -284,12 +280,12 @@ void ThreadControl::update_molecule_cells(int dimension) {
         int cell_index_old = molecule_cell_index[n];
         int cell_index_new = cell_index_from_position(&r[3*n]);
 
-        DummyCell *dummy_cell_new = dummy_cells[cell_index_new];
-        DummyCell *dummy_cell_old = dummy_cells[cell_index_old];
+        Cell *new_cell = all_cells[cell_index_new];
+        Cell *old_cell = all_cells[cell_index_old];
 
-        if(dummy_cell_new->node_delta_index_vector[dimension] != 0) {
+        if(new_cell->node_delta_index_vector[dimension] != 0) {
             // We changed cell, and in the dimension we work on right now
-            int higher_dim = dummy_cell_new->node_delta_index_vector[dimension]>0;
+            int higher_dim = new_cell->node_delta_index_vector[dimension]>0;
             int neighbor_node_id = 2*dimension+higher_dim;
 
             for(int a=0;a<3;a++) {
@@ -301,7 +297,7 @@ void ThreadControl::update_molecule_cells(int dimension) {
             num_molecules_to_be_moved[neighbor_node_id]++;
             molecule_moved[n] = true;
 
-            dummy_cell_old->real_cell->remove_molecule(n,molecule_index_in_cell); // Remove from old cell
+            old_cell->remove_molecule(n,molecule_index_in_cell); // Remove from old cell
         }
     }
 }
@@ -323,12 +319,12 @@ void ThreadControl::update_molecule_arrays() {
             molecule_moved[index] = false;
 
             int cell_index_old = molecule_cell_index[n];
-            DummyCell *dummy_cell_old = dummy_cells[cell_index_old];
-            dummy_cell_old->real_cell->remove_molecule(n,molecule_index_in_cell);
+            Cell *old_cell = all_cells[cell_index_old];
+            old_cell->remove_molecule(n,molecule_index_in_cell);
 
             int cell_index_new = cell_index_from_position(&r[3*index]);
-            DummyCell *dummy_cell_new = dummy_cells[cell_index_new];
-            dummy_cell_new->real_cell->add_molecule(index,molecule_index_in_cell,molecule_cell_index);
+            Cell *new_cell = all_cells[cell_index_new];
+            new_cell->add_molecule(index,molecule_index_in_cell,molecule_cell_index);
 
             index++;
         }
@@ -354,8 +350,8 @@ void ThreadControl::update_molecule_arrays() {
         r0[3*index+2] = new_molecules[9*n+8];
 
         int cell_index = cell_index_from_position(&r[3*index]);
-        DummyCell *dummy_cell = dummy_cells[cell_index];
-        dummy_cell->real_cell->add_molecule(index,molecule_index_in_cell,molecule_cell_index);
+        Cell *cell = all_cells[cell_index];
+        cell->add_molecule(index,molecule_index_in_cell,molecule_cell_index);
 
         num_molecules++;
     }

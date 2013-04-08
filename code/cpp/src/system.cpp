@@ -32,8 +32,8 @@ void System::move() {
 void System::collide() {
     timer->start_colliding();
 
-    for(int i=0;i<thread_control.cells.size();i++) {
-        Cell *cell = thread_control.cells[i];
+    for(int i=0;i<thread_control.my_cells.size();i++) {
+        Cell *cell = thread_control.my_cells[i];
 
         cell->prepare();
         collisions += cell->collide(rnd);
