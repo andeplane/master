@@ -87,10 +87,12 @@ void ThreadControl::setup_molecules() {
         return;
     }
 
+    double sqrt_temp_over_mass = sqrt(system->temperature/settings->mass);
+
     for(int n=0;n<num_molecules;n++) {
-        v[3*n+0] = system->rnd->nextGauss()*sqrt(system->temperature);
-        v[3*n+1] = system->rnd->nextGauss()*sqrt(system->temperature);
-        v[3*n+2] = system->rnd->nextGauss()*sqrt(system->temperature);
+        v[3*n+0] = system->rnd->nextGauss()*sqrt_temp_over_mass;
+        v[3*n+1] = system->rnd->nextGauss()*sqrt_temp_over_mass;
+        v[3*n+2] = system->rnd->nextGauss()*sqrt_temp_over_mass;
         find_position(&r[3*n]);
         r0[3*n+0] = r[3*n+0];
         r0[3*n+1] = r[3*n+1];

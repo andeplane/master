@@ -18,6 +18,7 @@ Settings::Settings(string filename) {
     nodes_z = ini_file.getint("nodes_z");
     gravity_direction = ini_file.getint("gravity_direction");
 
+    mass = ini_file.getdouble("mass");
     temperature = ini_file.getdouble("temperature");
     wall_temperature = ini_file.getdouble("wall_temperature");
     gravity = ini_file.getdouble("gravity");

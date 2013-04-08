@@ -109,10 +109,6 @@ void Cell::add_molecule(const int &molecule_index, unsigned long *index_in_cell,
     molecules.push_back(molecule_index);
     index_in_cell[molecule_index] = num_molecules;
     cell_index[molecule_index] = index;
-
-//    molecules.push_back(m);
-//    m->index_in_cell = num_molecules;
-//    m->cell_index = index;
     num_molecules++;
 }
 
@@ -121,12 +117,7 @@ void Cell::remove_molecule(const int &molecule_index, unsigned long *index_in_ce
         // Move the last molecule over here
         molecules[ index_in_cell[molecule_index] ] = molecules[num_molecules-1];
         index_in_cell[ molecules[num_molecules-1] ] = index_in_cell[molecule_index];
-
-//        molecules[m->index_in_cell] = molecules[num_molecules-1];
-//        molecules[m->index_in_cell]->index_in_cell = m->index_in_cell;
         molecules.pop_back();
-        // molecules.erase(molecules.begin()+num_molecules-1);
-
     } else {
         molecules.erase(molecules.begin());
     }

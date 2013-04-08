@@ -20,6 +20,7 @@ public:
     int nodes_y;
     int nodes_z;
     int gravity_direction;
+    double mass;
     double temperature;
     double wall_temperature;
     double gravity;

@@ -12,7 +12,10 @@ DSMC_IO::DSMC_IO(System *system_) {
     settings = system->settings;
     movie_frames = 0;
     movie_file_open = false;
-    if(system->myid==0) energy_file = fopen("energy.txt","w");
+    if(system->myid==0) {
+        energy_file = fopen("energy.txt","w");
+        velocity_file = fopen("velocity.txt","w");
+    }
 }
 
 void DSMC_IO::save_state_to_movie_file() {

@@ -53,7 +53,7 @@ public:
 	double dt;
 	double t;
     double temperature;
-    double mass, diam, density;
+    double diam, density;
     double wall_temperature;
     double cell_length_x;
     double cell_length_y;

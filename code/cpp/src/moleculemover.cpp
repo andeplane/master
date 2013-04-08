@@ -11,11 +11,14 @@ MoleculeMover::MoleculeMover()
 
 }
 
+double sqrt_wall_temp_over_mass = 0;
+
 void MoleculeMover::initialize(System *system_) {
     system = system_;
     voxels = system->world_grid->voxels;
     grid = system->world_grid;
     thread_control = &system->thread_control;
+    sqrt_wall_temp_over_mass = sqrt(system->wall_temperature/system->settings->mass);
 }
 
 void MoleculeMover::move_molecules(double dt, Random *rnd) {
@@ -38,7 +41,6 @@ void MoleculeMover::do_move(double *r, double *v, double *r0, const double &dt) 
     if(r[2] > system->Lz) { r[2] -= system->Lz; r0[2] -= system->Lz; }
     else if(r[2] < 0)         { r[2] += system->Lz; r0[2] += system->Lz; }
 }
-
 
 void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, int depth) {
     double tau = dt;
@@ -94,9 +96,9 @@ void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, i
             }
         }
 
-        double v_normal   = sqrt(-2*system->wall_temperature*log(rnd->nextDouble()));
-        double v_tangent1 = sqrt(system->wall_temperature)*rnd->nextGauss();
-        double v_tangent2 = sqrt(system->wall_temperature)*rnd->nextGauss();
+        double v_normal   = sqrt_wall_temp_over_mass*sqrt(-2*log(rnd->nextDouble()));
+        double v_tangent1 = sqrt_wall_temp_over_mass*rnd->nextGauss();
+        double v_tangent2 = sqrt_wall_temp_over_mass*rnd->nextGauss();
 
         // Normal vector
         float n_x = grid->normals[3*idx + 0];

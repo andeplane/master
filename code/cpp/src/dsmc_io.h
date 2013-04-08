@@ -25,5 +25,6 @@ public:
     double *data;
 
     FILE *energy_file;
+    FILE *velocity_file;
     ofstream *movie_file;
 };
