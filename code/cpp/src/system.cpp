@@ -8,7 +8,7 @@
 #include <random.h>
 #include <unitconverter.h>
 #include <dsmc_io.h>
-#include <settings.h>
+
 #include <time.h>
 #include <defines.h>
 #include <system.inc.cpp>
@@ -18,7 +18,6 @@ void System::step() {
     steps += 1;
     t += dt;
     accelerate();
-
     move();
     timer->start_colliding();
     collide();
@@ -27,65 +26,52 @@ void System::step() {
 
 void System::move() {
     timer->start_moving();
+    int cidx;
     for(int i=0;i<thread_control.cells.size();i++) {
-        Cell *cell = thread_control.cells[i];
-        mover->move_molecules(cell,dt,rnd);
-    }
+        Cell *c = thread_control.cells[i];
+        int size = c->molecules.size();
 
-    timer->end_moving();
-
-    for(int dimension = 0;dimension<3;dimension++) {
-        timer->start_moving();
-        for(int i=0;i<thread_control.cells.size();i++) {
-            Cell *cell = thread_control.cells[i];
-            cell->update_molecule_cells(dimension);
+        for(int j=0;j<size;j++) {
+            Molecule *molecule = c->molecules[j];
+            molecule->move(dt,rnd);
+            cidx = thread_control.cell_index_from_molecule(molecule);
+            if(cidx != molecule->cell_index) {
+                // We changed cell
+                if(thread_control.dummy_cells[cidx]->node_id != myid) {
+                    // If this is another node, send it to that list
+                    int node_id = thread_control.dummy_cells[cidx]->node_id;
+                    thread_control.nodes_new_atoms_list[node_id].push_back(molecule);
+                } else {
+                    // If it is this node, just add it to the dummy cell list
+                    thread_control.dummy_cells[cidx]->new_molecules.push_back(molecule);
+                }
+            }
         }
-        thread_control.update_new_molecules(dimension);
-
-        timer->end_moving();
-        timer->start_mpi();
-        thread_control.update_mpi(dimension);
-        timer->end_mpi();
     }
-
-    timer->start_moving();
-    for(int i=0;i<thread_control.cells.size();i++) {
-        Cell *cell = thread_control.cells[i];
-        cell->update_molecule_cells_local();
-    }
-
-    for(int i=0;i<thread_control.cells.size();i++) {
-        Cell *cell = thread_control.cells[i];
-        cell->update_molecule_arrays();
-    }
-    thread_control.add_new_molecules_to_cells();
+    thread_control.update_local_cells();
     timer->end_moving();
+
+    timer->start_mpi();
+    thread_control.update_mpi();
+    timer->end_mpi();
 }
 
 void System::collide() {
-    int molecules = 0;
-    int molecules_squared = 0;
-    int max = 0;
     for(int i=0;i<thread_control.cells.size();i++) {
-        Cell *cell = thread_control.cells[i];
-        int mol = cell->num_molecules;
-        if(mol>max) max = mol;
-        molecules += mol;
-        molecules_squared += mol*mol;
-        cell->prepare();
-        collisions += cell->collide(rnd);
+        thread_control.cells[i]->prepare();
+        collisions += thread_control.cells[i]->collide(rnd);
     }
-    molecules /= thread_control.cells.size();
-    molecules_squared /= thread_control.cells.size();
 }
 
 void System::accelerate() {
     if(settings->gravity_direction < 0) return;
 
-    for(int i=0;i<thread_control.cells.size();i++) {
-        Cell *c = thread_control.cells[i];
-        for(int j=0;j<c->num_molecules;j++) {
-            c->v[3*j+settings->gravity_direction] += settings->gravity*dt;
+        for(int i=0;i<thread_control.cells.size();i++) {
+            Cell *c = thread_control.cells[i];
+
+            for(int j=0;j<c->molecules.size();j++) {
+                Molecule *m = c->molecules[j];
+                m->v[settings->gravity_direction] += settings->gravity*dt;
+            }
         }
-    }
 }

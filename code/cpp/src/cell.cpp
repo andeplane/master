@@ -4,23 +4,18 @@
 #include <time.h>
 #include <molecule.h>
 #include <system.h>
-#include <structs.h>
 
 using namespace std;
-
-inline int sign(int a) { return (a>0) ? 1 : -1; }
 
 Cell::Cell(System *_system) {
     system = _system;
     vr_max = 0;
     pixels = 0;
+    molecules.reserve(100);
     num_molecules = 0;
     total_pixels = 0;
     dummy_cell = NULL;
-    r         = new double[3*MAX_PARTICLE_NUM];
-    v        = new double[3*MAX_PARTICLE_NUM];
-    r0 = new double[3*MAX_PARTICLE_NUM];
-    atom_moved        = new bool[MAX_PARTICLE_NUM];
+    test_value = 1338;
 }
 
 bool Cell::cmp(Cell *c1, Cell *c2) {
@@ -35,37 +30,11 @@ void Cell::update_volume() {
 
 int Cell::prepare() {
     //* Determine number of candidate collision pairs to be selected in this cell
-    if(num_molecules < 1) return 0;
-
     double select = collision_coefficient*num_molecules*(num_molecules-1)*vr_max;
 
     collision_pairs = round(select);      // Number of pairs to be selected
+
     return collision_pairs;
-}
-
-void Cell::collide_molecules(const int &ip0, const int &ip1, const double &v_rel, Random *rnd) {
-    double vcmx  = 0.5*(v[3*ip0+0] + v[3*ip1+0]);
-    double vcmy  = 0.5*(v[3*ip0+1] + v[3*ip1+1]);
-    double vcmz  = 0.5*(v[3*ip0+2] + v[3*ip1+2]);
-    double vx0 = v[3*ip0+0];
-    double vy0 = v[3*ip0+1];
-    double vz0 = v[3*ip0+2];
-
-    double cos_th = 1.0 - 2.0*rnd->nextDouble();      // Cosine and sine of
-    double sin_th = sqrt(1.0 - cos_th*cos_th);        // collision angle theta
-    double phi = 2*M_PI*rnd->nextDouble();
-
-    double vrelx = v_rel*cos_th;                   // Compute post-collision relative velocity
-    double vrely = v_rel*sin_th*cos(phi);
-    double vrelz = v_rel*sin_th*sin(phi);
-
-    v[3*ip0+0] = vcmx + 0.5*vrelx;
-    v[3*ip0+1] = vcmy + 0.5*vrely;
-    v[3*ip0+2] = vcmz + 0.5*vrelz;
-
-    v[3*ip1+0] = vcmx - 0.5*vrelx;
-    v[3*ip1+1] = vcmy - 0.5*vrely;
-    v[3*ip1+2] = vcmz - 0.5*vrelz;
 }
 
 int Cell::collide(Random *rnd) {
@@ -77,27 +46,31 @@ int Cell::collide(Random *rnd) {
     double crm = vr_max;     // Current maximum relative speed
 
 	//* Loop over total number of candidate collision pairs
-    int isel, collisions = 0, ip0, ip1;
-    double v_rel;
+    int isel, collisions = 0, ip1, ip2;
+    double cr;
+
+    Molecule *molecule1, *molecule2;
 
     for( isel=0; isel<collision_pairs; isel++ ) {
 		//* Pick two particles at random out of this cell
-        ip0 = (int)(rnd->nextDouble()*num_molecules);
-        ip1 = ((int)(ip1+1+rnd->nextDouble()*(num_molecules-1))) % num_molecules;
+        ip1 = (int)(rnd->nextDouble()*num_molecules);
+        ip2 = ((int)(ip1+1+rnd->nextDouble()*(num_molecules-1))) % num_molecules;
 
-        //* Calculate pair's relative speed
+        molecule1 = molecules[ip1];
+        molecule2 = molecules[ip2];
 
-        v_rel = sqrt(pow(v[3*ip0+0] - v[3*ip1+0],2) + pow(v[3*ip0+1] - v[3*ip1+1],2) + pow(v[3*ip0+2] - v[3*ip1+2],2));
+		//* Calculate pair's relative speed
+        cr = sqrt(pow(molecule1->v[0] - molecule2->v[0],2) + pow(molecule1->v[1] - molecule2->v[1],2) + pow(molecule1->v[2] - molecule2->v[2],2));
 
-        if( v_rel > crm ) {         // If relative speed larger than crm,
-            crm = v_rel;            // then reset crm to larger value
+        if( cr > crm ) {         // If relative speed larger than crm,
+            crm = cr;            // then reset crm to larger value
         }
 
 		//* Accept or reject candidate pair according to relative speed
-        if( v_rel > rnd->nextDouble()*vr_max ) {
+        if( cr > rnd->nextDouble()*vr_max ) {
 			//* If pair accepted, select post-collision velocities
 			collisions++;
-            collide_molecules(ip0,ip1, v_rel, rnd);
+            molecule1->collide_with(molecule2,rnd, cr);
 		} // Loop over pairs
 	}
 	
@@ -106,101 +79,23 @@ int Cell::collide(Random *rnd) {
 	return collisions;
 }
 
-void Cell::update_molecule_cells_local() {
-    ThreadControl &thread_control = system->thread_control;
-    for(int n=0;n<num_molecules;n++) {
-        if(atom_moved[n]) continue; // Skip atoms that are already moved
-
-        int cell_index = system->thread_control.cell_index_from_position(&r[3*n]);
-        DummyCell *dummy_cell = thread_control.dummy_cells[cell_index];
-
-        if(cell_index != this->index && dummy_cell->node_id == system->myid) {
-            // If it is this node, just add it to the dummy cell list
-            dummy_cell->real_cell->add_molecule(&r[3*n],&v[3*n],&r0[3*n]);
-            atom_moved[n] = true;
-        }
-    }
-}
-
-void Cell::update_molecule_cells(int dimension) {
-    ThreadControl &thread_control = system->thread_control;
-    for(int n=0;n<num_molecules;n++) {
-        if(atom_moved[n]) continue; // Skip atoms that are already moved
-
-        int cell_index = system->thread_control.cell_index_from_position(&r[3*n]);
-        DummyCell *dummy_cell = system->thread_control.dummy_cells[cell_index];
-
-        if(dummy_cell->node_delta_index_vector[dimension] != 0) {
-            // We changed cell, and in the dimension we work on right now
-            int higher_dim = dummy_cell->node_delta_index_vector[dimension]>0;
-            int neighbor_node_id = 2*dimension+higher_dim;
-            int num_molecules_to_be_moved = thread_control.num_molecules_to_be_moved[neighbor_node_id];
-
-            for(int a=0;a<3;a++) {
-                thread_control.molecules_to_be_moved[neighbor_node_id][9*num_molecules_to_be_moved+0+a] = r[3*n+a];
-                thread_control.molecules_to_be_moved[neighbor_node_id][9*num_molecules_to_be_moved+3+a] = v[3*n+a];
-                thread_control.molecules_to_be_moved[neighbor_node_id][9*num_molecules_to_be_moved+6+a] = r0[3*n+a];
-            }
-            thread_control.num_molecules_to_be_moved[neighbor_node_id]++;
-            atom_moved[n] = true;
-        }
-    }
-}
-
-void Cell::add_molecule(double *r_, double *v_, double *r0_) {
-    r[3*num_molecules + 0] = r_[0];
-    r[3*num_molecules + 1] = r_[1];
-    r[3*num_molecules + 2] = r_[2];
-
-    r0[3*num_molecules + 0] = r0_[0];
-    r0[3*num_molecules + 1] = r0_[1];
-    r0[3*num_molecules + 2] = r0_[2];
-
-    v[3*num_molecules + 0] = v_[0];
-    v[3*num_molecules + 1] = v_[1];
-    v[3*num_molecules + 2] = v_[2];
-    atom_moved[num_molecules] = false;
-
+void Cell::add_molecule(Molecule *m) {
+    molecules.push_back(m);
+    m->index_in_cell = num_molecules;
+    m->cell_index = index;
     num_molecules++;
 }
 
-void Cell::add_molecule(double *r_, double *v_) {
-    r[3*num_molecules + 0] = r_[0];
-    r[3*num_molecules + 1] = r_[1];
-    r[3*num_molecules + 2] = r_[2];
+void Cell::remove_molecule(Molecule *m) {
+    if(num_molecules>1) {
+        // Move the last molecule over here
+        molecules[m->index_in_cell] = molecules[num_molecules-1];
+        molecules[m->index_in_cell]->index_in_cell = m->index_in_cell;
+        molecules.erase(molecules.begin()+num_molecules-1);
 
-    r0[3*num_molecules + 0] = r_[0];
-    r0[3*num_molecules + 1] = r_[1];
-    r0[3*num_molecules + 2] = r_[2];
-
-    v[3*num_molecules + 0] = v_[0];
-    v[3*num_molecules + 1] = v_[1];
-    v[3*num_molecules + 2] = v_[2];
-    atom_moved[num_molecules] = false;
-
-    num_molecules++;
-}
-
-void Cell::update_molecule_arrays() {
-    int remaining_molecules = 0;
-    for(int n=0;n<num_molecules;n++) {
-        if(!atom_moved[n]) {
-            r[3*remaining_molecules+0]  = r[3*n+0];
-            r[3*remaining_molecules+1]  = r[3*n+1];
-            r[3*remaining_molecules+2]  = r[3*n+2];
-
-            v[3*remaining_molecules+0]  = v[3*n+0];
-            v[3*remaining_molecules+1]  = v[3*n+1];
-            v[3*remaining_molecules+2]  = v[3*n+2];
-
-            r0[3*remaining_molecules+0] = r0[3*n+0];
-            r0[3*remaining_molecules+1] = r0[3*n+1];
-            r0[3*remaining_molecules+2] = r0[3*n+2];
-
-            atom_moved[remaining_molecules] = false;
-            remaining_molecules++;
-        }
+    } else {
+        molecules.erase(molecules.begin());
     }
 
-    num_molecules = remaining_molecules;
+    num_molecules--;
 }

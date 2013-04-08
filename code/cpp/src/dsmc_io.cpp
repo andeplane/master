@@ -6,8 +6,6 @@
 #include <mpi.h>
 #include <threadcontrol.h>
 #include <grid.h>
-#include <settings.h>
-#include <dsmctimer.h>
 
 DSMC_IO::DSMC_IO(System *system_) {
     system = system_;
@@ -18,24 +16,24 @@ DSMC_IO::DSMC_IO(System *system_) {
 }
 
 void DSMC_IO::save_state_to_movie_file() {
-    system->timer->start_io();
     if(settings->create_movie && !(system->steps % settings->movie_every_n_frame)) {
         if(!movie_file_open) {
             char *filename = new char[100];
             sprintf(filename,"state_files/movie%04d.bin",system->myid);
             movie_file = new ofstream(filename,ios::out | ios::binary);
             movie_file_open = true;
-            data = new double[3*MAX_PARTICLE_NUM];
+            data = new double[3*system->thread_control.allocated_particle_data];
             delete filename;
         }
 
         int count = 0;
         for(unsigned int i=0;i<system->thread_control.cells.size();i++) {
-            Cell *cell = system->thread_control.cells[i];
-            for(unsigned int j=0;j<cell->num_molecules;j++) {
-                data[count++] = cell->r[3*j+0];
-                data[count++] = cell->r[3*j+1];
-                data[count++] = cell->r[3*j+2];
+            Cell *c = system->thread_control.cells[i];
+            for(unsigned int j=0;j<c->molecules.size();j++) {
+                Molecule *m = c->molecules[j];
+                data[count++] = m->r[0];
+                data[count++] = m->r[1];
+                data[count++] = m->r[2];
             }
         }
 
@@ -44,14 +42,13 @@ void DSMC_IO::save_state_to_movie_file() {
         movie_file->write (reinterpret_cast<char*>(&count), sizeof(int));
         movie_file->write (reinterpret_cast<char*>(data), 3*count*sizeof(double));
     }
-    system->timer->end_io();
 }
 
 void DSMC_IO::save_state_to_file_binary() {
-    system->timer->start_io();
-
     if(system->myid==0) cout << "Saving state to file..." << endl;
     ThreadControl &thread_control = system->thread_control;
+
+    int N = thread_control.num_particles;
 
     char *filename = new char[100];
     sprintf(filename,"state_files/state%04d.bin",system->myid);
@@ -63,39 +60,36 @@ void DSMC_IO::save_state_to_file_binary() {
         exit(1);
     }
 
-    double *tmp_data = new double[9*MAX_PARTICLE_NUM];
+    double *tmp_data = new double[9*N];
 
     int count = 0;
     for(unsigned int i=0;i<thread_control.cells.size();i++) {
         Cell *c = thread_control.cells[i];
-        for(unsigned int j=0;j<c->num_molecules;j++) {
-            tmp_data[count++] = c->r[3*j+0];
-            tmp_data[count++] = c->r[3*j+1];
-            tmp_data[count++] = c->r[3*j+2];
+        for(unsigned int j=0;j<c->molecules.size();j++) {
+            Molecule *m = c->molecules[j];
+            tmp_data[count++] = m->r[0];
+            tmp_data[count++] = m->r[1];
+            tmp_data[count++] = m->r[2];
 
-            tmp_data[count++] = c->r0[3*j+0];
-            tmp_data[count++] = c->r0[3*j+1];
-            tmp_data[count++] = c->r0[3*j+2];
+            tmp_data[count++] = m->r_initial[0];
+            tmp_data[count++] = m->r_initial[1];
+            tmp_data[count++] = m->r_initial[2];
 
-            tmp_data[count++] = c->v[3*j+0];
-            tmp_data[count++] = c->v[3*j+1];
-            tmp_data[count++] = c->v[3*j+2];
+            tmp_data[count++] = m->v[0];
+            tmp_data[count++] = m->v[1];
+            tmp_data[count++] = m->v[2];
         }
     }
 
-    count /= 9;
-
-    file.write (reinterpret_cast<char*>(&count), sizeof(int));
-    file.write (reinterpret_cast<char*>(tmp_data), 9*count*sizeof(double));
+    file.write (reinterpret_cast<char*>(&N), sizeof(int));
+    file.write (reinterpret_cast<char*>(tmp_data), 9*N*sizeof(double));
 
     file.close();
     delete tmp_data;
     delete filename;
-    system->timer->end_io();
 }
 
 void DSMC_IO::load_state_from_file_binary() {
-    system->timer->start_io();
     if(system->myid==0) cout << "Loading state from file..." << endl;
     int N = 0;
     ThreadControl &thread_control = system->thread_control;
@@ -114,27 +108,31 @@ void DSMC_IO::load_state_from_file_binary() {
 
     file.read(reinterpret_cast<char*>(tmp_data), 9*N*sizeof(double));
     file.close();
-    double r[3], v[3], r0[3];
+
     for(int n=0;n<N;n++) {
-        r[0] = tmp_data[9*n+0];
-        r[1] = tmp_data[9*n+1];
-        r[2] = tmp_data[9*n+2];
+        Molecule *m = new Molecule(system);
+        m->atoms = system->eff_num;
+        m->r = &thread_control.positions[3*thread_control.all_molecules.size()];
+        m->v = &thread_control.velocities[3*thread_control.all_molecules.size()];
+        m->r_initial = &thread_control.initial_positions[3*thread_control.all_molecules.size()];
+        m->r[0] = tmp_data[9*n+0];
+        m->r[1] = tmp_data[9*n+1];
+        m->r[2] = tmp_data[9*n+2];
 
-        r0[0] = tmp_data[9*n+3];
-        r0[1] = tmp_data[9*n+4];
-        r0[2] = tmp_data[9*n+5];
+        m->r_initial[0] = tmp_data[9*n+3];
+        m->r_initial[1] = tmp_data[9*n+4];
+        m->r_initial[2] = tmp_data[9*n+5];
 
-        v[0] = tmp_data[9*n+6];
-        v[1] = tmp_data[9*n+7];
-        v[2] = tmp_data[9*n+8];
-        int cell_index = thread_control.cell_index_from_position(r);
-        DummyCell *dummy_cell = thread_control.dummy_cells[cell_index];
-        dummy_cell->real_cell->add_molecule(r,v,r0);
+        m->v[0] = tmp_data[9*n+6];
+        m->v[1] = tmp_data[9*n+7];
+        m->v[2] = tmp_data[9*n+8];
+
+        thread_control.dummy_cells[thread_control.cell_index_from_molecule(m)]->real_cell->add_molecule(m);
+        thread_control.all_molecules.push_back(m);
     }
 
     delete filename;
     delete tmp_data;
-    system->timer->end_io();
 }
 
 void DSMC_IO::finalize() {
@@ -147,8 +145,6 @@ void DSMC_IO::finalize() {
 }
 
 void DSMC_IO::read_grid_matrix(string filename, Grid *grid) {
-    system->timer->start_io();
-
     ifstream file (filename.c_str(), ios::in | ios::binary);
     if(!file.is_open()) {
         cout << "Error, could not open file " << filename << endl;
@@ -172,6 +168,4 @@ void DSMC_IO::read_grid_matrix(string filename, Grid *grid) {
     file.read (reinterpret_cast<char*>(grid->tangents1), 3*points*sizeof(float));
     file.read (reinterpret_cast<char*>(grid->tangents2), 3*points*sizeof(float));
     file.close();
-
-    system->timer->end_io();
 }

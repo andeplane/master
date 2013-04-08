@@ -3,7 +3,7 @@ CONFIG += console
 CONFIG -= qt
 
 release {
-    # DEFINES += DEBUG_MPI
+    DEFINES +=
 }
 
 DEFINES +=
@@ -22,8 +22,7 @@ SOURCES += main.cpp \
     settings.cpp \
     dsmc_io.cpp \
     threadcontrol.cpp \
-    dsmctimer.cpp \
-    moleculemover.cpp
+    dsmctimer.cpp
 
 HEADERS += \
     system.h \
@@ -40,9 +39,7 @@ HEADERS += \
     settings.h \
     dsmc_io.h \
     threadcontrol.h \
-    dsmctimer.h \
-    moleculemover.h \
-    structs.h
+    dsmctimer.h
 
 OTHER_FILES += \
     ../dsmc.ini
@@ -54,7 +51,7 @@ mac {
     QMAKE_CXXFLAGS +=
     QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CXXFLAGS
     QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CXXFLAGS
-    QMAKE_CXX = mpic++
+    QMAKE_CXX = icc
 }
 
 unix:!mac {

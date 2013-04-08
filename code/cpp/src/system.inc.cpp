@@ -1,7 +1,6 @@
 #include <system.h>
 #include <mpi.h>
 #include <dsmctimer.h>
-#include <moleculemover.h>
 
 void System::initialize(Settings *settings_, int myid_) {
     myid = myid_;
@@ -15,18 +14,12 @@ void System::initialize(Settings *settings_, int myid_) {
     collisions = 0;
     t = 0;
 
-
     init_randoms();
-    long seed = *rnd->idum;
     unit_converter = new UnitConverter();
 
     Lx   = settings->Lx;
     Ly   = settings->Ly;
     Lz   = settings->Lz;
-
-    length[0] = settings->Lx;
-    length[1] = settings->Ly;
-    length[2] = settings->Lz;
 
     cell_length_x = Lx/(settings->cells_per_node_x*settings->nodes_x);
     cell_length_y = Ly/(settings->cells_per_node_y*settings->nodes_y);
@@ -46,11 +39,8 @@ void System::initialize(Settings *settings_, int myid_) {
 
     if(myid==0) cout << "Loading world..." << endl;
     world_grid = new Grid(settings->ini_file.getstring("world"),this);
+    if(myid==0) cout << "Initializing thread system..." << endl;
 
-    mover = new MoleculeMover();
-    mover->initialize(this);
-
-    if(myid==0) cout << "Initializing thread control..." << endl;
     thread_control.setup(this);
 
     MPI_Allreduce(&thread_control.porosity,&porosity_global,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -82,7 +72,6 @@ void System::initialize(Settings *settings_, int myid_) {
         printf("Mean free paths per cell: %.2f \n",min( min(Lx/cells_x/mfp,Ly/cells_y/mfp), Lz/cells_z/mfp));
         printf("%d atoms per molecule\n",(int)eff_num);
         printf("%d molecules per cell\n",num_particles_global/number_of_cells);
-        printf("Random seed: %ld\n",seed);
 
         printf("dt = %f\n\n",dt);
     }
@@ -92,6 +81,6 @@ void System::initialize(Settings *settings_, int myid_) {
 
 void System::init_randoms() {
     long seed = time(NULL);
-    seed = 3 + myid;
+    seed = 1 + myid;
     rnd = new Random(-seed);
 }
