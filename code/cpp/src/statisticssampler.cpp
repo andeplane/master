@@ -65,7 +65,8 @@ void StatisticsSampler::sample_permeability() {
 
     sample_flux();
     double volume_per_molecule = system->volume / system->num_molecules_global;
-    permeability = -flux[settings->gravity_direction]*volume_per_molecule*system->length[settings->gravity_direction]*settings->viscosity / (2*settings->mass*settings->gravity);
+    double viscosity_dsmc_units = system->unit_converter->viscosity_from_SI(settings->viscosity);
+    permeability = -flux[settings->gravity_direction]*volume_per_molecule*system->length[settings->gravity_direction]*viscosity_dsmc_units / (2*settings->mass*settings->gravity);
 }
 
 void StatisticsSampler::sample() {
