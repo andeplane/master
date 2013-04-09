@@ -30,7 +30,7 @@ void MoleculeMover::move_molecules(double dt, Random *rnd) {
     }
 }
 
-inline void MoleculeMover::do_move(double *r, double *v, double *r0, const double &dt) {
+void MoleculeMover::do_move(double *r, double *v, double *r0, const double &dt) {
     r[0] += v[0]*dt;
     r[1] += v[1]*dt;
     r[2] += v[2]*dt;
@@ -138,7 +138,7 @@ void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, i
     }
     else dt = 0;
 
-    if(dt > 1e-10 && depth < 5) {
+    if(dt > 1e-5 && depth < 10) {
         move_molecule(molecule_index,dt,rnd,depth+1);
     }
 }
