@@ -52,8 +52,9 @@ int main(int args, char* argv[]) {
             double fraction_io = system.timer->fraction_io();
             double fraction_mpi = system.timer->fraction_mpi();
             double fraction_sample = system.timer->fraction_sample();
-            double fraction_total = fraction_moving + fraction_colliding + fraction_io + fraction_mpi + fraction_sample;
-            double time_total = system.timer->system_initialize + system.timer->moving + system.timer->colliding + system.timer->io + system.timer->mpi + system.timer->sample;
+            double fraction_accelerate = system.timer->fraction_accelerate();
+            double fraction_total = fraction_moving + fraction_colliding + fraction_io + fraction_mpi + fraction_sample + fraction_accelerate;
+            double time_total = system.timer->system_initialize + system.timer->moving + system.timer->colliding + system.timer->io + system.timer->mpi + system.timer->sample + system.timer->accelerate;
 
             double total_time = MPI_Wtime() - t_start;
             cout.precision(2);
@@ -61,6 +62,7 @@ int main(int args, char* argv[]) {
             cout << fixed
                  << "      Moving            : " << system.timer->moving << " s ( " << 100*fraction_moving << "% )" <<  endl
                  << "      Colliding         : " << system.timer->colliding << " s ( " << 100*fraction_colliding << "% )" <<  endl
+                 << "      Accelerating      : " << system.timer->accelerate << " s ( " << 100*fraction_accelerate << "% )" <<  endl
                  << "      Sampling          : " << system.timer->sample << " s ( " << 100*fraction_sample << "% )" <<  endl
                  << "      Disk IO           : " << system.timer->io << " s ( " << 100*fraction_io << "% )" <<  endl
                  << "      System initialize : " << system.timer->system_initialize << " s ( " << 100*system_initialize_percentage << "% )" <<  endl

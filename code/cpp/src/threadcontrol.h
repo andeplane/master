@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#define MAX_MOLECULE_NUM 100000
+#define MAX_MOLECULE_NUM 10000000
 
 class System;
 class Settings;

@@ -30,7 +30,7 @@ void MoleculeMover::move_molecules(double dt, Random *rnd) {
     }
 }
 
-void MoleculeMover::do_move(double *r, double *v, double *r0, const double &dt) {
+inline void MoleculeMover::do_move(double *r, double *v, double *r0, const double &dt) {
     r[0] += v[0]*dt;
     r[1] += v[1]*dt;
     r[2] += v[2]*dt;
@@ -45,6 +45,14 @@ void MoleculeMover::do_move(double *r, double *v, double *r0, const double &dt) 
     else if(r[2] < 0)         { r[2] += system->Lz; r0[2] += system->Lz; count_periodic_z--; }
 }
 
+inline int get_index_of_voxel(double *r, const double &nx_div_lx,const double &ny_div_ly,const double &nz_div_lz, const int &Nx, const int &NyNx) {
+    int i =  r[0]*nx_div_lx;
+    int j =  r[1]*ny_div_ly;
+    int k =  r[2]*nz_div_lz;
+
+    return i + j*Nx + k*NyNx;
+}
+
 void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, int depth) {
     double tau = dt;
 
@@ -54,14 +62,20 @@ void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, i
 
     do_move(r,v,r0,dt);
 
-    int idx = grid->get_index_of_voxel(r);
+    double nx_div_lx = grid->Nx/system->Lx;
+    double ny_div_ly = grid->Ny/system->Ly;
+    double nz_div_lz = grid->Nz/system->Lz;
+    int nx = grid->Nx;
+    int nynx = grid->Nx*grid->Ny;
+
+    int idx = get_index_of_voxel(r,nx_div_lx,ny_div_ly,nz_div_lz,nx,nynx);
 
     // We have to calculate time until collision
     if(voxels[idx]>=voxel_type_wall) { // Is wall
         if(voxels[idx]!=voxel_type_boundary) { // Not boundary
             int count = 0;
             while(true) {
-                idx = grid->get_index_of_voxel(r);
+                idx = get_index_of_voxel(r,nx_div_lx,ny_div_ly,nz_div_lz,nx,nynx);
                 if(voxels[idx]==voxel_type_boundary) {
                     dt -= tau;
                     while(*grid->get_voxel(r)>=voxel_type_wall) {

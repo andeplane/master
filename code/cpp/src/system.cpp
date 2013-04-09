@@ -44,7 +44,13 @@ void System::collide() {
 
 void System::accelerate() {
     if(settings->gravity_direction < 0) return;
+    timer->start_accelerate();
+
+    int gravity_dir = settings->gravity_direction;
+    double gravity = settings->gravity*dt;
+
     for(int n=0;n<thread_control.num_molecules;n++) {
-        thread_control.v[3*n+settings->gravity_direction] += settings->gravity*dt;
+        thread_control.v[3*n+gravity_dir] += gravity;
     }
+    timer->end_accelerate();
 }

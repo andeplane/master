@@ -50,5 +50,12 @@ public:
     void end_sample();
     double fraction_sample();
 
+    double accelerate_t0;
+    double accelerate;
+    double accelerate_global;
+    void start_accelerate();
+    void end_accelerate();
+    double fraction_accelerate();
+
     void gather_all_nodes(System *system);
 };

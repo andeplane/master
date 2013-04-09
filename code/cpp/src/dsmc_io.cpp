@@ -6,6 +6,8 @@
 #include <threadcontrol.h>
 #include <grid.h>
 #include <settings.h>
+#include <dsmctimer.h>
+
 DSMC_IO::DSMC_IO(System *system_) {
     system = system_;
     settings = system->settings;
@@ -20,6 +22,7 @@ DSMC_IO::DSMC_IO(System *system_) {
 }
 
 void DSMC_IO::save_state_to_movie_file() {
+    system->timer->start_io();
     if(settings->create_movie && !(system->steps % settings->movie_every_n_frame)) {
         if(!movie_file_open) {
             char *filename = new char[100];
@@ -42,9 +45,11 @@ void DSMC_IO::save_state_to_movie_file() {
         movie_file->write (reinterpret_cast<char*>(&count), sizeof(int));
         movie_file->write (reinterpret_cast<char*>(data), 3*count*sizeof(double));
     }
+    system->timer->end_io();
 }
 
 void DSMC_IO::save_state_to_file_binary() {
+    system->timer->start_io();
     if(system->myid==0) cout << "Saving state to file..." << endl;
     ThreadControl &thread_control = system->thread_control;
 
@@ -84,9 +89,11 @@ void DSMC_IO::save_state_to_file_binary() {
     file.close();
     delete tmp_data;
     delete filename;
+    system->timer->end_io();
 }
 
 void DSMC_IO::load_state_from_file_binary() {
+    system->timer->start_io();
     if(system->myid==0) cout << "Loading state from file..." << endl;
     int N = 0;
     ThreadControl &thread_control = system->thread_control;
@@ -128,6 +135,7 @@ void DSMC_IO::load_state_from_file_binary() {
 
     delete filename;
     delete tmp_data;
+    system->timer->end_io();
 }
 
 void DSMC_IO::finalize() {

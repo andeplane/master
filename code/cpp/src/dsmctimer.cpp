@@ -10,6 +10,7 @@ DSMCTimer::DSMCTimer() {
     colliding = 0;
     mpi = 0;
     sample = 0;
+    accelerate = 0;
 }
 
 void DSMCTimer::start_moving() {
@@ -88,6 +89,19 @@ void DSMCTimer::end_sample() {
 double DSMCTimer::fraction_sample() {
     double t1 = MPI_Wtime();
     return sample/(t1-t0);
+}
+
+void DSMCTimer::start_accelerate() {
+    accelerate_t0 = MPI_Wtime();
+}
+
+void DSMCTimer::end_accelerate() {
+    accelerate += MPI_Wtime() - accelerate_t0;
+}
+
+double DSMCTimer::fraction_accelerate() {
+    double t1 = MPI_Wtime();
+    return accelerate/(t1-t0);
 }
 
 void DSMCTimer::gather_all_nodes(System *system) {

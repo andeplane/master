@@ -27,10 +27,11 @@ void ThreadControl::setup(System *system_) {
         origo[a] = my_vector_index[a]*(system->length[a]/num_processors[a]);
     }
 
-    if(myid==0) cout << "Setting up cells..." << endl;
+    if(myid==0) cout << "Creating cells..." << endl;
     setup_cells();
+    if(myid==0) cout << "Calculating porosity..." << endl;
     calculate_porosity();
-    if(myid==0) cout << "Setting up molecules..." << endl;
+    if(myid==0) cout << "Creating/loading molecules..." << endl;
     setup_molecules();
 
     mpi_receive_buffer = new double[9*MAX_MOLECULE_NUM];
@@ -76,11 +77,13 @@ void ThreadControl::setup_molecules() {
     num_new_molecules = 0;
 
     r = new double[3*MAX_MOLECULE_NUM];
-    v = new double[3*MAX_MOLECULE_NUM];
-    r0 = new double[3*MAX_MOLECULE_NUM];
+
     molecule_index_in_cell = new unsigned long[MAX_MOLECULE_NUM];
     molecule_cell_index    = new unsigned long[MAX_MOLECULE_NUM];
     molecule_moved         = new bool[MAX_MOLECULE_NUM];
+
+    v = new double[3*MAX_MOLECULE_NUM];
+    r0 = new double[3*MAX_MOLECULE_NUM];
 
     if(settings->load_previous_state) {
         system->io->load_state_from_file_binary();
