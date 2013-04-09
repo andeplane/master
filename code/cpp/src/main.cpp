@@ -37,7 +37,9 @@ int main(int args, char* argv[]) {
         system.io->save_state_to_movie_file();
         system.step();
 
+        system.timer->start_sample();
         sampler->sample();
+        system.timer->end_sample();
     }
 
     system.io->save_state_to_file_binary();
@@ -49,17 +51,19 @@ int main(int args, char* argv[]) {
             double fraction_colliding = system.timer->fraction_colliding();
             double fraction_io = system.timer->fraction_io();
             double fraction_mpi = system.timer->fraction_mpi();
-            double fraction_total = fraction_moving + fraction_colliding + fraction_io + fraction_mpi;
-            double time_total = system.timer->system_initialize + system.timer->moving + system.timer->colliding + system.timer->io + system.timer->mpi;
+            double fraction_sample = system.timer->fraction_sample();
+            double fraction_total = fraction_moving + fraction_colliding + fraction_io + fraction_mpi + fraction_sample;
+            double time_total = system.timer->system_initialize + system.timer->moving + system.timer->colliding + system.timer->io + system.timer->mpi + system.timer->sample;
 
             double total_time = MPI_Wtime() - t_start;
             cout.precision(2);
             cout << endl << "Program finished after " << total_time << " seconds. Time analysis:" << endl;
             cout << fixed
-                 << "      System initialize : " << system.timer->system_initialize << " s ( " << 100*system_initialize_percentage << "% )" <<  endl
                  << "      Moving            : " << system.timer->moving << " s ( " << 100*fraction_moving << "% )" <<  endl
                  << "      Colliding         : " << system.timer->colliding << " s ( " << 100*fraction_colliding << "% )" <<  endl
+                 << "      Sampling          : " << system.timer->sample << " s ( " << 100*fraction_sample << "% )" <<  endl
                  << "      Disk IO           : " << system.timer->io << " s ( " << 100*fraction_io << "% )" <<  endl
+                 << "      System initialize : " << system.timer->system_initialize << " s ( " << 100*system_initialize_percentage << "% )" <<  endl
                  << "      MPI communication : " << system.timer->mpi << " s ( " << 100*fraction_mpi << "% )" <<  endl << endl
                  << "      TOTAL             : " << time_total << " s ( " << 100*fraction_total << "% )" <<  endl;
             cout << endl << settings->timesteps / total_time << " timesteps / second. " << endl;

@@ -4,14 +4,18 @@ UnitConverter::UnitConverter()
 {
     m0 = 6.63352065e-26;  // SI
     L0 = 1e-6;            // SI
-    E0ev = 1.0318e-2;    // eV
     E0 = 1.65088e-21;     // SI
+    E0ev = 1.0318e-2;     // eV
     kb = 1.3806503e-23;   // SI
 
     t0 = L0*sqrt(m0/E0);
     F0 = E0/L0;
     T0 = E0/kb;
-    P0 = m0/(t0*L0);
+    P0 = F0/L0/L0;
+    v0 = L0/t0;
+    visc0 = P0*t0;
+    diff0 = L0*L0/t0;
+    perm0 = L0*L0;
 }
 
 double UnitConverter::pressure_to_SI(double P) { return P0*P; }
@@ -43,6 +47,9 @@ double UnitConverter::velocity_from_SI(double v) { return v/v0; }
 
 double UnitConverter::viscosity_to_SI(double v) { return v*visc0; }
 double UnitConverter::viscosity_from_SI(double v) { return v/visc0; }
+
+double UnitConverter::permeability_to_SI(double k) { return k*perm0; }
+double UnitConverter::permeability_from_SI(double k) { return k/perm0; }
 
 double UnitConverter::diffusion_to_SI(double d) { return d*diff0; }
 double UnitConverter::diffusion_from_SI(double d) { return d/diff0; }

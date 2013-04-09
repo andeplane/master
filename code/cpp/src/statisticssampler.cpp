@@ -8,6 +8,7 @@
 #include <mpi.h>
 #include <threadcontrol.h>
 #include <settings.h>
+#include <moleculemover.h>
 
 StatisticsSampler::StatisticsSampler(System *system_) {
     system = system_;
@@ -15,6 +16,10 @@ StatisticsSampler::StatisticsSampler(System *system_) {
     temperature_sampled_at = -1;
     kinetic_energy_sampled_at = -1;
     velocity_distribution_sampled_at = -1;
+    flux_sampled_at = -1;
+    permeability_sampled_at = -1;
+    permeability = 0;
+    flux[0] = 0; flux[1] = 0; flux[2] = 0;
 }
 
 void StatisticsSampler::sample_kinetic_energy() {
@@ -25,8 +30,10 @@ void StatisticsSampler::sample_kinetic_energy() {
     double kinetic_energy_global = 0;
 
     for(unsigned int i=0;i<system->thread_control.num_molecules;i++) {
-        kinetic_energy += 0.5*settings->mass*(system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2]);
+        kinetic_energy += 0.5*(system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2]);
     }
+    kinetic_energy *= settings->mass*system->eff_num;
+
     MPI_Allreduce(&kinetic_energy, &kinetic_energy_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
     kinetic_energy = kinetic_energy_global;
@@ -37,17 +44,37 @@ void StatisticsSampler::sample_temperature() {
     temperature_sampled_at = system->steps;
 
     sample_kinetic_energy();
-    double kinetic_energy_per_atom = kinetic_energy / system->num_molecules_global;
-    temperature = 2.0/3*kinetic_energy_per_atom;
+    double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules_global*system->eff_num);
+    temperature = 2.0/3*kinetic_energy_per_molecule;
+}
+
+void StatisticsSampler::sample_flux() {
+    if(system->steps == flux_sampled_at) return;
+    flux_sampled_at = system->steps;
+
+    flux[0] = 0; flux[1] = 0; flux[2] = 0;
+    flux[0] = system->mover->count_periodic_x / system->t;
+    flux[1] = system->mover->count_periodic_y / system->t;
+    flux[2] = system->mover->count_periodic_z / system->t;
+}
+
+void StatisticsSampler::sample_permeability() {
+    if(system->steps == permeability_sampled_at) return;
+    permeability_sampled_at = system->steps;
+    if(settings->gravity_direction<0) return;
+
+    sample_flux();
+    double volume_per_molecule = system->volume / system->num_molecules_global;
+    permeability = -flux[settings->gravity_direction]*volume_per_molecule*system->length[settings->gravity_direction]*settings->viscosity / (2*settings->mass*settings->gravity);
 }
 
 void StatisticsSampler::sample() {
     if(settings->statistics_interval && system->steps % settings->statistics_interval != 0) return;
-
     double t_in_nano_seconds = system->unit_converter->time_to_SI(system->t)*1e9;
 
     sample_velocity_distribution();
     sample_temperature();
+    sample_permeability();
 
     long collisions_global = 0;
 
@@ -55,7 +82,12 @@ void StatisticsSampler::sample() {
                    MPI_SUM, 0, MPI_COMM_WORLD);
 
     if(system->myid == 0) {
-        fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy), system->unit_converter->temperature_to_SI(temperature));
+        double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules_global*system->eff_num);
+
+        fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy_per_molecule), system->unit_converter->temperature_to_SI(temperature));
+        fprintf(system->io->flux_file, "%f %f %f %f\n",t_in_nano_seconds, flux[0], flux[1], flux[2]);
+        fprintf(system->io->permeability_file, "%f %E\n",t_in_nano_seconds, system->unit_converter->permeability_to_SI(permeability));
+
         cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  collisions_global <<  endl;
     }
 }

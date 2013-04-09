@@ -1,22 +1,24 @@
 #pragma once
 #include <math.h>
 
-static double m0 = 6.63352065e-26;  // SI
-static double L0 = 1e-6;            // SI
-static double E0 = 1.65088e-21;     // SI
-static double E0ev = 1.0318e-2;     // eV
-static double kb = 1.3806503e-23;   // SI
-
-static double t0 = L0*sqrt(m0/E0);
-static double F0 = E0/L0;
-static double T0 = E0/kb;
-static double P0 = F0/L0/L0;
-static double v0 = L0/t0;
-static double visc0 = P0*t0;
-static double diff0 = L0*L0/t0;
-
 class UnitConverter
 {
+private:
+    double m0;
+    double L0;
+    double E0;
+    double E0ev;
+    double kb;
+
+    double t0;
+    double F0;
+    double T0;
+    double P0;
+    double v0;
+    double visc0;
+    double diff0;
+    double perm0;
+
 public:
     UnitConverter();
 
@@ -52,4 +54,7 @@ public:
 
     double diffusion_to_SI(double d);
     double diffusion_from_SI(double d);
+
+    double permeability_to_SI(double d);
+    double permeability_from_SI(double d);
 };

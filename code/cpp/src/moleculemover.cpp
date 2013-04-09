@@ -19,6 +19,9 @@ void MoleculeMover::initialize(System *system_) {
     grid = system->world_grid;
     thread_control = &system->thread_control;
     sqrt_wall_temp_over_mass = sqrt(system->wall_temperature/system->settings->mass);
+    count_periodic_x = 0;
+    count_periodic_y = 0;
+    count_periodic_z = 0;
 }
 
 void MoleculeMover::move_molecules(double dt, Random *rnd) {
@@ -32,14 +35,14 @@ void MoleculeMover::do_move(double *r, double *v, double *r0, const double &dt) 
     r[1] += v[1]*dt;
     r[2] += v[2]*dt;
 
-    if(r[0] > system->Lx)  { r[0] -= system->Lx; r0[0] -= system->Lx; }
-    else if(r[0] < 0)         { r[0] += system->Lx; r0[0] += system->Lx; }
+    if(r[0] > system->Lx)  { r[0] -= system->Lx; r0[0] -= system->Lx; count_periodic_x++; }
+    else if(r[0] < 0)         { r[0] += system->Lx; r0[0] += system->Lx; count_periodic_x--; }
 
-    if(r[1] > system->Ly) { r[1] -= system->Ly; r0[1] -= system->Ly; }
-    else if(r[1] < 0)         { r[1] += system->Ly; r0[1] += system->Ly; }
+    if(r[1] > system->Ly) { r[1] -= system->Ly; r0[1] -= system->Ly; count_periodic_y++; }
+    else if(r[1] < 0)         { r[1] += system->Ly; r0[1] += system->Ly; count_periodic_y--; }
 
-    if(r[2] > system->Lz) { r[2] -= system->Lz; r0[2] -= system->Lz; }
-    else if(r[2] < 0)         { r[2] += system->Lz; r0[2] += system->Lz; }
+    if(r[2] > system->Lz) { r[2] -= system->Lz; r0[2] -= system->Lz; count_periodic_z++; }
+    else if(r[2] < 0)         { r[2] += system->Lz; r0[2] += system->Lz; count_periodic_z--; }
 }
 
 void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, int depth) {

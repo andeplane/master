@@ -43,5 +43,12 @@ public:
     void end_io();
     double fraction_io();
 
+    double sample_t0;
+    double sample;
+    double sample_global;
+    void start_sample();
+    void end_sample();
+    double fraction_sample();
+
     void gather_all_nodes(System *system);
 };

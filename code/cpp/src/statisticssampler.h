@@ -11,9 +11,11 @@ class StatisticsSampler {
 private:
 	System *system;
     Settings *settings;
-    unsigned long temperature_sampled_at;
-    unsigned long kinetic_energy_sampled_at;
-    unsigned long velocity_distribution_sampled_at;
+    long temperature_sampled_at;
+    long kinetic_energy_sampled_at;
+    long velocity_distribution_sampled_at;
+    long flux_sampled_at;
+    long permeability_sampled_at;
 
 public:
     StatisticsSampler(System *system);
@@ -21,5 +23,10 @@ public:
     void sample_kinetic_energy();
     void sample_temperature();
     void sample_velocity_distribution();
-    double kinetic_energy, temperature;
+    void sample_flux();
+    void sample_permeability();
+    double kinetic_energy;
+    double temperature;
+    double flux[3];
+    double permeability;
 };

@@ -14,6 +14,8 @@ DSMC_IO::DSMC_IO(System *system_) {
     if(system->myid==0) {
         energy_file = fopen("energy.txt","w");
         velocity_file = fopen("velocity.txt","w");
+        flux_file = fopen("flux.txt","w");
+        permeability_file = fopen("permeability.txt","w");
     }
 }
 
@@ -135,6 +137,9 @@ void DSMC_IO::finalize() {
 
     if(system->myid != 0) return;
     fclose(energy_file);
+    fclose(velocity_file);
+    fclose(flux_file);
+    fclose(permeability_file);
 }
 
 void DSMC_IO::read_grid_matrix(string filename, Grid *grid) {

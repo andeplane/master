@@ -26,5 +26,7 @@ public:
 
     FILE *energy_file;
     FILE *velocity_file;
+    FILE *flux_file;
+    FILE *permeability_file;
     ofstream *movie_file;
 };
