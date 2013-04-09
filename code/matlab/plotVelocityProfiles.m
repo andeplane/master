@@ -17,7 +17,7 @@ function plotVelocityProfiles(data)
                 
                 this_v = data(n,3*index+3);
                 v(i,j) = v(i,j) + this_v;
-                dr = sqrt( (i-25)^2 + (j-25)^2 );
+                dr = sqrt( (i-26)^2 + (j-26)^2 );
                 
                 vr_index = round(dr)+1;
                 vr(vr_index) = vr(vr_index) + this_v;
@@ -32,7 +32,7 @@ function plotVelocityProfiles(data)
         end
     end
     
-    plot(vr,'r')
+    plot(vr(1:26),'r')
     figure
     for i=1:num_cells_per_dim
         for j=1:num_cells_per_dim
