@@ -122,6 +122,7 @@ void StatisticsSampler::sample_velocity_distribution_cylinder() {
         double dy = system->thread_control.r[3*i+1] - center_y;
         double dr = sqrt(dx*dx + dy*dy);
         int v_of_r_index = N*dr;
+        if(v_of_r_index>=N) continue;
         double v_norm = sqrt(system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0]);
         double vz = system->thread_control.v[3*i+2];
 

@@ -81,7 +81,7 @@ void System::initialize(Settings *settings_, int myid_) {
         printf("Effective system volume: %f\n",volume);
         printf("Mean free path: %.4f \n",mfp);
         printf("Mean free paths per cell: %.2f \n",min( min(Lx/cells_x/mfp,Ly/cells_y/mfp), Lz/cells_z/mfp));
-        printf("%d atoms per molecule\n",(int)eff_num);
+        printf("%d atoms per molecule\n",(unsigned long)eff_num);
         printf("%d molecules per active cell\n",num_molecules_global/number_of_cells);
 
         printf("dt = %f\n\n",dt);
