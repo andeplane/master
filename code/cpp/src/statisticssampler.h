@@ -23,8 +23,11 @@ public:
     void sample_kinetic_energy();
     void sample_temperature();
     void sample_velocity_distribution();
+    void sample_velocity_distribution_box();
+    void sample_velocity_distribution_cylinder();
     void sample_flux();
     void sample_permeability();
+
     double kinetic_energy;
     double temperature;
     double flux[3];

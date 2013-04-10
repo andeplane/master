@@ -41,7 +41,8 @@ public:
     MoleculeMover *mover;
 
 
-    double Lx; double Ly; double Lz;
+    double Lx, Ly, Lz;
+    double grid_origo_x, grid_origo_y, grid_origo_z;
     double length[3];
 	double eff_num;
 	double mpv; 	// Most probable velocity

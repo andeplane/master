@@ -57,10 +57,11 @@ void ThreadControl::setup_topology() {
 }
 
 void ThreadControl::update_cell_volume() {
-    for(int i=0;i<my_cells.size();i++) {
-        Cell *cell = my_cells[i];
+    for(int i=0;i<all_cells.size();i++) {
+        Cell *cell = all_cells[i];
         cell->vr_max = 3*system->mpv;
         cell->update_volume();
+        if(cell->volume>0) my_cells.push_back(cell);
     }
 }
 
@@ -157,12 +158,12 @@ void ThreadControl::setup_cells() {
                 cell->node_id = node_id;
                 cell->index = cell_index_from_ijk(i,j,k);
                 cell->is_dummy_cell = true;
+                cell->vr_max = 3*system->mpv;
                 all_cells.push_back(cell);
 
                 if(node_id == myid) {
                     cell->is_dummy_cell = false;
-                    cell->vr_max = 3*system->mpv;
-                    my_cells.push_back(cell);
+                    // my_cells.push_back(cell);
                 }
             }
         }

@@ -28,5 +28,9 @@ Settings::Settings(string filename) {
     Lx = ini_file.getdouble("Lx");
     Ly = ini_file.getdouble("Ly");
     Lz = ini_file.getdouble("Lz");
+    L_reservoir_x = ini_file.getdouble("L_reservoir_x");
+    L_reservoir_y = ini_file.getdouble("L_reservoir_y");
+    L_reservoir_z = ini_file.getdouble("L_reservoir_z");
+
     dt = ini_file.getdouble("dt");
 }

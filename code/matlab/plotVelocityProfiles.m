@@ -31,8 +31,11 @@ function plotVelocityProfiles(data)
             vr(i) = vr(i) / vr_count(i); 
         end
     end
+    x = linspace(0,0.5,length(vr));
+    plot(x,vr,'r')
+    xlabel('r [\mu m]');
+    ylabel('v [m^s]');
     
-    plot(vr(1:26),'r')
     figure
     for i=1:num_cells_per_dim
         for j=1:num_cells_per_dim

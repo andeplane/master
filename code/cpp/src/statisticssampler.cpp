@@ -66,15 +66,28 @@ void StatisticsSampler::sample_permeability() {
     sample_flux();
     double volume_per_molecule = system->volume / system->num_molecules_global;
     double viscosity_dsmc_units = system->unit_converter->viscosity_from_SI(settings->viscosity);
-    permeability = -flux[settings->gravity_direction]*volume_per_molecule*system->length[settings->gravity_direction]*viscosity_dsmc_units / (2*settings->mass*settings->gravity);
+    // permeability = -flux[settings->gravity_direction]*volume_per_molecule*system->length[settings->gravity_direction]*viscosity_dsmc_units / (2*settings->mass*settings->gravity);
+    double volume_flux = flux[settings->gravity_direction]*volume_per_molecule;
+    double L = system->length[settings->gravity_direction];
+    double mass_density = system->density*settings->mass;
+    double radius = (system->Lx/2)*0.8;
+    double pi = 3.14159265359;
+
+    double area = pi*radius*radius;
+    double theoretical = radius*radius/8;
+
+    permeability = volume_flux*L*viscosity_dsmc_units / (mass_density*settings->gravity*area);
+    // cout << "Permeability: " << system->unit_converter->permeability_to_SI(permeability) << " (theoretical: " << system->unit_converter->permeability_to_SI(theoretical) << ")" << endl;
+
 }
 
 void StatisticsSampler::sample() {
     if(settings->statistics_interval && system->steps % settings->statistics_interval != 0) return;
     double t_in_nano_seconds = system->unit_converter->time_to_SI(system->t)*1e9;
 
-    sample_velocity_distribution();
+    sample_velocity_distribution_cylinder();
     sample_temperature();
+
     sample_permeability();
 
     long collisions_global = 0;
@@ -93,41 +106,127 @@ void StatisticsSampler::sample() {
     }
 }
 
-void StatisticsSampler::sample_velocity_distribution() {
-    if(system->steps == velocity_distribution_sampled_at) return;
-    velocity_distribution_sampled_at = system->steps;
+void StatisticsSampler::sample_velocity_distribution_cylinder() {
+    int N = 100;
+    double center_x = system->length[0]/2;
+    double center_y = system->length[1]/2;
+    double *v_of_r = new double[N];
+    int *v_of_r_count = new int[N];
+    memset(v_of_r,0,N*sizeof(double));
+    memset(v_of_r_count,0,N*sizeof(int));
 
-    int num_bins_per_dimension = 50;
-    int num_bins = num_bins_per_dimension*num_bins_per_dimension;
-    double *vel = new double[3*num_bins];
-    int *count = new int[num_bins];
-    memset((void*)count,0,num_bins*sizeof(int));
-    memset((void*)vel,0,3*num_bins*sizeof(double));
+    double dr_max = sqrt(system->Lx*system->Lx + system->Ly*system->Ly);
 
-    for(unsigned int i=0;i<system->thread_control.num_molecules;i++) {
-        int bin_x = system->thread_control.r[3*i+0] / system->length[0]*num_bins_per_dimension;
-        int bin_y = system->thread_control.r[3*i+1] / system->length[1]*num_bins_per_dimension;
-        // int bin_z = system->thread_control.r[3*i+2] / system->length[2]*num_bins_per_dimension;
-        int index = bin_x*num_bins_per_dimension + bin_y;
-        vel[3*index+0] += system->thread_control.v[3*i+0];
-        vel[3*index+1] += system->thread_control.v[3*i+1];
-        vel[3*index+2] += system->thread_control.v[3*i+2];
-        count[index]++;
+    for(int i=0;i<system->thread_control.num_molecules;i++) {
+        double dx = system->thread_control.r[3*i+0] - center_x;
+        double dy = system->thread_control.r[3*i+1] - center_y;
+        double dr = sqrt(dx*dx + dy*dy);
+        int v_of_r_index = N*dr;
+        double v_norm = sqrt(system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0]);
+        double vz = system->thread_control.v[3*i+2];
+
+        v_of_r[v_of_r_index] += v_norm;
+        v_of_r_count[v_of_r_index]++;
     }
 
-    for(int i=0;i<num_bins;i++) {
-        if(count[i]>0) {
-            vel[3*i+0] /= count[i];
-            vel[3*i+1] /= count[i];
-            vel[3*i+2] /= count[i];
-        }
-
-        fprintf(system->io->velocity_file,"%f %f %f ",vel[3*i+0],vel[3*i+1],vel[3*i+2]);
+    for(int i=0;i<N;i++) {
+        if(v_of_r_count[i]>0) v_of_r[i] /= v_of_r_count[i];
+        fprintf(system->io->velocity_file,"%f ",system->unit_converter->velocity_to_SI(v_of_r[i]));
     }
     fprintf(system->io->velocity_file,"\n");
+    delete v_of_r;
+    delete v_of_r_count;
 
-    delete vel;
-    delete count;
+}
+
+void StatisticsSampler::sample_velocity_distribution_box() {
+    int N = 100;
+
+    double *v_of_y = new double[N];
+    int *v_of_y_count = new int[N];
+    memset(v_of_y,0,N*sizeof(double));
+    memset(v_of_y_count,0,N*sizeof(int));
+
+    for(int i=0;i<system->thread_control.num_molecules;i++) {
+        double y = system->thread_control.r[3*i+1];
+        int v_of_y_index = N*(y/system->Ly);
+
+        double v_norm = sqrt(system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0]);
+        double vz = system->thread_control.v[3*i+2];
+
+        v_of_y[v_of_y_index] += vz;
+        v_of_y_count[v_of_y_index]++;
+    }
+
+    for(int i=0;i<N;i++) {
+        if(v_of_y_count[i]>0) v_of_y[i] /= v_of_y_count[i];
+        fprintf(system->io->velocity_file,"%f ",system->unit_converter->velocity_to_SI(v_of_y[i]));
+    }
+    fprintf(system->io->velocity_file,"\n");
+    delete v_of_y;
+    delete v_of_y_count;
+}
+
+void StatisticsSampler::sample_velocity_distribution() {
+    int N = 100;
+    double center_x = system->length[0]/2;
+    double center_y = system->length[1]/2;
+    double *v_of_r = new double[N];
+    int *v_of_r_count = new int[N];
+    memset(v_of_r,0,N*sizeof(double));
+    memset(v_of_r_count,0,N*sizeof(int));
+
+    for(int i=0;i<system->thread_control.num_molecules;i++) {
+        double dx = system->thread_control.r[3*i+0] - center_x;
+        double dy = system->thread_control.r[3*i+1] - center_y;
+        double dr = sqrt(dx*dx + dy*dy);
+        int v_of_r_index = N*dr;
+        double this_v = sqrt(system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0]);
+        v_of_r[v_of_r_index] += system->thread_control.v[3*i+2];
+        v_of_r_count[v_of_r_index]++;
+    }
+
+    for(int i=0;i<N;i++) {
+        if(v_of_r_count[i]>0) v_of_r[i] /= v_of_r_count[i];
+        fprintf(system->io->velocity_file,"%f ",system->unit_converter->velocity_to_SI(v_of_r[i]));
+    }
+    fprintf(system->io->velocity_file,"\n");
+    delete v_of_r;
+    delete v_of_r_count;
+//    if(system->steps == velocity_distribution_sampled_at) return;
+//    velocity_distribution_sampled_at = system->steps;
+
+//    int num_bins_per_dimension = 50;
+//    int num_bins = num_bins_per_dimension*num_bins_per_dimension;
+//    double *vel = new double[3*num_bins];
+//    int *count = new int[num_bins];
+//    memset((void*)count,0,num_bins*sizeof(int));
+//    memset((void*)vel,0,3*num_bins*sizeof(double));
+
+//    for(unsigned int i=0;i<system->thread_control.num_molecules;i++) {
+//        int bin_x = system->thread_control.r[3*i+0] / system->length[0]*num_bins_per_dimension;
+//        int bin_y = system->thread_control.r[3*i+1] / system->length[1]*num_bins_per_dimension;
+//        // int bin_z = system->thread_control.r[3*i+2] / system->length[2]*num_bins_per_dimension;
+//        int index = bin_x*num_bins_per_dimension + bin_y;
+//        vel[3*index+0] += system->thread_control.v[3*i+0];
+//        vel[3*index+1] += system->thread_control.v[3*i+1];
+//        vel[3*index+2] += system->thread_control.v[3*i+2];
+//        count[index]++;
+//    }
+
+//    for(int i=0;i<num_bins;i++) {
+//        if(count[i]>0) {
+//            vel[3*i+0] /= count[i];
+//            vel[3*i+1] /= count[i];
+//            vel[3*i+2] /= count[i];
+//        }
+
+//        fprintf(system->io->velocity_file,"%f %f %f ",system->unit_converter->velocity_to_SI(vel[3*i+0]),system->unit_converter->velocity_to_SI(vel[3*i+1]),system->unit_converter->velocity_to_SI(vel[3*i+2]));
+//    }
+//    fprintf(system->io->velocity_file,"\n");
+
+//    delete vel;
+//    delete count;
 }
 
 /*

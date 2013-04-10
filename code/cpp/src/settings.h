@@ -30,5 +30,8 @@ public:
     double Lx;
     double Ly;
     double Lz;
+    double L_reservoir_x;
+    double L_reservoir_y;
+    double L_reservoir_z;
     double dt;
 };

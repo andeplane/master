@@ -99,7 +99,9 @@ void calculate_normals(int Nx, int Ny, int Nz, float *normal, unsigned char *M) 
                 	M[idx] = 0;
                 }
 
-                // printf("N(%d,%d,%d) = (%f,%f,%f)\n",i,j,k,normal[3*idx+0],normal[3*idx+1],normal[3*idx+2]);
+                // if(norm>0 && k==10) {
+                //     cout << "n(" << i << "," << j << ",0)=(" << normal[3*idx+0] << "," << normal[3*idx+1] << "," << normal[3*idx+2] << ")." << "     M=" << int(M[idx]) << endl;
+                // }
             }
         }
     }
@@ -188,29 +190,62 @@ void save_to_file(char *outfile, int Nx, int Ny, int Nz, float *normal, float *t
 
 int main (int args, char *argv[]) {
 	if(args < 3) {
-		cout << "Run program with:" << endl << "./create_world infile outfile" << endl;
+		cout << "Run program with:" << endl << "./create_world infile outfile reservoir_dimension reservoir_size (fraction)" << endl;
 		return 0;
 	}
 
-	unsigned char Nx,Ny,Nz;
+    unsigned char N0[3];
+    unsigned char N[3];
+
 	char *infile = argv[1];
 	char *outfile = argv[2];
+    int reservoir_dimension = atoi(argv[3]);
+    double reservoir_size_fraction = atof(argv[4]);
+    int reservoir_size = 0;
 
 	ifstream file (infile, ios::in | ios::binary);
-	file.read (reinterpret_cast<char*>(&Nx), sizeof(unsigned char));
-	file.read (reinterpret_cast<char*>(&Ny), sizeof(unsigned char));
-	file.read (reinterpret_cast<char*>(&Nz), sizeof(unsigned char));
-	cout << "Matrix is " << int(Nx) << "x" << int(Ny) << "x" << int(Nz) << endl;
+	file.read (reinterpret_cast<char*>(&N0[0]), sizeof(unsigned char));
+	file.read (reinterpret_cast<char*>(&N0[1]), sizeof(unsigned char));
+	file.read (reinterpret_cast<char*>(&N0[2]), sizeof(unsigned char));
+	cout << "Matrix is " << int(N0[0]) << "x" << int(N0[1]) << "x" << int(N0[2]) << endl;
+	int points = N0[0]*N0[1]*N0[2];
 
-	int points = Nx*Ny*Nz;
+    N[0] = N0[0];
+    N[1] = N0[1];
+    N[2] = N0[2];
 
 	unsigned char *M = new unsigned char[points];
     file.read (reinterpret_cast<char*>(M), points*sizeof(unsigned char));
     file.close();
 
+    // Create a slightly larger matrix so that we have space for the reservoirs
+    reservoir_size = N[reservoir_dimension]*reservoir_size_fraction;
+    N[reservoir_dimension] += 2*reservoir_size;
+    points = N[0]*N[1]*N[2];
+    unsigned char *M2 = new unsigned char[points];
+
+    memset(M2,0,points*sizeof(unsigned char)); // set all values to zero
+
+    // Copy all values from the original matrix into the extended matrix
+    for(int i=0;i<N0[0];i++) {
+        for(int j=0;j<N0[1];j++) {
+            for(int k=0;k<N0[2];k++) {
+                int index_M = i + j*N0[0] + k*N0[0]*N0[1];
+                int i_M2 = i+reservoir_size*(reservoir_dimension==0);
+                int j_M2 = j+reservoir_size*(reservoir_dimension==1);
+                int k_M2 = k+reservoir_size*(reservoir_dimension==2);
+                int index_M2 = i_M2 + j_M2*N[0] + k_M2*N[0]*N[1];
+                M2[index_M2] = M[index_M];
+            }
+        }
+    }
+
     float *normal = new float[3*points];
     float *tangent1 = new float[3*points];
     float *tangent2 = new float[3*points];
+    // memset(normal,0,3*points*sizeof(float));
+    // memset(tangent1,0,3*points*sizeof(float));
+    // memset(tangent2,0,3*points*sizeof(float));
 
     for(int i=0;i<3*points;i++) {
     	normal[i] = 0;
@@ -219,13 +254,13 @@ int main (int args, char *argv[]) {
     }
 
     cout << "Creating normals..." << endl;
-    calculate_normals(Nx,Ny,Nz,normal,M);
+    calculate_normals(N[0],N[1],N[2],normal,M2);
     cout << "Creating tangents..." << endl;
-    calculate_tangents(Nx,Ny,Nz,tangent1,tangent2,normal,M);
+    calculate_tangents(N[0],N[1],N[2],tangent1,tangent2,normal,M2);
     cout << "Creating boundary..." << endl;
-    calculate_inner_points(Nx,Ny,Nz,normal,M);
+    calculate_inner_points(N[0],N[1],N[2],normal,M2);
     cout << "Creating done!" << endl;
-    save_to_file(outfile,Nx,Ny,Nz, normal,tangent1,tangent2,M);
+    save_to_file(outfile,N[0],N[1],N[2], normal,tangent1,tangent2,M2);
 	
 	return 0;
 }

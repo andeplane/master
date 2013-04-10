@@ -19,9 +19,12 @@ void System::initialize(Settings *settings_, int myid_) {
     init_randoms();
     unit_converter = new UnitConverter();
 
-    Lx   = settings->Lx;
-    Ly   = settings->Ly;
-    Lz   = settings->Lz;
+    Lx   = settings->Lx + 2*settings->L_reservoir_x;
+    Ly   = settings->Ly + 2*settings->L_reservoir_y;
+    Lz   = settings->Lz + 2*settings->L_reservoir_z;
+    grid_origo_x = settings->L_reservoir_x;
+    grid_origo_y = settings->L_reservoir_y;
+    grid_origo_z = settings->L_reservoir_z;
 
     length[0] = Lx;
     length[1] = Ly;
@@ -67,19 +70,19 @@ void System::initialize(Settings *settings_, int myid_) {
     mover->initialize(this);
 
     if(myid==0) {
-        int number_of_cells = cells_x*cells_y*cells_z;
+        int number_of_cells = thread_control.my_cells.size();
+        int number_of_cells_all = cells_x*cells_y*cells_z;
 
         printf("done.\n\n");
         printf("%d molecules\n",num_molecules_global);
-        printf("%d (%d x %d x %d) cells\n",number_of_cells,cells_x,cells_y,cells_z);
+        printf("%d (%d inactive) cells\n",number_of_cells,number_of_cells_all - number_of_cells);
         printf("Porosity: %f\n",porosity_global);
-        printf("System volume: %f\n",volume);
-        printf("System size: %.2f x %.2f x %.2f μm\n",Lx,Ly,Lz);
-        printf("System size (mfp): %.2f x %.2f x %.2f \n",Lx/mfp,Ly/mfp,Lz/mfp);
-        printf("Global Kn: %.2f x %.2f x %.2f \n",mfp/Lx,mfp/Ly, mfp/Lz);
+        printf("System volume: %f\n",Lx*Ly*Lz);
+        printf("Effective system volume: %f\n",volume);
+        printf("Mean free path: %.4f \n",mfp);
         printf("Mean free paths per cell: %.2f \n",min( min(Lx/cells_x/mfp,Ly/cells_y/mfp), Lz/cells_z/mfp));
         printf("%d atoms per molecule\n",(int)eff_num);
-        printf("%d molecules per cell\n",num_molecules_global/number_of_cells);
+        printf("%d molecules per active cell\n",num_molecules_global/number_of_cells);
 
         printf("dt = %f\n\n",dt);
     }

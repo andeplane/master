@@ -2,7 +2,7 @@
 
 UnitConverter::UnitConverter()
 {
-    m0 = 6.63352065e-26;  // SI
+    m0 = 1.66053886e-27;  // SI
     L0 = 1e-6;            // SI
     E0 = 1.65088e-21;     // SI
     E0ev = 1.0318e-2;     // eV
@@ -11,7 +11,7 @@ UnitConverter::UnitConverter()
     t0 = L0*sqrt(m0/E0);
     F0 = E0/L0;
     T0 = E0/kb;
-    P0 = F0/L0/L0;
+    P0 = m0/(t0*t0*L0);
     v0 = L0/t0;
     visc0 = P0*t0;
     diff0 = L0*L0/t0;
