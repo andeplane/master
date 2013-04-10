@@ -5,6 +5,8 @@
 
 using namespace std;
 
+double L0 = 1e4;
+
 int main(int args, char *argv[]) {
 	if(args < 2) {
 		cout << "Please specify the number of cpus and timesteps." << endl;
@@ -12,6 +14,7 @@ int main(int args, char *argv[]) {
 	}
 	int cpus = atoi(argv[1]);
 	int timesteps = atoi(argv[2]);
+	
 	double *positions = new double[3*1000000];
 	ofstream file ("movie.xyz", ios::out);
 	
@@ -37,7 +40,7 @@ int main(int args, char *argv[]) {
 		file << "sup" << endl;
 		for(int n=0;n<num_particles;n++) {
         	// We return height - r(1) because system is inverted
-        	file << "H " << positions[3*n+0] << " " << positions[3*n+1] << " " << positions[3*n+2] << endl;
+        	file << "H " << L0*positions[3*n+0] << " " << L0*positions[3*n+1] << " " << L0*positions[3*n+2] << endl;
 	    }
 
 	    cout << "Wrote timestep " << timestep << endl;

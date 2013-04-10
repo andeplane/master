@@ -19,9 +19,9 @@ void MoleculeMover::initialize(System *system_) {
     grid = system->world_grid;
     thread_control = &system->thread_control;
     sqrt_wall_temp_over_mass = sqrt(system->wall_temperature/system->settings->mass);
-    count_periodic_x = 0;
-    count_periodic_y = 0;
-    count_periodic_z = 0;
+    count_periodic[0] = 0;
+    count_periodic[1] = 0;
+    count_periodic[2] = 0;
 }
 
 void MoleculeMover::move_molecules(double dt, Random *rnd) {
@@ -35,14 +35,14 @@ void MoleculeMover::do_move(double *r, double *v, double *r0, const double &dt) 
     r[1] += v[1]*dt;
     r[2] += v[2]*dt;
 
-    if(r[0] > system->Lx)  { r[0] -= system->Lx; r0[0] -= system->Lx; count_periodic_x++; }
-    else if(r[0] < 0)         { r[0] += system->Lx; r0[0] += system->Lx; count_periodic_x--; }
+    if(r[0] > system->length[0])  { r[0] -= system->length[0]; r0[0] -= system->length[0]; count_periodic[0]++; }
+    else if(r[0] < 0)         { r[0] += system->length[0]; r0[0] += system->length[0]; count_periodic[0]--; }
 
-    if(r[1] > system->Ly) { r[1] -= system->Ly; r0[1] -= system->Ly; count_periodic_y++; }
-    else if(r[1] < 0)         { r[1] += system->Ly; r0[1] += system->Ly; count_periodic_y--; }
+    if(r[1] > system->length[1]) { r[1] -= system->length[1]; r0[1] -= system->length[1]; count_periodic[1]++; }
+    else if(r[1] < 0)         { r[1] += system->length[1]; r0[1] += system->length[1]; count_periodic[1]--; }
 
-    if(r[2] > system->Lz) { r[2] -= system->Lz; r0[2] -= system->Lz; count_periodic_z++; }
-    else if(r[2] < 0)         { r[2] += system->Lz; r0[2] += system->Lz; count_periodic_z--; }
+    if(r[2] > system->length[2]) { r[2] -= system->length[2]; r0[2] -= system->length[2]; count_periodic[2]++; }
+    else if(r[2] < 0)         { r[2] += system->length[2]; r0[2] += system->length[2]; count_periodic[2]--; }
 }
 
 inline int get_index_of_voxel(double *r, const double &nx_div_lx,const double &ny_div_ly,const double &nz_div_lz, const int &Nx, const int &NyNx) {
@@ -62,9 +62,9 @@ void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, i
 
     do_move(r,v,r0,dt);
 
-    double nx_div_lx = grid->Nx/system->Lx;
-    double ny_div_ly = grid->Ny/system->Ly;
-    double nz_div_lz = grid->Nz/system->Lz;
+    double nx_div_lx = grid->Nx/system->length[0];
+    double ny_div_ly = grid->Ny/system->length[1];
+    double nz_div_lz = grid->Nz/system->length[2];
     int nx = grid->Nx;
     int nynx = grid->Nx*grid->Ny;
 

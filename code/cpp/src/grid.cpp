@@ -27,25 +27,25 @@ unsigned char *Grid::get_voxel(const int &i, const int &j, const int &k) {
 }
 
 unsigned char *Grid::get_voxel(const double &x, const double &y, const double &z) {
-    int i =  x/system->Lx*Nx;
-    int j =  y/system->Ly*Ny;
-    int k =  z/system->Lz*Nz;
+    int i =  x/system->length[0]*Nx;
+    int j =  y/system->length[1]*Ny;
+    int k =  z/system->length[2]*Nz;
 
     return get_voxel(i,j,k);
 }
 
 unsigned char *Grid::get_voxel(double *r) {
-    int i =  r[0]/system->Lx*Nx;
-    int j =  r[1]/system->Ly*Ny;
-    int k =  r[2]/system->Lz*Nz;
+    int i =  r[0]/system->length[0]*Nx;
+    int j =  r[1]/system->length[1]*Ny;
+    int k =  r[2]/system->length[2]*Nz;
 
     return get_voxel(i,j,k);
 }
 
 int Grid::get_index_of_voxel(double *r) {
-    int i =  r[0]/system->Lx*Nx;
-    int j =  r[1]/system->Ly*Ny;
-    int k =  r[2]/system->Lz*Nz;
+    int i =  r[0]/system->length[0]*Nx;
+    int j =  r[1]/system->length[1]*Ny;
+    int k =  r[2]/system->length[2]*Nz;
 
     return i + j*Nx + k*Nx*Ny;
 }

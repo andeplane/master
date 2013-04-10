@@ -27,6 +27,9 @@ public:
 
     vector<Cell*> all_cells;
     vector<Cell*> my_cells;
+    vector<Cell*> source_reservoir_cells;
+    vector<Cell*> drain_reservoir_cells;
+
     double *mpi_receive_buffer;
     double **molecules_to_be_moved;
     int *num_molecules_to_be_moved;

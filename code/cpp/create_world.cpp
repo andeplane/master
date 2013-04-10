@@ -190,7 +190,7 @@ void save_to_file(char *outfile, int Nx, int Ny, int Nz, float *normal, float *t
 
 int main (int args, char *argv[]) {
 	if(args < 3) {
-		cout << "Run program with:" << endl << "./create_world infile outfile reservoir_dimension reservoir_size (fraction)" << endl;
+		cout << "Run program with:" << endl << "./create_world infile outfile reservoir_dimension reservoir_size (fraction of total size)" << endl;
 		return 0;
 	}
 
@@ -219,7 +219,7 @@ int main (int args, char *argv[]) {
     file.close();
 
     // Create a slightly larger matrix so that we have space for the reservoirs
-    reservoir_size = N[reservoir_dimension]*reservoir_size_fraction;
+    reservoir_size = N[reservoir_dimension]*reservoir_size_fraction/(2-2*reservoir_size_fraction);
     N[reservoir_dimension] += 2*reservoir_size;
     points = N[0]*N[1]*N[2];
     unsigned char *M2 = new unsigned char[points];

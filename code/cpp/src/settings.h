@@ -30,8 +30,8 @@ public:
     double Lx;
     double Ly;
     double Lz;
-    double L_reservoir_x;
-    double L_reservoir_y;
-    double L_reservoir_z;
+    double reservoir_fraction;
+    double pressure_source;
+    double pressure_drain;
     double dt;
 };

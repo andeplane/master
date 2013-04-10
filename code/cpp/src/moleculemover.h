@@ -12,9 +12,7 @@ public:
     ThreadControl *thread_control;
     unsigned char *voxels;
     Grid *grid;
-    long count_periodic_x;
-    long count_periodic_y;
-    long count_periodic_z;
+    long count_periodic[3];
 
     MoleculeMover();
     void initialize(System *system_);

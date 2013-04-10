@@ -28,10 +28,12 @@ private:
     void init_randoms();
     void collide();
 	void accelerate();
+    void maintain_pressure();
+    bool remove_molecule_in_pressure_reservoir(bool remove_from_source);
+    void find_position_in_reservoirs(double *r, bool find_position_in_source);
+    void add_molecule_in_pressure_reservoirs(bool add_in_source);
 
 public:
-    vector< vector< vector<Cell*> > > cells;
-
     DSMC_IO *io;
     DSMCTimer *timer;
     Grid *world_grid;
@@ -40,10 +42,10 @@ public:
     Random *rnd;
     MoleculeMover *mover;
 
-
-    double Lx, Ly, Lz;
+    double reservoir_size;
     double grid_origo_x, grid_origo_y, grid_origo_z;
     double length[3];
+    double half_length[3];
 	double eff_num;
 	double mpv; 	// Most probable velocity
 	double mfp; 	// Mean free path
@@ -63,6 +65,7 @@ public:
 	int steps;
     int myid;
     int cells_x, cells_y, cells_z;
+    int num_cells_vector[3];
 
     ThreadControl thread_control;
 

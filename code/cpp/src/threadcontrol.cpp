@@ -110,9 +110,9 @@ void ThreadControl::setup_molecules() {
 inline void ThreadControl::find_position(double *r) {
     bool did_collide = true;
     while(did_collide) {
-        r[0] = origo[0] + system->Lx/settings->nodes_x*system->rnd->nextDouble();
-        r[1] = origo[1] + system->Ly/settings->nodes_y*system->rnd->nextDouble();
-        r[2] = origo[2] + system->Lz/settings->nodes_z*system->rnd->nextDouble();
+        r[0] = origo[0] + system->length[0]/settings->nodes_x*system->rnd->nextDouble();
+        r[1] = origo[1] + system->length[1]/settings->nodes_y*system->rnd->nextDouble();
+        r[2] = origo[2] + system->length[2]/settings->nodes_z*system->rnd->nextDouble();
 
         did_collide = *system->world_grid->get_voxel(r)>=voxel_type_wall;
     }
@@ -123,9 +123,9 @@ inline int ThreadControl::cell_index_from_ijk(const int &i, const int &j, const 
 }
 
 int ThreadControl::cell_index_from_position(double *r) {
-    int i = r[0]/system->Lx*system->cells_x;
-    int j = r[1]/system->Ly*system->cells_y;
-    int k = r[2]/system->Lz*system->cells_z;
+    int i = r[0]/system->length[0]*system->cells_x;
+    int j = r[1]/system->length[1]*system->cells_y;
+    int k = r[2]/system->length[2]*system->cells_z;
 
     return cell_index_from_ijk(i,j,k);
 }
@@ -139,13 +139,14 @@ int relative_node_index(int index0, int index1, int cells) {
 void ThreadControl::setup_cells() {
     int num_cells_global = num_nodes*settings->cells_per_node_x*settings->cells_per_node_y*settings->cells_per_node_z;
     all_cells.reserve(num_cells_global);
+    int idx[3];
 
-    for(int i=0;i<system->cells_x;i++) {
-        for(int j=0;j<system->cells_y;j++) {
-            for(int k=0;k<system->cells_z;k++) {
-                int cell_node_id_x = i/settings->cells_per_node_x;
-                int cell_node_id_y = j/settings->cells_per_node_y;
-                int cell_node_id_z = k/settings->cells_per_node_z;
+    for(idx[0]=0;idx[0]<system->cells_x;idx[0]++) {
+        for(idx[1]=0;idx[1]<system->cells_y;idx[1]++) {
+            for(idx[2]=0;idx[2]<system->cells_z;idx[2]++) {
+                int cell_node_id_x = idx[0]/settings->cells_per_node_x;
+                int cell_node_id_y = idx[1]/settings->cells_per_node_y;
+                int cell_node_id_z = idx[2]/settings->cells_per_node_z;
                 int node_id = cell_node_id_x*settings->nodes_y*settings->nodes_z + cell_node_id_y*settings->nodes_z + cell_node_id_z;
 
                 Cell *cell = new Cell(system);
@@ -156,12 +157,20 @@ void ThreadControl::setup_cells() {
                 cell->node_delta_index_vector[2] = relative_node_index(my_vector_index[2],cell_node_id_z,system->cells_z);
 
                 cell->node_id = node_id;
-                cell->index = cell_index_from_ijk(i,j,k);
+                cell->index = cell_index_from_ijk(idx[0],idx[1],idx[2]);
                 cell->is_dummy_cell = true;
                 cell->vr_max = 3*system->mpv;
                 all_cells.push_back(cell);
+                cell->is_reservoir = false;
 
                 if(node_id == myid) {
+                    if( (double)idx[settings->gravity_direction]/system->num_cells_vector[settings->gravity_direction] < settings->reservoir_fraction/2) {
+                        source_reservoir_cells.push_back(cell);
+                        cell->is_reservoir = true;
+                    } else if( (double)idx[settings->gravity_direction]/system->num_cells_vector[settings->gravity_direction] > (1-settings->reservoir_fraction/2)) {
+                        drain_reservoir_cells.push_back(cell);
+                        cell->is_reservoir = true;
+                    }
                     cell->is_dummy_cell = false;
                     // my_cells.push_back(cell);
                 }

@@ -19,24 +19,22 @@ void System::initialize(Settings *settings_, int myid_) {
     init_randoms();
     unit_converter = new UnitConverter();
 
-    Lx   = settings->Lx + 2*settings->L_reservoir_x;
-    Ly   = settings->Ly + 2*settings->L_reservoir_y;
-    Lz   = settings->Lz + 2*settings->L_reservoir_z;
-    grid_origo_x = settings->L_reservoir_x;
-    grid_origo_y = settings->L_reservoir_y;
-    grid_origo_z = settings->L_reservoir_z;
+    length[0] = settings->Lx;
+    length[1] = settings->Ly;
+    length[2] = settings->Lz;
 
-    length[0] = Lx;
-    length[1] = Ly;
-    length[2] = Lz;
+    reservoir_size = length[settings->gravity_direction]*settings->reservoir_fraction/2;
 
-    cell_length_x = Lx/(settings->cells_per_node_x*settings->nodes_x);
-    cell_length_y = Ly/(settings->cells_per_node_y*settings->nodes_y);
-    cell_length_z = Lz/(settings->cells_per_node_z*settings->nodes_z);
+    cell_length_x = length[0]/(settings->cells_per_node_x*settings->nodes_x);
+    cell_length_y = length[1]/(settings->cells_per_node_y*settings->nodes_y);
+    cell_length_z = length[2]/(settings->cells_per_node_z*settings->nodes_z);
 
     cells_x = settings->nodes_x*settings->cells_per_node_x;
     cells_y = settings->nodes_y*settings->cells_per_node_y;
     cells_z = settings->nodes_z*settings->cells_per_node_z;
+    num_cells_vector[0] = cells_x;
+    num_cells_vector[1] = cells_y;
+    num_cells_vector[2] = cells_z;
 
     temperature      = unit_converter->temperature_from_SI(settings->temperature);;
     wall_temperature = unit_converter->temperature_from_SI(settings->wall_temperature);
@@ -56,7 +54,7 @@ void System::initialize(Settings *settings_, int myid_) {
     MPI_Allreduce(&thread_control.num_molecules,&num_molecules_global,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
     porosity_global /= thread_control.num_nodes;
 
-    volume = Lx*Ly*Lz*porosity_global;
+    volume = length[0]*length[1]*length[2]*porosity_global;
     eff_num = density*volume/num_molecules_global;
 
     mfp = volume/(sqrt(2.0)*M_PI*diam*diam*num_molecules_global*eff_num);
@@ -77,11 +75,11 @@ void System::initialize(Settings *settings_, int myid_) {
         printf("%d molecules\n",num_molecules_global);
         printf("%d (%d inactive) cells\n",number_of_cells,number_of_cells_all - number_of_cells);
         printf("Porosity: %f\n",porosity_global);
-        printf("System volume: %f\n",Lx*Ly*Lz);
+        printf("System volume: %f\n",length[0]*length[1]*length[2]);
         printf("Effective system volume: %f\n",volume);
         printf("Mean free path: %.4f \n",mfp);
-        printf("Mean free paths per cell: %.2f \n",min( min(Lx/cells_x/mfp,Ly/cells_y/mfp), Lz/cells_z/mfp));
-        printf("%d atoms per molecule\n",(unsigned long)eff_num);
+        printf("Mean free paths per cell: %.2f \n",min( min(length[0]/cells_x/mfp,length[1]/cells_y/mfp), length[2]/cells_z/mfp));
+        printf("%ld atoms per molecule\n",(unsigned long)eff_num);
         printf("%d molecules per active cell\n",num_molecules_global/number_of_cells);
 
         printf("dt = %f\n\n",dt);
