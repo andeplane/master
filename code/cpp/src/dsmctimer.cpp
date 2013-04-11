@@ -1,7 +1,6 @@
 #include <dsmctimer.h>
 #include <mpi.h>
 #include <system.h>
-#include <threadcontrol.h>
 
 DSMCTimer::DSMCTimer() {
     t0 = MPI_Wtime();
@@ -12,6 +11,7 @@ DSMCTimer::DSMCTimer() {
     sample = 0;
     accelerate = 0;
     pressure = 0;
+    system_initialize = 0;
 }
 
 void DSMCTimer::start_moving() {
@@ -123,13 +123,4 @@ void DSMCTimer::gather_all_nodes(System *system) {
     moving_global = 0;
     mpi_global = 0;
     system_initialize_global = 0;
-
-    MPI_Reduce(&moving,&moving_global,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-    MPI_Reduce(&colliding,&colliding_global,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-    MPI_Reduce(&mpi,&mpi_global,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-    MPI_Reduce(&system_initialize,&system_initialize_global,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-    colliding_global/=system->thread_control.num_nodes;
-    mpi_global/=system->thread_control.num_nodes;
-    moving_global/=system->thread_control.num_nodes;
-    system_initialize_global/=system->thread_control.num_nodes;
 }

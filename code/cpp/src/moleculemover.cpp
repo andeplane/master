@@ -4,7 +4,6 @@
 #include <grid.h>
 #include <random.h>
 #include <grid.h>
-#include <threadcontrol.h>
 #include <settings.h>
 MoleculeMover::MoleculeMover()
 {
@@ -17,7 +16,6 @@ void MoleculeMover::initialize(System *system_) {
     system = system_;
     voxels = system->world_grid->voxels;
     grid = system->world_grid;
-    thread_control = &system->thread_control;
     sqrt_wall_temp_over_mass = sqrt(system->wall_temperature/system->settings->mass);
     count_periodic[0] = 0;
     count_periodic[1] = 0;
@@ -25,7 +23,7 @@ void MoleculeMover::initialize(System *system_) {
 }
 
 void MoleculeMover::move_molecules(double dt, Random *rnd) {
-    for(int n=0;n<thread_control->num_molecules;n++) {
+    for(int n=0;n<system->num_molecules;n++) {
         move_molecule(n,dt,rnd,0);
     }
 }
@@ -35,14 +33,14 @@ void MoleculeMover::do_move(double *r, double *v, double *r0, const double &dt) 
     r[1] += v[1]*dt;
     r[2] += v[2]*dt;
 
-    if(r[0] > system->length[0])  { r[0] -= system->length[0]; r0[0] -= system->length[0]; count_periodic[0]++; }
-    else if(r[0] < 0)         { r[0] += system->length[0]; r0[0] += system->length[0]; count_periodic[0]--; }
+    if(r[0] > system->length[0])  { r[0] -= system->length[0]; r0[0] -= system->length[0]; }
+    else if(r[0] < 0)         { r[0] += system->length[0]; r0[0] += system->length[0]; }
 
-    if(r[1] > system->length[1]) { r[1] -= system->length[1]; r0[1] -= system->length[1]; count_periodic[1]++; }
-    else if(r[1] < 0)         { r[1] += system->length[1]; r0[1] += system->length[1]; count_periodic[1]--; }
+    if(r[1] > system->length[1]) { r[1] -= system->length[1]; r0[1] -= system->length[1]; }
+    else if(r[1] < 0)         { r[1] += system->length[1]; r0[1] += system->length[1]; }
 
-    if(r[2] > system->length[2]) { r[2] -= system->length[2]; r0[2] -= system->length[2]; count_periodic[2]++; }
-    else if(r[2] < 0)         { r[2] += system->length[2]; r0[2] += system->length[2]; count_periodic[2]--; }
+    if(r[2] > system->length[2]) { r[2] -= system->length[2]; r0[2] -= system->length[2]; }
+    else if(r[2] < 0)         { r[2] += system->length[2]; r0[2] += system->length[2]; }
 }
 
 inline int get_index_of_voxel(double *r, const double &nx_div_lx,const double &ny_div_ly,const double &nz_div_lz, const int &Nx, const int &NyNx) {
@@ -56,9 +54,9 @@ inline int get_index_of_voxel(double *r, const double &nx_div_lx,const double &n
 void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, int depth) {
     double tau = dt;
 
-    double *r = &thread_control->r[3*molecule_index];
-    double *r0 = &thread_control->r0[3*molecule_index];
-    double *v = &thread_control->v[3*molecule_index];
+    double *r = &system->r[3*molecule_index];
+    double *r0 = &system->r0[3*molecule_index];
+    double *v = &system->v[3*molecule_index];
 
     do_move(r,v,r0,dt);
 

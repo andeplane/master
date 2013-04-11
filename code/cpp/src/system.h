@@ -10,11 +10,12 @@ class UnitConverter;
 class DSMCTimer;
 class MoleculeMover;
 
-#include <threadcontrol.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <cinifile.h>
+
+#define MAX_MOLECULE_NUM 10000000
 
 using namespace std;
 
@@ -34,8 +35,17 @@ private:
     bool remove_molecule_in_pressure_reservoir(bool remove_from_source);
     void find_position_in_reservoirs(double *r, bool find_position_in_source);
     void add_molecule_in_pressure_reservoirs(bool add_in_source);
+    inline void find_position(double *r);
+    inline int cell_index_from_ijk(const int &i, const int &j, const int &k);
+    void update_cell_volume();
+    void setup_molecules();
+    void setup_cells();
+    void calculate_porosity();
+    void update_molecule_cells();
 
 public:
+    int cell_index_from_position(double *r);
+
     DSMC_IO *io;
     DSMCTimer *timer;
     Grid *world_grid;
@@ -43,6 +53,21 @@ public:
     UnitConverter * unit_converter;
     Random *rnd;
     MoleculeMover *mover;
+
+    vector<Cell*> active_cells;
+    vector<Cell*> all_cells;
+    vector<Cell*> source_reservoir_cells;
+    vector<Cell*> drain_reservoir_cells;
+
+    double *mpi_receive_buffer;
+    double *r;
+    double *v;
+    double *r0;
+    unsigned long *molecule_index_in_cell;
+    unsigned long *molecule_cell_index;
+
+    int num_nodes;
+    int num_molecules;
 
     double reservoir_size;
     double grid_origo_x, grid_origo_y, grid_origo_z;
@@ -59,17 +84,14 @@ public:
     double cell_length_x;
     double cell_length_y;
     double cell_length_z;
-    double porosity_global;
+    double porosity;
     double volume;
-    int    num_molecules_global;
 
     unsigned long collisions;
 	int steps;
     int myid;
     int cells_x, cells_y, cells_z;
     int num_cells_vector[3];
-
-    ThreadControl thread_control;
 
     void initialize(Settings *settings_, int myid_);
 	void step();

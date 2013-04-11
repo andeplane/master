@@ -81,8 +81,8 @@ int Cell::collide(Random *rnd) {
         ip1 = molecules[ip1];
 
 		//* Calculate pair's relative speed
-        double *v0 = &system->thread_control.v[3*ip0];
-        double *v1 = &system->thread_control.v[3*ip1];
+        double *v0 = &system->v[3*ip0];
+        double *v1 = &system->v[3*ip1];
         double v_rel = sqrt(pow(v0[0] - v1[0],2) + pow(v0[1] - v1[1],2) + pow(v0[2] - v1[2],2));
 
         if( v_rel > crm ) {         // If relative speed larger than crm,

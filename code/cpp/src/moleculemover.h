@@ -3,13 +3,11 @@ class Cell;
 class System;
 class Random;
 class Grid;
-class ThreadControl;
 
 class MoleculeMover
 {
 public:
     System *system;
-    ThreadControl *thread_control;
     unsigned char *voxels;
     Grid *grid;
     long count_periodic[3];

@@ -3,7 +3,6 @@
 #include <system.h>
 #include <cell.h>
 #include <mpi.h>
-#include <threadcontrol.h>
 #include <grid.h>
 #include <settings.h>
 #include <dsmctimer.h>
@@ -34,10 +33,10 @@ void DSMC_IO::save_state_to_movie_file() {
         }
 
         int count = 0;
-        for(unsigned int n=0;n<system->thread_control.num_molecules;n++) {
-            data[count++] = system->thread_control.r[3*n+0];
-            data[count++] = system->thread_control.r[3*n+1];
-            data[count++] = system->thread_control.r[3*n+2];
+        for(unsigned int n=0;n<system->num_molecules;n++) {
+            data[count++] = system->r[3*n+0];
+            data[count++] = system->r[3*n+1];
+            data[count++] = system->r[3*n+2];
         }
 
         count /= 3; // This should represent the number of particles
@@ -51,9 +50,8 @@ void DSMC_IO::save_state_to_movie_file() {
 void DSMC_IO::save_state_to_file_binary() {
     system->timer->start_io();
     if(system->myid==0) cout << "Saving state to file..." << endl;
-    ThreadControl &thread_control = system->thread_control;
 
-    int N = thread_control.num_molecules;
+    int N = system->num_molecules;
 
     char *filename = new char[100];
     sprintf(filename,"state_files/state%04d.bin",system->myid);
@@ -68,19 +66,19 @@ void DSMC_IO::save_state_to_file_binary() {
     double *tmp_data = new double[9*N];
 
     int count = 0;
-    for(unsigned int n=0;n<thread_control.num_molecules;n++) {
+    for(unsigned int n=0;n<system->num_molecules;n++) {
 
-        tmp_data[count++] = thread_control.r[3*n+0];
-        tmp_data[count++] = thread_control.r[3*n+1];
-        tmp_data[count++] = thread_control.r[3*n+2];
+        tmp_data[count++] = system->r[3*n+0];
+        tmp_data[count++] = system->r[3*n+1];
+        tmp_data[count++] = system->r[3*n+2];
 
-        tmp_data[count++] = thread_control.v[3*n+0];
-        tmp_data[count++] = thread_control.v[3*n+1];
-        tmp_data[count++] = thread_control.v[3*n+2];
+        tmp_data[count++] = system->v[3*n+0];
+        tmp_data[count++] = system->v[3*n+1];
+        tmp_data[count++] = system->v[3*n+2];
 
-        tmp_data[count++] = thread_control.r0[3*n+0];
-        tmp_data[count++] = thread_control.r0[3*n+1];
-        tmp_data[count++] = thread_control.r0[3*n+2];
+        tmp_data[count++] = system->r0[3*n+0];
+        tmp_data[count++] = system->r0[3*n+1];
+        tmp_data[count++] = system->r0[3*n+2];
     }
 
     file.write (reinterpret_cast<char*>(&N), sizeof(int));
@@ -96,7 +94,6 @@ void DSMC_IO::load_state_from_file_binary() {
     system->timer->start_io();
     if(system->myid==0) cout << "Loading state from file..." << endl;
     int N = 0;
-    ThreadControl &thread_control = system->thread_control;
 
     char *filename = new char[100];
     sprintf(filename,"state_files/state%04d.bin",system->myid);
@@ -113,9 +110,9 @@ void DSMC_IO::load_state_from_file_binary() {
     file.close();
 
     for(int n=0;n<N;n++) {
-        double *r = &thread_control.r[3*n];
-        double *v = &thread_control.v[3*n];
-        double *r0 = &thread_control.r0[3*n];
+        double *r = &system->r[3*n];
+        double *v = &system->v[3*n];
+        double *r0 = &system->r0[3*n];
 
         r[0] = tmp_data[9*n+0];
         r[1] = tmp_data[9*n+1];
@@ -127,11 +124,11 @@ void DSMC_IO::load_state_from_file_binary() {
         r0[1] = tmp_data[9*n+7];
         r0[2] = tmp_data[9*n+8];
 
-        Cell *cell = thread_control.all_cells[thread_control.cell_index_from_position(r)];
-        cell->add_molecule(n,thread_control.molecule_index_in_cell,thread_control.molecule_cell_index);
+        Cell *cell = system->all_cells[system->cell_index_from_position(r)];
+        cell->add_molecule(n,system->molecule_index_in_cell,system->molecule_cell_index);
     }
 
-    thread_control.num_molecules = N;
+    system->num_molecules = N;
 
     delete filename;
     delete tmp_data;

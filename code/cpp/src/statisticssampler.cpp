@@ -6,7 +6,6 @@
 #include <dsmc_io.h>
 #include <system.h>
 #include <mpi.h>
-#include <threadcontrol.h>
 #include <settings.h>
 #include <moleculemover.h>
 
@@ -29,8 +28,8 @@ void StatisticsSampler::sample_kinetic_energy() {
     kinetic_energy = 0;
     double kinetic_energy_global = 0;
 
-    for(unsigned int i=0;i<system->thread_control.num_molecules;i++) {
-        kinetic_energy += 0.5*(system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2]);
+    for(unsigned int i=0;i<system->num_molecules;i++) {
+        kinetic_energy += 0.5*(system->v[3*i+0]*system->v[3*i+0] + system->v[3*i+1]*system->v[3*i+1] + system->v[3*i+2]*system->v[3*i+2]);
     }
     kinetic_energy *= settings->mass*system->eff_num;
 
@@ -44,7 +43,7 @@ void StatisticsSampler::sample_temperature() {
     temperature_sampled_at = system->steps;
 
     sample_kinetic_energy();
-    double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules_global*system->eff_num);
+    double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules*system->eff_num);
     temperature = 2.0/3*kinetic_energy_per_molecule;
 }
 
@@ -63,7 +62,7 @@ void StatisticsSampler::sample_permeability() {
     if(settings->gravity_direction<0) return;
 
     sample_flux();
-    double volume_per_molecule = system->volume / system->num_molecules_global;
+    double volume_per_molecule = system->volume / system->num_molecules;
     double viscosity_dsmc_units = system->unit_converter->viscosity_from_SI(settings->viscosity);
     // permeability = -flux[settings->gravity_direction]*volume_per_molecule*system->length[settings->gravity_direction]*viscosity_dsmc_units / (2*settings->mass*settings->gravity);
     double volume_flux = flux[settings->gravity_direction]*volume_per_molecule;
@@ -85,8 +84,8 @@ void StatisticsSampler::sample() {
     if(settings->statistics_interval && system->steps % settings->statistics_interval != 0) return;
     double t_in_nano_seconds = system->unit_converter->time_to_SI(system->t)*1e9;
 
-    // sample_velocity_distribution_cylinder();
-    sample_velocity_distribution_box();
+    sample_velocity_distribution_cylinder();
+    // sample_velocity_distribution_box();
     sample_temperature();
 
     sample_permeability();
@@ -97,13 +96,13 @@ void StatisticsSampler::sample() {
                    MPI_SUM, 0, MPI_COMM_WORLD);
 
     if(system->myid == 0) {
-        double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules_global*system->eff_num);
+        double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules*system->eff_num);
 
         fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy_per_molecule), system->unit_converter->temperature_to_SI(temperature));
         fprintf(system->io->flux_file, "%f %f %f %f\n",t_in_nano_seconds, flux[0], flux[1], flux[2]);
         fprintf(system->io->permeability_file, "%f %E\n",t_in_nano_seconds, system->unit_converter->permeability_to_SI(permeability));
 
-        cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  collisions_global <<  "   Molecules: " << system->thread_control.num_molecules << endl;
+        cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  collisions_global <<  "   Molecules: " << system->num_molecules << endl;
     }
 }
 
@@ -121,16 +120,16 @@ void StatisticsSampler::sample_velocity_distribution_cylinder() {
     double dr_max = sqrt(system->length[0]*system->length[0]+system->length[1]*system->length[1]);
 
 
-    for(int i=0;i<system->thread_control.num_molecules;i++) {
-        if(system->thread_control.r[3*i+2] < box_origo || system->thread_control.r[3*i+2] > box_end) continue;
+    for(int i=0;i<system->num_molecules;i++) {
+        if(system->r[3*i+2] < box_origo || system->r[3*i+2] > box_end) continue;
 
-        double dx = system->thread_control.r[3*i+0] - center_x;
-        double dy = system->thread_control.r[3*i+1] - center_y;
+        double dx = system->r[3*i+0] - center_x;
+        double dy = system->r[3*i+1] - center_y;
         double dr = sqrt(dx*dx + dy*dy);
         int v_of_r_index = N*dr/dr_max;
         if(v_of_r_index>=N) continue;
-        double v_norm = sqrt(system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0]);
-        double vz = system->thread_control.v[3*i+2];
+        double v_norm = sqrt(system->v[3*i+2]*system->v[3*i+2] + system->v[3*i+1]*system->v[3*i+1] + system->v[3*i+0]*system->v[3*i+0]);
+        double vz = system->v[3*i+2];
 
         v_of_r[v_of_r_index] += vz;
         v_of_r_count[v_of_r_index]++;
@@ -157,14 +156,14 @@ void StatisticsSampler::sample_velocity_distribution_box() {
     double box_origo = system->reservoir_size;
     double box_end = system->length[2]-system->reservoir_size;
 
-    for(int i=0;i<system->thread_control.num_molecules;i++) {
-        if(system->thread_control.r[3*i+2] < box_origo || system->thread_control.r[3*i+2] > box_end) continue;
+    for(int i=0;i<system->num_molecules;i++) {
+        if(system->r[3*i+2] < box_origo || system->r[3*i+2] > box_end) continue;
 
-        double y = system->thread_control.r[3*i+1];
+        double y = system->r[3*i+1];
         int v_of_y_index = N*(y/system->length[1]);
 
-        double v_norm = sqrt(system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0]);
-        double vz = system->thread_control.v[3*i+2];
+        double v_norm = sqrt(system->v[3*i+2]*system->v[3*i+2] + system->v[3*i+1]*system->v[3*i+1] + system->v[3*i+0]*system->v[3*i+0]);
+        double vz = system->v[3*i+2];
 
         v_of_y[v_of_y_index] += vz;
         v_of_y_count[v_of_y_index]++;
@@ -188,13 +187,13 @@ void StatisticsSampler::sample_velocity_distribution() {
     memset(v_of_r,0,N*sizeof(double));
     memset(v_of_r_count,0,N*sizeof(int));
 
-    for(int i=0;i<system->thread_control.num_molecules;i++) {
-        double dx = system->thread_control.r[3*i+0] - center_x;
-        double dy = system->thread_control.r[3*i+1] - center_y;
+    for(int i=0;i<system->num_molecules;i++) {
+        double dx = system->r[3*i+0] - center_x;
+        double dy = system->r[3*i+1] - center_y;
         double dr = sqrt(dx*dx + dy*dy);
         int v_of_r_index = N*dr;
-        double this_v = sqrt(system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0]);
-        v_of_r[v_of_r_index] += system->thread_control.v[3*i+2];
+        double this_v = sqrt(system->v[3*i+2]*system->v[3*i+2] + system->v[3*i+1]*system->v[3*i+1] + system->v[3*i+0]*system->v[3*i+0]);
+        v_of_r[v_of_r_index] += system->v[3*i+2];
         v_of_r_count[v_of_r_index]++;
     }
 

@@ -19,24 +19,24 @@ void System::step() {
     move();
     collide();
     if(settings->maintain_pressure) maintain_pressure();
-//    double pressure = thread_control.num_molecules*eff_num/volume*temperature;
+//    double pressure = num_molecules*eff_num/volume*temperature;
 //    cout << "Global pressure: " << unit_converter->pressure_to_SI(pressure) << endl;
 }
 
 void System::move() {
     timer->start_moving();
-    for(int n=0;n<thread_control.num_molecules;n++) {
+    for(int n=0;n<num_molecules;n++) {
         mover->move_molecule(n,dt,rnd,0);
     }
-    thread_control.update_molecule_cells_local();
+    update_molecule_cells();
     timer->end_moving();
 }
 
 void System::collide() {
     timer->start_colliding();
 
-    for(int i=0;i<thread_control.my_cells.size();i++) {
-        Cell *cell = thread_control.my_cells[i];
+    for(int i=0;i<active_cells.size();i++) {
+        Cell *cell = active_cells[i];
 
         cell->prepare();
         collisions += cell->collide(rnd);
@@ -52,8 +52,8 @@ void System::accelerate() {
     int gravity_dir = settings->gravity_direction;
     double gravity = settings->gravity*dt;
 
-    for(int n=0;n<thread_control.num_molecules;n++) {
-        thread_control.v[3*n+gravity_dir] += gravity;
+    for(int n=0;n<num_molecules;n++) {
+        v[3*n+gravity_dir] += gravity;
     }
     timer->end_accelerate();
 }
@@ -72,54 +72,70 @@ void System::find_position_in_reservoirs(double *r, bool find_position_in_source
 }
 
 void System::add_molecule_in_pressure_reservoirs(bool add_in_source) {
-    int n = thread_control.num_molecules;
+    int n = num_molecules;
 
-    thread_control.v[3*n+0] = rnd->nextGauss()*sqrt(temperature/settings->mass);
-    thread_control.v[3*n+1] = rnd->nextGauss()*sqrt(temperature/settings->mass);
-    thread_control.v[3*n+2] = rnd->nextGauss()*sqrt(temperature/settings->mass);
+    v[3*n+0] = rnd->nextGauss()*sqrt(temperature/settings->mass);
+    v[3*n+1] = rnd->nextGauss()*sqrt(temperature/settings->mass);
+    v[3*n+2] = rnd->nextGauss()*sqrt(temperature/settings->mass);
 
-    find_position_in_reservoirs(&thread_control.r[3*n],add_in_source);
-    thread_control.r0[3*n+0] = thread_control.r[3*n+0];
-    thread_control.r0[3*n+1] = thread_control.r[3*n+1];
-    thread_control.r0[3*n+2] = thread_control.r[3*n+2];
-    thread_control.molecule_moved[n] = false;
-    Cell *cell = thread_control.all_cells[thread_control.cell_index_from_position(&thread_control.r[3*n])];
-    cell->add_molecule(n,thread_control.molecule_index_in_cell,thread_control.molecule_cell_index);
-    thread_control.num_molecules++;
+    find_position_in_reservoirs(&r[3*n],add_in_source);
+    r0[3*n+0] = r[3*n+0];
+    r0[3*n+1] = r[3*n+1];
+    r0[3*n+2] = r[3*n+2];
+
+    Cell *cell = all_cells[cell_index_from_position(&r[3*n])];
+    cell->add_molecule(n,molecule_index_in_cell,molecule_cell_index);
+    num_molecules++;
 }
 
 bool System::remove_molecule_in_pressure_reservoir(bool remove_from_source) {
     Cell *cell = NULL;
 
-    if(remove_from_source) cell = thread_control.source_reservoir_cells[ thread_control.source_reservoir_cells.size()*rnd->nextDouble() ];
-    else cell = thread_control.drain_reservoir_cells[ thread_control.drain_reservoir_cells.size()*rnd->nextDouble() ];
+    if(remove_from_source) cell = source_reservoir_cells[ source_reservoir_cells.size()*rnd->nextDouble() ];
+    else cell = drain_reservoir_cells[ drain_reservoir_cells.size()*rnd->nextDouble() ];
 
     if(cell->num_molecules>0) {
         // Remove this random molecule
-        int molecule_index_in_cell = cell->num_molecules*rnd->nextDouble();
-        int molecule_index = cell->molecules[molecule_index_in_cell];
-        cell->remove_molecule(molecule_index,thread_control.molecule_index_in_cell);
+        int this_molecule_index_in_cell = cell->num_molecules*rnd->nextDouble();
+        int molecule_index = cell->molecules[this_molecule_index_in_cell];
+        cell->remove_molecule(molecule_index,molecule_index_in_cell);
 
         // Move the last molecule into that memory location
-        int last_molecule_index = thread_control.num_molecules-1;
+        int last_molecule_index = num_molecules-1;
 
         while(last_molecule_index==molecule_index) {
             last_molecule_index--;
         }
 
-        int last_molecule_cell_index = thread_control.molecule_cell_index[last_molecule_index];
-        int last_molecule_index_in_cell = thread_control.molecule_index_in_cell[last_molecule_index];
-        memcpy(&thread_control.r[3*molecule_index],&thread_control.r[3*last_molecule_index],3*sizeof(double));
-        memcpy(&thread_control.v[3*molecule_index],&thread_control.v[3*last_molecule_index],3*sizeof(double));
-        memcpy(&thread_control.r0[3*molecule_index],&thread_control.r0[3*last_molecule_index],3*sizeof(double));
+        int last_molecule_cell_index = molecule_cell_index[last_molecule_index];
+        int last_molecule_index_in_cell = molecule_index_in_cell[last_molecule_index];
+        memcpy(&r[3*molecule_index],&r[3*last_molecule_index],3*sizeof(double));
+        memcpy(&v[3*molecule_index],&v[3*last_molecule_index],3*sizeof(double));
+        memcpy(&r0[3*molecule_index],&r0[3*last_molecule_index],3*sizeof(double));
 
-        cell = thread_control.all_cells[last_molecule_cell_index];
-        thread_control.molecule_cell_index[molecule_index] = last_molecule_cell_index;
-        thread_control.molecule_index_in_cell[molecule_index] = last_molecule_index_in_cell;
+        cell = all_cells[last_molecule_cell_index];
+        molecule_cell_index[molecule_index] = last_molecule_cell_index;
+        molecule_index_in_cell[molecule_index] = last_molecule_index_in_cell;
         cell->molecules[last_molecule_index_in_cell] = molecule_index;
-        thread_control.num_molecules--;
+        num_molecules--;
         return true;
     } else return false;
+}
+
+void System::update_molecule_cells() {
+    for(int n=0;n<num_molecules;n++) {
+        int cell_index_new = cell_index_from_position(&r[3*n]);
+        int cell_index_old = molecule_cell_index[n];
+
+        Cell *new_cell = all_cells[cell_index_new];
+        Cell *old_cell = all_cells[cell_index_old];
+
+        if(cell_index_new != cell_index_old) {
+            // We changed cell
+            old_cell->remove_molecule(n,molecule_index_in_cell);
+            new_cell->add_molecule(n,molecule_index_in_cell,molecule_cell_index);
+        }
+    }
 }
 
 void System::maintain_pressure() {
@@ -133,8 +149,8 @@ void System::maintain_pressure_source() {
     long num_molecules_in_source = 0;
     double volume_in_source = 0;
     double pressure_in_source = 0;
-    for(int i=0;i<thread_control.source_reservoir_cells.size();i++) {
-        Cell *cell = thread_control.source_reservoir_cells[i];
+    for(int i=0;i<source_reservoir_cells.size();i++) {
+        Cell *cell = source_reservoir_cells[i];
         num_molecules_in_source += cell->num_molecules;
         volume_in_source += cell->volume;
     }
@@ -146,10 +162,6 @@ void System::maintain_pressure_source() {
         double wanted_pressure = unit_converter->pressure_from_SI(settings->pressure_source);
         long wanted_num_molecules = wanted_pressure*volume_in_source/temperature/eff_num;
         long delta = wanted_num_molecules-num_molecules_in_source;
-
-        // cout << "I have " << num_molecules_in_source << " molecules in source. I want " << wanted_num_molecules << ". Delta is " << wanted_num_molecules-num_molecules_in_source << endl;
-        // if(!(steps%100))
-        // if(!( (steps-1) %100)) cout << "Pressure in source is " << unit_converter->pressure_to_SI(pressure_in_source) << ", wanted pressure: " << unit_converter->pressure_to_SI(wanted_pressure) << endl;
 
         if(pressure_in_source<wanted_pressure) {
             for(int i=0;i<abs(delta);i++) {
@@ -163,8 +175,6 @@ void System::maintain_pressure_source() {
                 } else i--;
             }
         }
-        // if(!(steps%100))
-        // if(!( (steps-1) %100)) cout << "Added " << added_molecules << " molecules in source." << endl;
     }
 }
 
@@ -172,8 +182,8 @@ void System::maintain_pressure_drain() {
     long num_molecules_in_drain = 0;
     double volume_in_drain = 0;
     double pressure_in_drain = 0;
-    for(int i=0;i<thread_control.drain_reservoir_cells.size();i++) {
-        Cell *cell = thread_control.drain_reservoir_cells[i];
+    for(int i=0;i<drain_reservoir_cells.size();i++) {
+        Cell *cell = drain_reservoir_cells[i];
         num_molecules_in_drain += cell->num_molecules;
         volume_in_drain += cell->volume;
     }
@@ -184,11 +194,8 @@ void System::maintain_pressure_drain() {
         temp_over_volume = temperature/volume_in_drain;
         pressure_in_drain = eff_num*num_molecules_in_drain*temp_over_volume;
         double wanted_pressure = unit_converter->pressure_from_SI(settings->pressure_drain);
-        // if(!(steps%100))
-        // if(!( (steps-1) %100)) cout << "Pressure in drain is " << unit_converter->pressure_to_SI(pressure_in_drain) << ", wanted pressure: " << unit_converter->pressure_to_SI(wanted_pressure) << endl;
         long wanted_num_molecules = wanted_pressure*volume_in_drain/temperature/eff_num;
         long delta = wanted_num_molecules-num_molecules_in_drain;
-        // cout << "I have " << num_molecules_in_drain << " molecules in drain. I want " << wanted_num_molecules << ". Delta is " << wanted_num_molecules-num_molecules_in_drain << endl;
 
         if(pressure_in_drain<wanted_pressure) {
             for(int i=0;i<abs(delta);i++) {
@@ -202,6 +209,5 @@ void System::maintain_pressure_drain() {
                 } else i--;
             }
         }
-        // if(!( (steps-1) %100)) cout << "Added " << added_molecules << " molecules in drain." << endl;
     }
 }

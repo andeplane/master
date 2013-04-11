@@ -19,7 +19,6 @@ SOURCES += main.cpp \
     unitconverter.cpp \
     settings.cpp \
     dsmc_io.cpp \
-    threadcontrol.cpp \
     dsmctimer.cpp \
     moleculemover.cpp
 
@@ -34,7 +33,6 @@ HEADERS += \
     unitconverter.h \
     settings.h \
     dsmc_io.h \
-    threadcontrol.h \
     dsmctimer.h \
     moleculemover.h
 
