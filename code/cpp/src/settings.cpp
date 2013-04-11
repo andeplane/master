@@ -8,8 +8,9 @@ Settings::Settings(string filename) {
     maintain_pressure = ini_file.getbool("maintain_pressure");
     statistics_interval = ini_file.getint("statistics_interval");
     movie_every_n_frame = ini_file.getint("movie_every_n_frame");
-    number_of_molecules = ini_file.getint("N");
+    atoms_per_molecule = ini_file.getint("atoms_per_molecule");
     timesteps = ini_file.getint("timesteps");
+    movie_molecules = ini_file.getint("movie_molecules");
 
     cells_x = ini_file.getint("cells_x");
     cells_y = ini_file.getint("cells_y");

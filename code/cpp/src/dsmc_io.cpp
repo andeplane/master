@@ -29,6 +29,7 @@ void DSMC_IO::save_state_to_movie_file() {
             movie_file = new ofstream(filename,ios::out | ios::binary);
             movie_file_open = true;
             data = new double[3*MAX_MOLECULE_NUM];
+            memset(data,0,3*MAX_MOLECULE_NUM*sizeof(double));
             delete filename;
         }
 
@@ -41,8 +42,8 @@ void DSMC_IO::save_state_to_movie_file() {
 
         count /= 3; // This should represent the number of particles
 
-        movie_file->write (reinterpret_cast<char*>(&count), sizeof(int));
-        movie_file->write (reinterpret_cast<char*>(data), 3*count*sizeof(double));
+        movie_file->write (reinterpret_cast<char*>(&settings->movie_molecules), sizeof(int));
+        movie_file->write (reinterpret_cast<char*>(data), 3*settings->movie_molecules*sizeof(double));
     }
     system->timer->end_io();
 }

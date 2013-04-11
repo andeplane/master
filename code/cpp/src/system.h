@@ -78,7 +78,7 @@ public:
     double grid_origo_x, grid_origo_y, grid_origo_z;
     double length[3];
     double half_length[3];
-	double eff_num;
+    double atoms_per_molecule;
 	double mpv; 	// Most probable velocity
 	double mfp; 	// Mean free path
 	double dt;

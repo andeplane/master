@@ -4,6 +4,7 @@
 #include <time.h>
 #include <system.h>
 #include <random.h>
+#include <settings.h>
 
 using namespace std;
 
@@ -13,6 +14,7 @@ Cell::Cell(System *_system) {
     pixels = 0;
     num_molecules = 0;
     total_pixels = 0;
+    molecules = new int[MAX_MOLECULE_NUM];
 }
 
 bool Cell::cmp(Cell *c1, Cell *c2) {
@@ -28,7 +30,7 @@ void Cell::update_volume() {
 
     // Update the effective cell volume. A cell may contain 50% of solid material
     volume = system->volume/(system->cells_x*system->cells_y*system->cells_z)*(float)pixels/total_pixels;
-    collision_coefficient = 0.5*system->eff_num*M_PI*system->diam*system->diam*system->dt/volume;
+    collision_coefficient = 0.5*system->atoms_per_molecule*M_PI*system->diam*system->diam*system->dt/volume;
 }
 
 unsigned long Cell::prepare() {
@@ -104,7 +106,8 @@ int Cell::collide(Random *rnd) {
 }
 
 void Cell::add_molecule(const int &molecule_index, unsigned long *index_in_cell, unsigned long *cell_index) {
-    molecules.push_back(molecule_index);
+    // molecules.push_back(molecule_index);
+    molecules[num_molecules] = molecule_index;
     index_in_cell[molecule_index] = num_molecules;
     cell_index[molecule_index] = index;
     num_molecules++;
@@ -115,10 +118,18 @@ void Cell::remove_molecule(const int &molecule_index, unsigned long *index_in_ce
         // Move the last molecule over here
         molecules[ index_in_cell[molecule_index] ] = molecules[num_molecules-1];
         index_in_cell[ molecules[num_molecules-1] ] = index_in_cell[molecule_index];
-        molecules.pop_back();
-    } else {
-        molecules.erase(molecules.begin());
     }
 
     num_molecules--;
+}
+
+double Cell::calculate_kinetic_energy() {
+    double kinetic_energy = 0;
+    for(int n=0;n<num_molecules;n++) {
+        int index = molecules[n];
+        kinetic_energy += system->v[3*index+0]*system->v[3*index+0] + system->v[3*index+1]*system->v[3*index+1] + system->v[3*index+2]*system->v[3*index+2];
+    }
+    kinetic_energy *= 0.5*system->settings->mass;
+
+    return kinetic_energy;
 }

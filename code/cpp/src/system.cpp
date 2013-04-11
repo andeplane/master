@@ -215,18 +215,23 @@ void System::maintain_pressure_source() {
     long num_molecules_in_source = 0;
     double volume_in_source = 0;
     double pressure_in_source = 0;
+    double kinetic_energy = 0;
+
     for(int i=0;i<source_reservoir_cells.size();i++) {
         Cell *cell = source_reservoir_cells[i];
         num_molecules_in_source += cell->num_molecules;
         volume_in_source += cell->volume;
+        kinetic_energy += cell->calculate_kinetic_energy();
     }
+    double temperature_in_reservoir = 2.0/3*kinetic_energy/num_molecules_in_source;
+
     double temp_over_volume = 0;
     if(volume_in_source>0) {
         int added_molecules = 0;
-        temp_over_volume = temperature/volume_in_source;
-        pressure_in_source = eff_num*num_molecules_in_source*temp_over_volume;
+        temp_over_volume = temperature_in_reservoir/volume_in_source;
+        pressure_in_source = atoms_per_molecule*num_molecules_in_source*temp_over_volume;
         double wanted_pressure = unit_converter->pressure_from_SI(settings->pressure_source);
-        long wanted_num_molecules = wanted_pressure*volume_in_source/temperature/eff_num;
+        long wanted_num_molecules = wanted_pressure*volume_in_source/temperature/atoms_per_molecule;
         long delta = wanted_num_molecules-num_molecules_in_source;
 
         if(pressure_in_source<wanted_pressure) {
@@ -248,19 +253,23 @@ void System::maintain_pressure_drain() {
     long num_molecules_in_drain = 0;
     double volume_in_drain = 0;
     double pressure_in_drain = 0;
+    double kinetic_energy = 0;
+
     for(int i=0;i<drain_reservoir_cells.size();i++) {
         Cell *cell = drain_reservoir_cells[i];
         num_molecules_in_drain += cell->num_molecules;
         volume_in_drain += cell->volume;
+        kinetic_energy += cell->calculate_kinetic_energy();
     }
+    double temperature_in_reservoir = 2.0/3*kinetic_energy/num_molecules_in_drain;
 
     double temp_over_volume = 0;
     if(volume_in_drain>0) {
         int added_molecules = 0;
-        temp_over_volume = temperature/volume_in_drain;
-        pressure_in_drain = eff_num*num_molecules_in_drain*temp_over_volume;
+        temp_over_volume = temperature_in_reservoir/volume_in_drain;
+        pressure_in_drain = atoms_per_molecule*num_molecules_in_drain*temp_over_volume;
         double wanted_pressure = unit_converter->pressure_from_SI(settings->pressure_drain);
-        long wanted_num_molecules = wanted_pressure*volume_in_drain/temperature/eff_num;
+        long wanted_num_molecules = wanted_pressure*volume_in_drain/temperature/atoms_per_molecule;
         long delta = wanted_num_molecules-num_molecules_in_drain;
 
         if(pressure_in_drain<wanted_pressure) {

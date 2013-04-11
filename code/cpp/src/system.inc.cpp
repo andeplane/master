@@ -28,6 +28,7 @@ void System::initialize(Settings *settings_, int myid_, int num_nodes_) {
 
     density = settings->density;
     diam = settings->diam;
+    atoms_per_molecule = settings->atoms_per_molecule;
 
     if(myid==0) cout << "Initializing system..." << endl;
     cell_length_x = length[0]/(settings->cells_x);
@@ -47,12 +48,15 @@ void System::initialize(Settings *settings_, int myid_, int num_nodes_) {
 
     world_grid = new Grid(settings->ini_file.getstring("world"),this);
 
+    if(myid==0) cout << "Creating cells..." << endl;
+    setup_cells();
+    if(myid==0) cout << "Calculating porosity..." << endl;
+    calculate_porosity();
+    volume = length[0]*length[1]*length[2]*porosity;
+    num_molecules = density*volume/atoms_per_molecule;
+
     if(myid==0) {
-        if(myid==0) cout << "Creating cells..." << endl;
-        setup_cells();
-        if(myid==0) cout << "Calculating porosity..." << endl;
-        calculate_porosity();
-        if(myid==0) cout << "Creating/loading molecules..." << endl;
+        cout << "Creating/loading molecules..." << endl;
         setup_molecules();
     } else {
         r = new double[3*MAX_MOLECULE_NUM];
@@ -60,12 +64,10 @@ void System::initialize(Settings *settings_, int myid_, int num_nodes_) {
         r0 = new double[3*MAX_MOLECULE_NUM];
     }
 
+
     mpi_receive_buffer = new double[9*MAX_MOLECULE_NUM];
 
-    volume = length[0]*length[1]*length[2]*porosity;
-    eff_num = density*volume/(settings->number_of_molecules*porosity);
-
-    mfp = volume/(sqrt(2.0)*M_PI*diam*diam*num_molecules*eff_num);
+    mfp = volume/(sqrt(2.0)*M_PI*diam*diam*num_molecules*atoms_per_molecule);
     mpv = sqrt(temperature);  // Most probable initial velocity
     dt = settings->dt;
 
@@ -89,7 +91,7 @@ void System::initialize(Settings *settings_, int myid_, int num_nodes_) {
         printf("Effective system volume: %f\n",volume);
         printf("Mean free path: %.4f \n",mfp);
         printf("Mean free paths per cell: %.2f \n",min( min(length[0]/cells_x/mfp,length[1]/cells_y/mfp), length[2]/cells_z/mfp));
-        printf("%ld atoms per molecule\n",(unsigned long)eff_num);
+        printf("%ld atoms per molecule\n",(unsigned long)atoms_per_molecule);
         printf("%d molecules per active cell\n",num_molecules/number_of_cells);
 
         printf("dt = %f\n\n",dt);
@@ -131,8 +133,6 @@ void System::update_cell_volume() {
 }
 
 void System::setup_molecules() {
-    num_molecules = settings->number_of_molecules*porosity;
-
     r = new double[3*MAX_MOLECULE_NUM];
 
     molecule_index_in_cell = new unsigned long[MAX_MOLECULE_NUM];

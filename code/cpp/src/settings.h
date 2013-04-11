@@ -12,7 +12,8 @@ public:
     bool maintain_pressure;
     int statistics_interval;
     int movie_every_n_frame;
-    int number_of_molecules;
+    int atoms_per_molecule;
+    int movie_molecules;
     int timesteps;
     int cells_x;
     int cells_y;

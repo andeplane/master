@@ -22,7 +22,8 @@ public:
     double collision_coefficient;
 
     System *system;
-    vector<int> molecules;
+    // vector<int> molecules;
+    int *molecules;
     int num_molecules;
 
     Cell(System *system);
@@ -35,5 +36,6 @@ public:
     void add_molecule(const int &molecule_index, unsigned long *index_in_cell, unsigned long *cell_index);
     void remove_molecule(const int &molecule_index, unsigned long *index_in_cell);
 
+    double calculate_kinetic_energy();
     static bool cmp(Cell *c1, Cell *c2);
 };

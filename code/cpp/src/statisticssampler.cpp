@@ -28,9 +28,9 @@ void StatisticsSampler::sample_kinetic_energy() {
     kinetic_energy = 0;
 
     for(unsigned int i=0;i<system->num_molecules;i++) {
-        kinetic_energy += 0.5*(system->v[3*i+0]*system->v[3*i+0] + system->v[3*i+1]*system->v[3*i+1] + system->v[3*i+2]*system->v[3*i+2]);
+        kinetic_energy += (system->v[3*i+0]*system->v[3*i+0] + system->v[3*i+1]*system->v[3*i+1] + system->v[3*i+2]*system->v[3*i+2]);
     }
-    kinetic_energy *= settings->mass*system->eff_num;
+    kinetic_energy *= 0.5*settings->mass*system->atoms_per_molecule;
 }
 
 void StatisticsSampler::sample_temperature() {
@@ -38,7 +38,7 @@ void StatisticsSampler::sample_temperature() {
     temperature_sampled_at = system->steps;
 
     sample_kinetic_energy();
-    double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules*system->eff_num);
+    double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules*system->atoms_per_molecule);
     temperature = 2.0/3*kinetic_energy_per_molecule;
 }
 
@@ -84,7 +84,7 @@ void StatisticsSampler::sample() {
     sample_temperature();
 
     if(system->myid == 0) {
-        double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules*system->eff_num);
+        double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules*system->atoms_per_molecule);
 
         fprintf(system->io->energy_file, "%f %f %f\n",t_in_nano_seconds, system->unit_converter->energy_to_eV(kinetic_energy_per_molecule), system->unit_converter->temperature_to_SI(temperature));
         fprintf(system->io->flux_file, "%f %f %f %f\n",t_in_nano_seconds, flux[0], flux[1], flux[2]);
@@ -153,6 +153,7 @@ void StatisticsSampler::sample_velocity_distribution_box() {
         double v_norm = sqrt(system->v[3*i+2]*system->v[3*i+2] + system->v[3*i+1]*system->v[3*i+1] + system->v[3*i+0]*system->v[3*i+0]);
         double vz = system->v[3*i+2];
 
+        if(v_of_y_index >= N) continue;
         v_of_y[v_of_y_index] += vz;
         v_of_y_count[v_of_y_index]++;
     }
