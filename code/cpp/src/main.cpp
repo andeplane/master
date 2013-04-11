@@ -53,15 +53,17 @@ int main(int args, char* argv[]) {
             double fraction_mpi = system.timer->fraction_mpi();
             double fraction_sample = system.timer->fraction_sample();
             double fraction_accelerate = system.timer->fraction_accelerate();
-            double fraction_total = fraction_moving + fraction_colliding + fraction_io + fraction_mpi + fraction_sample + fraction_accelerate;
-            double time_total = system.timer->system_initialize + system.timer->moving + system.timer->colliding + system.timer->io + system.timer->mpi + system.timer->sample + system.timer->accelerate;
+            double fraction_pressure = system.timer->fraction_pressure();
+            double fraction_total = fraction_moving + fraction_colliding + fraction_io + fraction_mpi + fraction_sample + fraction_accelerate + fraction_pressure;
+            double time_total = system.timer->system_initialize + system.timer->moving + system.timer->colliding + system.timer->io + system.timer->mpi + system.timer->sample + system.timer->accelerate + system.timer->pressure;
 
             double total_time = MPI_Wtime() - t_start;
             cout.precision(2);
-            cout << endl << "Program finished after " << total_time << " seconds. Time analysis:" << endl;
+            cout << endl << "Program finished after " << (long)total_time << " seconds. Time analysis:" << endl;
             cout << fixed
                  << "      Moving            : " << system.timer->moving << " s ( " << 100*fraction_moving << "% )" <<  endl
                  << "      Colliding         : " << system.timer->colliding << " s ( " << 100*fraction_colliding << "% )" <<  endl
+                 << "      Pressure          : " << system.timer->pressure << " s ( " << 100*fraction_pressure << "% )" <<  endl
                  << "      Accelerating      : " << system.timer->accelerate << " s ( " << 100*fraction_accelerate << "% )" <<  endl
                  << "      Sampling          : " << system.timer->sample << " s ( " << 100*fraction_sample << "% )" <<  endl
                  << "      Disk IO           : " << system.timer->io << " s ( " << 100*fraction_io << "% )" <<  endl

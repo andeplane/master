@@ -74,8 +74,9 @@ void StatisticsSampler::sample_permeability() {
 
     double area = pi*radius*radius;
     double theoretical = radius*radius/8;
+    double length = system->length[settings->gravity_direction] - 2*system->reservoir_size;
 
-    permeability = volume_flux*L*viscosity_dsmc_units / (mass_density*settings->gravity*area);
+    permeability = volume_flux*L*viscosity_dsmc_units / (mass_density*system->length[settings->gravity_direction]*settings->gravity*area);
     // cout << "Permeability: " << system->unit_converter->permeability_to_SI(permeability) << " (theoretical: " << system->unit_converter->permeability_to_SI(theoretical) << ")" << endl;
 
 }
@@ -84,7 +85,8 @@ void StatisticsSampler::sample() {
     if(settings->statistics_interval && system->steps % settings->statistics_interval != 0) return;
     double t_in_nano_seconds = system->unit_converter->time_to_SI(system->t)*1e9;
 
-    sample_velocity_distribution_cylinder();
+    // sample_velocity_distribution_cylinder();
+    sample_velocity_distribution_box();
     sample_temperature();
 
     sample_permeability();
@@ -114,18 +116,23 @@ void StatisticsSampler::sample_velocity_distribution_cylinder() {
     memset(v_of_r,0,N*sizeof(double));
     memset(v_of_r_count,0,N*sizeof(int));
 
-    double dr_max = sqrt(system->length[0]*system->length[0] + system->length[1]*system->length[1]);
+    double box_origo = system->reservoir_size;
+    double box_end = system->length[2]-system->reservoir_size;
+    double dr_max = sqrt(system->length[0]*system->length[0]+system->length[1]*system->length[1]);
+
 
     for(int i=0;i<system->thread_control.num_molecules;i++) {
+        if(system->thread_control.r[3*i+2] < box_origo || system->thread_control.r[3*i+2] > box_end) continue;
+
         double dx = system->thread_control.r[3*i+0] - center_x;
         double dy = system->thread_control.r[3*i+1] - center_y;
         double dr = sqrt(dx*dx + dy*dy);
-        int v_of_r_index = N*dr;
+        int v_of_r_index = N*dr/dr_max;
         if(v_of_r_index>=N) continue;
         double v_norm = sqrt(system->thread_control.v[3*i+2]*system->thread_control.v[3*i+2] + system->thread_control.v[3*i+1]*system->thread_control.v[3*i+1] + system->thread_control.v[3*i+0]*system->thread_control.v[3*i+0]);
         double vz = system->thread_control.v[3*i+2];
 
-        v_of_r[v_of_r_index] += v_norm;
+        v_of_r[v_of_r_index] += vz;
         v_of_r_count[v_of_r_index]++;
     }
 
@@ -147,7 +154,12 @@ void StatisticsSampler::sample_velocity_distribution_box() {
     memset(v_of_y,0,N*sizeof(double));
     memset(v_of_y_count,0,N*sizeof(int));
 
+    double box_origo = system->reservoir_size;
+    double box_end = system->length[2]-system->reservoir_size;
+
     for(int i=0;i<system->thread_control.num_molecules;i++) {
+        if(system->thread_control.r[3*i+2] < box_origo || system->thread_control.r[3*i+2] > box_end) continue;
+
         double y = system->thread_control.r[3*i+1];
         int v_of_y_index = N*(y/system->length[1]);
 

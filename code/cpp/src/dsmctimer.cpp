@@ -11,6 +11,7 @@ DSMCTimer::DSMCTimer() {
     mpi = 0;
     sample = 0;
     accelerate = 0;
+    pressure = 0;
 }
 
 void DSMCTimer::start_moving() {
@@ -102,6 +103,19 @@ void DSMCTimer::end_accelerate() {
 double DSMCTimer::fraction_accelerate() {
     double t1 = MPI_Wtime();
     return accelerate/(t1-t0);
+}
+
+void DSMCTimer::start_pressure() {
+    pressure_t0 = MPI_Wtime();
+}
+
+void DSMCTimer::end_pressure() {
+    pressure += MPI_Wtime() - pressure_t0;
+}
+
+double DSMCTimer::fraction_pressure() {
+    double t1 = MPI_Wtime();
+    return pressure/(t1-t0);
 }
 
 void DSMCTimer::gather_all_nodes(System *system) {

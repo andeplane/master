@@ -18,7 +18,9 @@ void System::step() {
     accelerate();
     move();
     collide();
-    maintain_pressure();
+    if(settings->maintain_pressure) maintain_pressure();
+//    double pressure = thread_control.num_molecules*eff_num/volume*temperature;
+//    cout << "Global pressure: " << unit_converter->pressure_to_SI(pressure) << endl;
 }
 
 void System::move() {
@@ -100,6 +102,11 @@ bool System::remove_molecule_in_pressure_reservoir(bool remove_from_source) {
 
         // Move the last molecule into that memory location
         int last_molecule_index = thread_control.num_molecules-1;
+
+        while(last_molecule_index==molecule_index) {
+            last_molecule_index--;
+        }
+
         int last_molecule_cell_index = thread_control.molecule_cell_index[last_molecule_index];
         int last_molecule_index_in_cell = thread_control.molecule_index_in_cell[last_molecule_index];
         memcpy(&thread_control.r[3*molecule_index],&thread_control.r[3*last_molecule_index],3*sizeof(double));
@@ -116,6 +123,13 @@ bool System::remove_molecule_in_pressure_reservoir(bool remove_from_source) {
 }
 
 void System::maintain_pressure() {
+    timer->start_pressure();
+    maintain_pressure_source();
+    maintain_pressure_drain();
+    timer->end_pressure();
+}
+
+void System::maintain_pressure_source() {
     long num_molecules_in_source = 0;
     double volume_in_source = 0;
     double pressure_in_source = 0;
@@ -130,25 +144,64 @@ void System::maintain_pressure() {
         temp_over_volume = temperature/volume_in_source;
         pressure_in_source = eff_num*num_molecules_in_source*temp_over_volume;
         double wanted_pressure = unit_converter->pressure_from_SI(settings->pressure_source);
-        if(!(steps%100)) cout << "Pressure is=" << pressure_in_source << " wanted pressure: " << wanted_pressure << endl;
+        long wanted_num_molecules = wanted_pressure*volume_in_source/temperature/eff_num;
+        long delta = wanted_num_molecules-num_molecules_in_source;
+
+        // cout << "I have " << num_molecules_in_source << " molecules in source. I want " << wanted_num_molecules << ". Delta is " << wanted_num_molecules-num_molecules_in_source << endl;
+        // if(!(steps%100))
+        // if(!( (steps-1) %100)) cout << "Pressure in source is " << unit_converter->pressure_to_SI(pressure_in_source) << ", wanted pressure: " << unit_converter->pressure_to_SI(wanted_pressure) << endl;
 
         if(pressure_in_source<wanted_pressure) {
-            while(pressure_in_source<wanted_pressure) {
+            for(int i=0;i<abs(delta);i++) {
                 add_molecule_in_pressure_reservoirs(true);
-                num_molecules_in_source++;
-                pressure_in_source = eff_num*num_molecules_in_source*temp_over_volume;
                 added_molecules++;
             }
         } else {
-            while(pressure_in_source>settings->pressure_source) {
+            for(int i=0;i<abs(delta);i++) {
                 if(remove_molecule_in_pressure_reservoir(true)) {
-                    num_molecules_in_source--;
-                    pressure_in_source = num_molecules_in_source*temp_over_volume;
                     added_molecules--;
-                }
+                } else i--;
             }
         }
-        if(!(steps%100)) cout << "Added " << added_molecules << " molecules." << endl;
+        // if(!(steps%100))
+        // if(!( (steps-1) %100)) cout << "Added " << added_molecules << " molecules in source." << endl;
+    }
+}
+
+void System::maintain_pressure_drain() {
+    long num_molecules_in_drain = 0;
+    double volume_in_drain = 0;
+    double pressure_in_drain = 0;
+    for(int i=0;i<thread_control.drain_reservoir_cells.size();i++) {
+        Cell *cell = thread_control.drain_reservoir_cells[i];
+        num_molecules_in_drain += cell->num_molecules;
+        volume_in_drain += cell->volume;
     }
 
+    double temp_over_volume = 0;
+    if(volume_in_drain>0) {
+        int added_molecules = 0;
+        temp_over_volume = temperature/volume_in_drain;
+        pressure_in_drain = eff_num*num_molecules_in_drain*temp_over_volume;
+        double wanted_pressure = unit_converter->pressure_from_SI(settings->pressure_drain);
+        // if(!(steps%100))
+        // if(!( (steps-1) %100)) cout << "Pressure in drain is " << unit_converter->pressure_to_SI(pressure_in_drain) << ", wanted pressure: " << unit_converter->pressure_to_SI(wanted_pressure) << endl;
+        long wanted_num_molecules = wanted_pressure*volume_in_drain/temperature/eff_num;
+        long delta = wanted_num_molecules-num_molecules_in_drain;
+        // cout << "I have " << num_molecules_in_drain << " molecules in drain. I want " << wanted_num_molecules << ". Delta is " << wanted_num_molecules-num_molecules_in_drain << endl;
+
+        if(pressure_in_drain<wanted_pressure) {
+            for(int i=0;i<abs(delta);i++) {
+                add_molecule_in_pressure_reservoirs(false);
+                added_molecules++;
+            }
+        } else {
+            for(int i=0;i<abs(delta);i++) {
+                if(remove_molecule_in_pressure_reservoir(false)) {
+                    added_molecules--;
+                } else i--;
+            }
+        }
+        // if(!( (steps-1) %100)) cout << "Added " << added_molecules << " molecules in drain." << endl;
+    }
 }

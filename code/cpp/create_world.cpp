@@ -241,15 +241,16 @@ int main (int args, char *argv[]) {
     }
 
     int idx[3];
+    if(reservoir_size_fraction>0) {
+        for(idx[0]=0;idx[0]<N[0];idx[0]++) {
+            for(idx[1]=0;idx[1]<N[1];idx[1]++) {
+                for(idx[2]=0;idx[2]<N[2];idx[2]++) {
 
-    for(idx[0]=0;idx[0]<N[0];idx[0]++) {
-        for(idx[1]=0;idx[1]<N[1];idx[1]++) {
-            for(idx[2]=0;idx[2]<N[2];idx[2]++) {
-
-                int index_M2 = idx[0] + idx[1]*N[0] + idx[2]*N[0]*N[1];
-                if(idx[reservoir_dimension] == 0 || idx[reservoir_dimension] == N[reservoir_dimension]-1) {
-                    // Create hard walls at the ends
-                    M2[index_M2] = 1;
+                    int index_M2 = idx[0] + idx[1]*N[0] + idx[2]*N[0]*N[1];
+                    if(idx[reservoir_dimension] == 0 || idx[reservoir_dimension] == N[reservoir_dimension]-1) {
+                        // Create hard walls at the ends
+                        M2[index_M2] = 1;
+                    }
                 }
             }
         }

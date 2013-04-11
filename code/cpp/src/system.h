@@ -28,6 +28,8 @@ private:
     void init_randoms();
     void collide();
 	void accelerate();
+    void maintain_pressure_source();
+    void maintain_pressure_drain();
     void maintain_pressure();
     bool remove_molecule_in_pressure_reservoir(bool remove_from_source);
     void find_position_in_reservoirs(double *r, bool find_position_in_source);

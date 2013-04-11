@@ -55,7 +55,7 @@ void System::initialize(Settings *settings_, int myid_) {
     porosity_global /= thread_control.num_nodes;
 
     volume = length[0]*length[1]*length[2]*porosity_global;
-    eff_num = density*volume/num_molecules_global;
+    eff_num = density*volume/(settings->number_of_molecules*porosity_global);
 
     mfp = volume/(sqrt(2.0)*M_PI*diam*diam*num_molecules_global*eff_num);
     mpv = sqrt(temperature);  // Most probable initial velocity

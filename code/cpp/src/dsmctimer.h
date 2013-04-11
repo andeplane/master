@@ -57,5 +57,12 @@ public:
     void end_accelerate();
     double fraction_accelerate();
 
+    double pressure_t0;
+    double pressure;
+    double pressure_global;
+    void start_pressure();
+    void end_pressure();
+    double fraction_pressure();
+
     void gather_all_nodes(System *system);
 };
