@@ -26,16 +26,11 @@ void StatisticsSampler::sample_kinetic_energy() {
     kinetic_energy_sampled_at = system->steps;
 
     kinetic_energy = 0;
-    double kinetic_energy_global = 0;
 
     for(unsigned int i=0;i<system->num_molecules;i++) {
         kinetic_energy += 0.5*(system->v[3*i+0]*system->v[3*i+0] + system->v[3*i+1]*system->v[3*i+1] + system->v[3*i+2]*system->v[3*i+2]);
     }
     kinetic_energy *= settings->mass*system->eff_num;
-
-    MPI_Allreduce(&kinetic_energy, &kinetic_energy_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-    kinetic_energy = kinetic_energy_global;
 }
 
 void StatisticsSampler::sample_temperature() {
@@ -84,16 +79,9 @@ void StatisticsSampler::sample() {
     if(settings->statistics_interval && system->steps % settings->statistics_interval != 0) return;
     double t_in_nano_seconds = system->unit_converter->time_to_SI(system->t)*1e9;
 
-    sample_velocity_distribution_cylinder();
-    // sample_velocity_distribution_box();
+    // sample_velocity_distribution_cylinder();
+    sample_velocity_distribution_box();
     sample_temperature();
-
-    sample_permeability();
-
-    long collisions_global = 0;
-
-    MPI_Reduce(&system->collisions, &collisions_global, 1, MPI_LONG,
-                   MPI_SUM, 0, MPI_COMM_WORLD);
 
     if(system->myid == 0) {
         double kinetic_energy_per_molecule = kinetic_energy / (system->num_molecules*system->eff_num);
@@ -102,7 +90,7 @@ void StatisticsSampler::sample() {
         fprintf(system->io->flux_file, "%f %f %f %f\n",t_in_nano_seconds, flux[0], flux[1], flux[2]);
         fprintf(system->io->permeability_file, "%f %E\n",t_in_nano_seconds, system->unit_converter->permeability_to_SI(permeability));
 
-        cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  collisions_global <<  "   Molecules: " << system->num_molecules << endl;
+        cout << system->steps << "   t=" << t_in_nano_seconds << "   T=" << system->unit_converter->temperature_to_SI(temperature) << "   Collisions: " <<  system->collisions <<  "   Molecules: " << system->num_molecules << endl;
     }
 }
 

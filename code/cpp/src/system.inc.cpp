@@ -4,16 +4,12 @@
 #include <moleculemover.h>
 #include <settings.h>
 
-void System::initialize(Settings *settings_, int myid_) {
+void System::initialize(Settings *settings_, int myid_, int num_nodes_) {
     myid = myid_;
     settings = settings_;
-    num_nodes = settings->nodes_x*settings->nodes_y*settings->nodes_z;
-
+    num_nodes = num_nodes_;
     timer = new DSMCTimer();
     timer->start_system_initialize();
-
-    if(myid==0) cout << "Initializing system..." << endl;
-
     steps = 0;
     collisions = 0;
     t = 0;
@@ -27,26 +23,28 @@ void System::initialize(Settings *settings_, int myid_) {
 
     reservoir_size = length[settings->gravity_direction]*settings->reservoir_fraction/2;
 
-    cell_length_x = length[0]/(settings->cells_per_node_x*settings->nodes_x);
-    cell_length_y = length[1]/(settings->cells_per_node_y*settings->nodes_y);
-    cell_length_z = length[2]/(settings->cells_per_node_z*settings->nodes_z);
-
-    cells_x = settings->nodes_x*settings->cells_per_node_x;
-    cells_y = settings->nodes_y*settings->cells_per_node_y;
-    cells_z = settings->nodes_z*settings->cells_per_node_z;
-    num_cells_vector[0] = cells_x;
-    num_cells_vector[1] = cells_y;
-    num_cells_vector[2] = cells_z;
-
     temperature      = unit_converter->temperature_from_SI(settings->temperature);;
     wall_temperature = unit_converter->temperature_from_SI(settings->wall_temperature);
 
     density = settings->density;
     diam = settings->diam;
 
+    if(myid==0) cout << "Initializing system..." << endl;
+    cell_length_x = length[0]/(settings->cells_x);
+    cell_length_y = length[1]/(settings->cells_y);
+    cell_length_z = length[2]/(settings->cells_z);
+
+    cells_x = settings->cells_x;
+    cells_y = settings->cells_y;
+    cells_z = settings->cells_z;
+
+    num_cells_vector[0] = cells_x;
+    num_cells_vector[1] = cells_y;
+    num_cells_vector[2] = cells_z;
     io = new DSMC_IO(this);
 
     if(myid==0) cout << "Loading world..." << endl;
+
     world_grid = new Grid(settings->ini_file.getstring("world"),this);
 
     if(myid==0) {
@@ -71,8 +69,11 @@ void System::initialize(Settings *settings_, int myid_) {
     mpv = sqrt(temperature);  // Most probable initial velocity
     dt = settings->dt;
 
-    if(myid==0) cout << "Updating cell volume..." << endl;
-    if(myid==0) update_cell_volume();
+    if(myid==0) {
+        cout << "Updating cell volume..." << endl;
+        update_cell_volume();
+    }
+
     mover = new MoleculeMover();
     mover->initialize(this);
 
@@ -100,9 +101,9 @@ void System::initialize(Settings *settings_, int myid_) {
 inline void System::find_position(double *r) {
     bool did_collide = true;
     while(did_collide) {
-        r[0] = length[0]/settings->nodes_x*rnd->nextDouble();
-        r[1] = length[1]/settings->nodes_y*rnd->nextDouble();
-        r[2] = length[2]/settings->nodes_z*rnd->nextDouble();
+        r[0] = length[0]*rnd->nextDouble();
+        r[1] = length[1]*rnd->nextDouble();
+        r[2] = length[2]*rnd->nextDouble();
 
         did_collide = *world_grid->get_voxel(r)>=voxel_type_wall;
     }
@@ -130,7 +131,7 @@ void System::update_cell_volume() {
 }
 
 void System::setup_molecules() {
-    num_molecules = settings->number_of_molecules*porosity/num_nodes;
+    num_molecules = settings->number_of_molecules*porosity;
 
     r = new double[3*MAX_MOLECULE_NUM];
 
@@ -161,7 +162,7 @@ void System::setup_molecules() {
 }
 
 void System::setup_cells() {
-    int num_cells = num_nodes*settings->cells_per_node_x*settings->cells_per_node_y*settings->cells_per_node_z;
+    int num_cells = cells_x*cells_y*cells_z;
     all_cells.reserve(num_cells);
     int idx[3];
 
@@ -224,6 +225,6 @@ void System::calculate_porosity() {
 
 void System::init_randoms() {
     long seed = time(NULL);
-    seed = 1 + myid;
+    // seed = 1 + myid;
     rnd = new Random(-seed);
 }

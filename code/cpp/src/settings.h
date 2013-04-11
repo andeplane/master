@@ -14,12 +14,9 @@ public:
     int movie_every_n_frame;
     int number_of_molecules;
     int timesteps;
-    int cells_per_node_x;
-    int cells_per_node_y;
-    int cells_per_node_z;
-    int nodes_x;
-    int nodes_y;
-    int nodes_z;
+    int cells_x;
+    int cells_y;
+    int cells_z;
     int gravity_direction;
     double viscosity;
     double mass;

@@ -13,38 +13,38 @@
 using namespace std;
 
 int main(int args, char* argv[]) {
-    int numprocs, myid;
+    int num_nodes, myid;
 
     MPI_Init(&args,&argv) ;
-    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_nodes);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
     double t_start = MPI_Wtime();
 
     Settings *settings = new Settings("../dsmc.ini");
     System system;
 
-    int num_nodes = settings->nodes_x*settings->nodes_y*settings->nodes_z;
-    if(numprocs != num_nodes) {
-        if(myid==0) cout << "Wrong number of processors. " << endl << "Config files says " << num_nodes << ". MPI started with " << numprocs << "." << endl;
-        MPI_Finalize();
-        return(0);
+    system.initialize(settings, myid,num_nodes);
+    StatisticsSampler *sampler;
+
+    if(myid==0) {
+        sampler = new StatisticsSampler(&system);
+        for(int i=0;i<settings->timesteps;i++) {
+            system.io->save_state_to_movie_file();
+            system.step();
+
+            system.timer->start_sample();
+            sampler->sample();
+            system.timer->end_sample();
+        }
+        system.io->save_state_to_file_binary();
+        system.io->finalize();
+
+    } else {
+        for(int i=0;i<settings->timesteps;i++) {
+            system.step();
+        }
     }
 
-    system.initialize(settings, myid);
-    StatisticsSampler *sampler = new StatisticsSampler(&system);
-
-    for(int i=0;i<settings->timesteps;i++) {
-        system.io->save_state_to_movie_file();
-        system.step();
-
-        system.timer->start_sample();
-        sampler->sample();
-        system.timer->end_sample();
-    }
-
-    system.io->save_state_to_file_binary();
-    system.io->finalize();
-    system.timer->gather_all_nodes(&system);
     if(myid==0) {
             double system_initialize_percentage = system.timer->fraction_system_initialize();
             double fraction_moving = system.timer->fraction_moving();
@@ -72,7 +72,7 @@ int main(int args, char* argv[]) {
                  << "      TOTAL             : " << time_total << " s ( " << 100*fraction_total << "% )" <<  endl;
             cout << endl << settings->timesteps / total_time << " timesteps / second. " << endl;
             cout << system.num_molecules*settings->timesteps / (1000*total_time) << "k atom-timesteps / second. " << endl;
-            cout << system.num_molecules*settings->timesteps / (1000*total_time*numprocs) << "k atom-timesteps / second (per node). " << endl;
+            cout << system.num_molecules*settings->timesteps / (1000*total_time*num_nodes) << "k atom-timesteps / second (per node). " << endl;
         }
 
 

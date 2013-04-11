@@ -11,12 +11,9 @@ Settings::Settings(string filename) {
     number_of_molecules = ini_file.getint("N");
     timesteps = ini_file.getint("timesteps");
 
-    cells_per_node_x = ini_file.getint("cells_per_node_x");
-    cells_per_node_y = ini_file.getint("cells_per_node_y");
-    cells_per_node_z = ini_file.getint("cells_per_node_z");
-    nodes_x = ini_file.getint("nodes_x");
-    nodes_y = ini_file.getint("nodes_y");
-    nodes_z = ini_file.getint("nodes_z");
+    cells_x = ini_file.getint("cells_x");
+    cells_y = ini_file.getint("cells_y");
+    cells_z = ini_file.getint("cells_z");
     gravity_direction = ini_file.getint("gravity_direction");
 
     viscosity = ini_file.getdouble("viscosity");

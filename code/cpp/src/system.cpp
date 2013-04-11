@@ -15,20 +15,86 @@
 void System::step() {
     steps += 1;
     t += dt;
-    accelerate();
+    if(myid==0) accelerate();
     move();
-    collide();
-    if(settings->maintain_pressure) maintain_pressure();
-//    double pressure = num_molecules*eff_num/volume*temperature;
-//    cout << "Global pressure: " << unit_converter->pressure_to_SI(pressure) << endl;
+    if(myid==0) collide();
+    if(myid==0 && settings->maintain_pressure) maintain_pressure();
+}
+
+void System::send_molecules_to_slaves() {
+
+    int molecules_per_node = num_molecules/num_nodes;
+    for(int node_id=1;node_id<num_nodes;node_id++) {
+        int start_index = molecules_per_node*node_id;
+        int end_index = start_index + molecules_per_node;
+        if(node_id == num_nodes-1) end_index = num_molecules - 1;
+        end_index = min(end_index,num_molecules - 1);
+
+        int num_send = end_index - start_index + 1;
+
+        MPI_Send(&num_send,1,MPI_INT,node_id,10,MPI_COMM_WORLD);
+        MPI_Send(&r[3*start_index],3*num_send,MPI_DOUBLE,node_id,10,MPI_COMM_WORLD);
+        MPI_Send(&v[3*start_index],3*num_send,MPI_DOUBLE,node_id,10,MPI_COMM_WORLD);
+        MPI_Send(&r0[3*start_index],3*num_send,MPI_DOUBLE,node_id,10,MPI_COMM_WORLD);
+    }
+
+    num_molecules_this_node = molecules_per_node;
+}
+
+void System::receive_molecules_from_master() {
+    MPI_Status status;
+
+    MPI_Recv(&num_molecules,1,MPI_INT,0,10,MPI_COMM_WORLD,&status);
+    MPI_Recv(r,3*num_molecules,MPI_DOUBLE,0,10,MPI_COMM_WORLD,&status);
+    MPI_Recv(v,3*num_molecules,MPI_DOUBLE,0,10,MPI_COMM_WORLD,&status);
+    MPI_Recv(r0,3*num_molecules,MPI_DOUBLE,0,10,MPI_COMM_WORLD,&status);
+    num_molecules_this_node = num_molecules;
+}
+
+void System::send_molecules_to_master() {
+    MPI_Send(r,3*num_molecules,MPI_DOUBLE,0,10,MPI_COMM_WORLD);
+    MPI_Send(v,3*num_molecules,MPI_DOUBLE,0,10,MPI_COMM_WORLD);
+    MPI_Send(r0,3*num_molecules,MPI_DOUBLE,0,10,MPI_COMM_WORLD);
+}
+
+void System::receive_molecules_from_slaves() {
+    MPI_Status status;
+
+    int molecules_per_node = num_molecules/num_nodes;
+    for(int node_id=1;node_id<num_nodes;node_id++) {
+        int start_index = molecules_per_node*node_id;
+        int end_index = start_index + molecules_per_node;
+        if(node_id == num_nodes-1) end_index = num_molecules - 1;
+        end_index = min(end_index,num_molecules - 1);
+
+        int num_receive = end_index - start_index + 1;
+
+        MPI_Recv(&r[3*start_index],3*num_receive,MPI_DOUBLE,node_id,10,MPI_COMM_WORLD,&status);
+        MPI_Recv(&v[3*start_index],3*num_receive,MPI_DOUBLE,node_id,10,MPI_COMM_WORLD,&status);
+        MPI_Recv(&r0[3*start_index],3*num_receive,MPI_DOUBLE,node_id,10,MPI_COMM_WORLD,&status);
+    }
 }
 
 void System::move() {
+    timer->start_mpi();
+    if(myid==0) send_molecules_to_slaves();
+    else receive_molecules_from_master();
+    timer->end_mpi();
+
     timer->start_moving();
-    for(int n=0;n<num_molecules;n++) {
+    // cout << myid << " will move " << num_molecules_this_node << " molecules." << endl;
+    for(int n=0;n<num_molecules_this_node;n++) {
         mover->move_molecule(n,dt,rnd,0);
     }
-    update_molecule_cells();
+    timer->end_moving();
+
+    timer->start_mpi();
+    if(myid==0) receive_molecules_from_slaves();
+    else send_molecules_to_master();
+    timer->end_mpi();
+
+    timer->start_moving();
+    if(myid==0) update_molecule_cells();
     timer->end_moving();
 }
 
