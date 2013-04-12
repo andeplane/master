@@ -20,7 +20,7 @@ int main(int args, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
     double t_start = MPI_Wtime();
 
-    Settings *settings = new Settings("../dsmc.ini");
+    Settings *settings = new Settings("dsmc.ini");
     System system;
 
     system.initialize(settings, myid,num_nodes);

@@ -13,10 +13,10 @@ DSMC_IO::DSMC_IO(System *system_) {
     movie_frames = 0;
     movie_file_open = false;
     if(system->myid==0) {
-        energy_file = fopen("energy.txt","w");
-        velocity_file = fopen("velocity.txt","w");
-        flux_file = fopen("flux.txt","w");
-        permeability_file = fopen("permeability.txt","w");
+        energy_file = fopen("statistics/energy.txt","w");
+        velocity_file = fopen("statistics/velocity.txt","w");
+        flux_file = fopen("statistics/flux.txt","w");
+        permeability_file = fopen("statistics/permeability.txt","w");
     }
 }
 
@@ -25,7 +25,7 @@ void DSMC_IO::save_state_to_movie_file() {
     if(settings->create_movie && !(system->steps % settings->movie_every_n_frame)) {
         if(!movie_file_open) {
             char *filename = new char[100];
-            sprintf(filename,"state_files/movie%04d.bin",system->myid);
+            sprintf(filename,"movie_files/movie%04d.bin",system->myid);
             movie_file = new ofstream(filename,ios::out | ios::binary);
             movie_file_open = true;
             data = new double[3*MAX_MOLECULE_NUM];

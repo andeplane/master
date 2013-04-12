@@ -124,27 +124,27 @@ void System::accelerate() {
     timer->end_accelerate();
 }
 
-void System::find_position_in_reservoirs(double *r, bool find_position_in_source) {
+void System::find_position_in_reservoirs(double *r, bool find_position_in_A) {
     bool did_collide = true;
     while(did_collide) {
         r[0] = length[0]*rnd->nextDouble();
         r[1] = length[1]*rnd->nextDouble();
         r[2] = length[2]*rnd->nextDouble();
-        if(find_position_in_source)  r[settings->gravity_direction] = reservoir_size*rnd->nextDouble();
+        if(find_position_in_A)  r[settings->gravity_direction] = reservoir_size*rnd->nextDouble();
         else r[settings->gravity_direction] = (length[settings->gravity_direction] - reservoir_size) + reservoir_size*rnd->nextDouble();
 
         did_collide = *world_grid->get_voxel(r)>=voxel_type_wall;
     }
 }
 
-void System::add_molecule_in_pressure_reservoirs(bool add_in_source) {
+void System::add_molecule_in_pressure_reservoirs(bool add_in_A) {
     int n = num_molecules;
 
     v[3*n+0] = rnd->nextGauss()*sqrt(temperature/settings->mass);
     v[3*n+1] = rnd->nextGauss()*sqrt(temperature/settings->mass);
     v[3*n+2] = rnd->nextGauss()*sqrt(temperature/settings->mass);
 
-    find_position_in_reservoirs(&r[3*n],add_in_source);
+    find_position_in_reservoirs(&r[3*n],add_in_A);
     r0[3*n+0] = r[3*n+0];
     r0[3*n+1] = r[3*n+1];
     r0[3*n+2] = r[3*n+2];
@@ -154,11 +154,11 @@ void System::add_molecule_in_pressure_reservoirs(bool add_in_source) {
     num_molecules++;
 }
 
-bool System::remove_molecule_in_pressure_reservoir(bool remove_from_source) {
+bool System::remove_molecule_in_pressure_reservoir(bool remove_from_A) {
     Cell *cell = NULL;
 
-    if(remove_from_source) cell = source_reservoir_cells[ source_reservoir_cells.size()*rnd->nextDouble() ];
-    else cell = drain_reservoir_cells[ drain_reservoir_cells.size()*rnd->nextDouble() ];
+    if(remove_from_A) cell = reservoir_A_cells[ reservoir_A_cells.size()*rnd->nextDouble() ];
+    else cell = reservoir_B_cells[ reservoir_B_cells.size()*rnd->nextDouble() ];
 
     if(cell->num_molecules>0) {
         // Remove this random molecule
@@ -206,82 +206,76 @@ void System::update_molecule_cells() {
 
 void System::maintain_pressure() {
     timer->start_pressure();
-    maintain_pressure_source();
-    maintain_pressure_drain();
+    maintain_pressure_A();
+    maintain_pressure_B();
     timer->end_pressure();
 }
 
-void System::maintain_pressure_source() {
-    long num_molecules_in_source = 0;
-    double volume_in_source = 0;
-    double pressure_in_source = 0;
-    double kinetic_energy = 0;
+void System::maintain_pressure_A() {
+    long num_molecules_in_reservoir = 0;
+    double volume_in_reservoir = 0;
+    double pressure_in_reservoir = 0;
+    double kinetic_energy_in_reservoir = 0;
 
-    for(int i=0;i<source_reservoir_cells.size();i++) {
-        Cell *cell = source_reservoir_cells[i];
-        num_molecules_in_source += cell->num_molecules;
-        volume_in_source += cell->volume;
-        kinetic_energy += cell->calculate_kinetic_energy();
+    for(int i=0;i<reservoir_A_cells.size();i++) {
+        Cell *cell = reservoir_A_cells[i];
+        num_molecules_in_reservoir += cell->num_molecules;
+        volume_in_reservoir += cell->volume;
+        kinetic_energy_in_reservoir += cell->calculate_kinetic_energy();
     }
-    double temperature_in_reservoir = 2.0/3*kinetic_energy/num_molecules_in_source;
+    double temperature_in_reservoir = 2.0/3*kinetic_energy_in_reservoir/num_molecules_in_reservoir;
 
     double temp_over_volume = 0;
-    if(volume_in_source>0) {
-        int added_molecules = 0;
-        temp_over_volume = temperature_in_reservoir/volume_in_source;
-        pressure_in_source = atoms_per_molecule*num_molecules_in_source*temp_over_volume;
-        double wanted_pressure = unit_converter->pressure_from_SI(settings->pressure_source);
-        long wanted_num_molecules = wanted_pressure*volume_in_source/temperature/atoms_per_molecule;
-        long delta = wanted_num_molecules-num_molecules_in_source;
+    if(volume_in_reservoir>0) {
+        temp_over_volume = temperature_in_reservoir/volume_in_reservoir;
+        pressure_in_reservoir = atoms_per_molecule*num_molecules_in_reservoir*temp_over_volume;
+        double wanted_pressure = unit_converter->pressure_from_SI(settings->pressure_A);
+        long wanted_num_molecules = wanted_pressure*volume_in_reservoir/temperature_in_reservoir/atoms_per_molecule;
+        long delta = wanted_num_molecules-num_molecules_in_reservoir;
 
-        if(pressure_in_source<wanted_pressure) {
+        if(pressure_in_reservoir<wanted_pressure) {
             for(int i=0;i<abs(delta);i++) {
                 add_molecule_in_pressure_reservoirs(true);
-                added_molecules++;
             }
         } else {
             for(int i=0;i<abs(delta);i++) {
-                if(remove_molecule_in_pressure_reservoir(true)) {
-                    added_molecules--;
-                } else i--;
+                if(remove_molecule_in_pressure_reservoir(true)) { }
+                else i--;
             }
         }
     }
 }
 
-void System::maintain_pressure_drain() {
-    long num_molecules_in_drain = 0;
-    double volume_in_drain = 0;
-    double pressure_in_drain = 0;
-    double kinetic_energy = 0;
+void System::maintain_pressure_B() {
+    long num_molecules_in_reservoir = 0;
+    double volume_in_reservoir = 0;
+    double pressure_in_reservoir = 0;
+    double kinetic_energy_in_reservoir = 0;
 
-    for(int i=0;i<drain_reservoir_cells.size();i++) {
-        Cell *cell = drain_reservoir_cells[i];
-        num_molecules_in_drain += cell->num_molecules;
-        volume_in_drain += cell->volume;
-        kinetic_energy += cell->calculate_kinetic_energy();
+    for(int i=0;i<reservoir_B_cells.size();i++) {
+        Cell *cell = reservoir_B_cells[i];
+        num_molecules_in_reservoir += cell->num_molecules;
+        volume_in_reservoir += cell->volume;
+        kinetic_energy_in_reservoir += cell->calculate_kinetic_energy();
     }
-    double temperature_in_reservoir = 2.0/3*kinetic_energy/num_molecules_in_drain;
+    double temperature_in_reservoir = 2.0/3*kinetic_energy_in_reservoir/num_molecules_in_reservoir;
 
     double temp_over_volume = 0;
-    if(volume_in_drain>0) {
-        int added_molecules = 0;
-        temp_over_volume = temperature_in_reservoir/volume_in_drain;
-        pressure_in_drain = atoms_per_molecule*num_molecules_in_drain*temp_over_volume;
-        double wanted_pressure = unit_converter->pressure_from_SI(settings->pressure_drain);
-        long wanted_num_molecules = wanted_pressure*volume_in_drain/temperature/atoms_per_molecule;
-        long delta = wanted_num_molecules-num_molecules_in_drain;
+    if(volume_in_reservoir>0) {
+        temp_over_volume = temperature_in_reservoir/volume_in_reservoir;
+        pressure_in_reservoir = atoms_per_molecule*num_molecules_in_reservoir*temp_over_volume;
+        double wanted_pressure = unit_converter->pressure_from_SI(settings->pressure_B);
+        long wanted_num_molecules = wanted_pressure*volume_in_reservoir/temperature_in_reservoir/atoms_per_molecule;
+        long delta = wanted_num_molecules-num_molecules_in_reservoir;
 
-        if(pressure_in_drain<wanted_pressure) {
+        if(pressure_in_reservoir<wanted_pressure) {
             for(int i=0;i<abs(delta);i++) {
                 add_molecule_in_pressure_reservoirs(false);
-                added_molecules++;
             }
         } else {
             for(int i=0;i<abs(delta);i++) {
-                if(remove_molecule_in_pressure_reservoir(false)) {
-                    added_molecules--;
-                } else i--;
+                if(remove_molecule_in_pressure_reservoir(false)) { }
+                else i--;
             }
         }
     }

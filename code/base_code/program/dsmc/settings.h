@@ -30,7 +30,7 @@ public:
     double Ly;
     double Lz;
     double reservoir_fraction;
-    double pressure_source;
-    double pressure_drain;
+    double pressure_A;
+    double pressure_B;
     double dt;
 };

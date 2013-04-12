@@ -177,10 +177,10 @@ void System::setup_cells() {
                 cell->is_reservoir = false;
 
                 if( (double)idx[settings->gravity_direction]/num_cells_vector[settings->gravity_direction] < settings->reservoir_fraction/2) {
-                    source_reservoir_cells.push_back(cell);
+                    reservoir_A_cells.push_back(cell);
                     cell->is_reservoir = true;
                 } else if( (double)idx[settings->gravity_direction]/num_cells_vector[settings->gravity_direction] > (1-settings->reservoir_fraction/2)) {
-                    drain_reservoir_cells.push_back(cell);
+                    reservoir_B_cells.push_back(cell);
                     cell->is_reservoir = true;
                 }
             }
