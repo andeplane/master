@@ -5,7 +5,7 @@ function velocity_profile_2(file)
     if any(strcmp(who,'file'));
         A = dlmread(file);
     else
-        A = dlmread('../compiled/release/velocity.txt');
+        A = dlmread('../test/statistics/velocity.txt');
     end
     
     
@@ -14,7 +14,7 @@ function velocity_profile_2(file)
     
     B = sum(A);
     B = B/N_time_steps;
-    B = B/max(B);
+    %B = B/max(B);
     x = linspace(0,1,N_bins);
     %j = find(B>0);
     
