@@ -1,35 +1,31 @@
 function plotVelocityProfiles()
-    subplot(1,2,1);
-    files = ['/projects/diff1/100/statistics/velocity.txt  ';
-             '/projects/diff1/250/statistics/velocity.txt  ';
-             '/projects/diff1/500/statistics/velocity.txt  ';
-             '/projects/diff1/1000/statistics/velocity.txt ';
-             '/projects/diff1/2000/statistics/velocity.txt ';
-             '/projects/diff1/5000/statistics/velocity.txt ';
-             '/projects/diff1/10000/statistics/velocity.txt'
-             ];
+    base = '/projects/states/0.4';
     
-    for i=1:size(files,1)
-        str = strtrim(sprintf('%s',files(i,:)))
+    subplot(1,2,1);
+    density = 1e25;
+    atoms_per_molecule = [100, 250, 500, 1000, 2000, 5000, 10000];
+    
+    for i=1:size(atoms_per_molecule,2)
+        file = sprintf('%s/%e-%d/statistics/velocity.txt',base,density,atoms_per_molecule(i) )
         
-        velocity_profile_2(str)
+        velocity_profile_2(file)
     end
-    legend('100', '250','500','1000','2000','5000','10000');
+    legend('100', '500','1000','2000','5000','10000');
+    xlabel('y')
+    ylabel('v(y)')
+    title('rho=1e25/m^3')
     
     subplot(1,2,2);
-    files = ['/projects/diff2/100/statistics/velocity.txt  ';
-             '/projects/diff2/250/statistics/velocity.txt  ';
-             '/projects/diff2/500/statistics/velocity.txt  ';
-             '/projects/diff2/1000/statistics/velocity.txt ';
-             '/projects/diff2/2000/statistics/velocity.txt ';
-             '/projects/diff2/5000/statistics/velocity.txt ';
-             '/projects/diff2/10000/statistics/velocity.txt'
-             ];
+    density = 1e26;
+    atoms_per_molecule = [100, 500, 1000, 2000, 5000, 10000];
     
-    for i=1:size(files,1)
-        str = strtrim(sprintf('%s',files(i,:)))
+    for i=1:size(atoms_per_molecule,2)
+        file = sprintf('%s/%e-%d/statistics/velocity.txt',base,density,atoms_per_molecule(i) )
         
-        velocity_profile_2(str)
+        velocity_profile_2(file)
     end
-    legend('100', '250','500','1000','2000','5000','10000');
+    legend('100', '500','1000','2000','5000','10000');
+    xlabel('y')
+    ylabel('v(y)')
+    title('rho=1e26/m^3')
 end
