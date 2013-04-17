@@ -1,11 +1,12 @@
 function velocity_profile_2(file)
-    hold on
+    % hold on
+    figure
     A = 0;
     
     if any(strcmp(who,'file'));
         A = dlmread(file);
     else
-        A = dlmread('../test/statistics/velocity.txt');
+        A = dlmread('../vel_prof/statistics/velocity.txt');
     end
     
     
