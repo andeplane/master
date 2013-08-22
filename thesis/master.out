@@ -1,0 +1,49 @@
+\BOOKMARK [-1][-]{part.1}{I Introduction}{}% 1
+\BOOKMARK [0][-]{chapter.1}{Introduction}{part.1}% 2
+\BOOKMARK [1][-]{section.1.1}{Introduction}{chapter.1}% 3
+\BOOKMARK [2][-]{subsection.1.1.1}{Motivation}{section.1.1}% 4
+\BOOKMARK [2][-]{subsection.1.1.2}{The structure of this thesis}{section.1.1}% 5
+\BOOKMARK [0][-]{chapter.2}{Background}{part.1}% 6
+\BOOKMARK [1][-]{section.2.1}{History}{chapter.2}% 7
+\BOOKMARK [2][-]{subsection.2.1.1}{Gas dynamics}{section.2.1}% 8
+\BOOKMARK [2][-]{subsection.2.1.2}{The breakdown of contiinum}{section.2.1}% 9
+\BOOKMARK [2][-]{subsection.2.1.3}{Porous media}{section.2.1}% 10
+\BOOKMARK [2][-]{subsection.2.1.4}{Nanoporous media}{section.2.1}% 11
+\BOOKMARK [1][-]{section.2.2}{Applications}{chapter.2}% 12
+\BOOKMARK [2][-]{subsection.2.2.1}{Shale gas extraction}{section.2.2}% 13
+\BOOKMARK [2][-]{subsection.2.2.2}{Electronic devices}{section.2.2}% 14
+\BOOKMARK [1][-]{section.2.3}{Multi scale physics}{chapter.2}% 15
+\BOOKMARK [2][-]{subsection.2.3.1}{Our world}{section.2.3}% 16
+\BOOKMARK [2][-]{subsection.2.3.2}{Simulation of the universe}{section.2.3}% 17
+\BOOKMARK [2][-]{subsection.2.3.3}{An ideal world}{section.2.3}% 18
+\BOOKMARK [2][-]{subsection.2.3.4}{The weakest link}{section.2.3}% 19
+\BOOKMARK [-1][-]{part.2}{II Molecular Dynamics}{}% 20
+\BOOKMARK [0][-]{chapter.3}{Introduction}{part.2}% 21
+\BOOKMARK [1][-]{section.3.1}{The model}{chapter.3}% 22
+\BOOKMARK [2][-]{subsection.3.1.1}{Force calculation - potentials}{section.3.1}% 23
+\BOOKMARK [2][-]{subsection.3.1.2}{Time integration}{section.3.1}% 24
+\BOOKMARK [2][-]{subsection.3.1.3}{Time integration}{section.3.1}% 25
+\BOOKMARK [1][-]{section.3.2}{Physical properties}{chapter.3}% 26
+\BOOKMARK [2][-]{subsection.3.2.1}{Kinetic and potential energy}{section.3.2}% 27
+\BOOKMARK [1][-]{section.3.3}{c++-code}{chapter.3}% 28
+\BOOKMARK [1][-]{section.3.4}{F77-code}{chapter.3}% 29
+\BOOKMARK [-1][-]{part.3}{III Direct Simulation Monte Carlo}{}% 30
+\BOOKMARK [0][-]{chapter.4}{Kinetic theory}{part.3}% 31
+\BOOKMARK [1][-]{section.4.1}{Origin}{chapter.4}% 32
+\BOOKMARK [1][-]{section.4.2}{The Chapman-Enskog method}{chapter.4}% 33
+\BOOKMARK [1][-]{section.4.3}{Useful things}{chapter.4}% 34
+\BOOKMARK [2][-]{subsection.4.3.1}{Equipartition theorem}{section.4.3}% 35
+\BOOKMARK [2][-]{subsection.4.3.2}{Maxwell speed distribution}{section.4.3}% 36
+\BOOKMARK [0][-]{chapter.5}{Direct Simulation Monte Carlo}{part.3}% 37
+\BOOKMARK [1][-]{subsection.5.0.3}{The model}{chapter.5}% 38
+\BOOKMARK [1][-]{section.5.1}{Collisions}{chapter.5}% 39
+\BOOKMARK [2][-]{subsection.5.1.1}{Specular wall}{section.5.1}% 40
+\BOOKMARK [2][-]{subsection.5.1.2}{Thermal wall}{section.5.1}% 41
+\BOOKMARK [1][-]{section.5.2}{Boundary Collisions}{chapter.5}% 42
+\BOOKMARK [2][-]{subsection.5.2.1}{Specular reflection}{section.5.2}% 43
+\BOOKMARK [2][-]{subsection.5.2.2}{Thermal reflection}{section.5.2}% 44
+\BOOKMARK [2][-]{subsection.5.2.3}{Geometric represetations}{section.5.2}% 45
+\BOOKMARK [2][-]{subsection.5.2.4}{Binary walls}{section.5.2}% 46
+\BOOKMARK [1][-]{section.5.3}{Parallelization}{chapter.5}% 47
+\BOOKMARK [1][-]{section.5.4}{Code}{chapter.5}% 48
+\BOOKMARK [-1][-]{part.4}{IV Visualization}{}% 49

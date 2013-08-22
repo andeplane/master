@@ -1,0 +1,38 @@
+Molecular Dynamics is an numerical model that describes the behaviour of liquids, gases and solids with the finest scale of any classical model. We study the dynamics of single atoms and how they interact with each other forming molecules and larger objects. The idea is simple, and has been used since the time of Sir Isaac Newton in the 17th century when he discovered his laws of motion. With the knowledge of the relevant forces, we can solve Newton's equations and calculate the dynamics of the atoms. In this chapter, we will discuss how to implement an efficient Molecular Dynamics program with advanced force fields allowing us to do calculations on systems with silica (SiO2) and water (H2O). This will be used to study water flow in nanoporous silica, which is of great importance for geological, biological and technological applications.
+
+\section{The model}
+The state of a molecular dynamics system is fully described by seven variables per atom, three positions, three velocities plus the atom type. These phase variables are evolved through the laws of motion. The atomic forces are calculated as the gradient of some potential that can differ quite a lot depending on the requirements of the model. System statistics are sampled as ensable averages through ergodicity over large times. 
+\subsection{Force calculation - potentials}
+In general, the potential energy is given as a function summing over the configurations given by the atom positions
+\begin{align}
+	U(\textbf{r}) = \sum_{i<j}U_2(r_{ij}) + \sum_{i<j<k} U_r(\vec r_i, \vec r_j, \vec r_k) + ...,
+\end{align}
+where $\vec r$ is the phase space point, $U_n$ is a function of the positions of $n$ atoms, $r_{ij}$ is the relative distance between atom $i$ and $j$, $\vec r_i$ is the position of atom $i$. Advanced potentials, such as ReaxFF, have 5-atom contributions, or more, to the energy. The reason for this is simple; when three atoms are close to each other, their electrons are positioned differently as if there were only two atoms. These effects play a large role in forming molecules, such as water. In this thesis, we will only use potentials using two- and three-particle terms.\\
+Numerically, force calculations are the most expensive part of the whole program, so for simple systems, or for educationally purposes, we might not need the most advanced ones. The simplest, yet remarkable for many purposes, potential students often meet is the Lennard-Jones potential.
+\subsubsection{Lennard-Jones potential}
+We often see this potential referred to as the 6-12 potential, which is a simple function that contains the main properties of atomic forces, the short-ranged Pauli repulsion and the long-ranged van der Waals force. The potential is between pairs of atoms only
+\begin{align}
+	\label{eq:md_potential_energy}
+	U_{LJ}(r) = 4\epsilon\left[\left(\frac{\sigma}{r_{ij}}\right)^{12} - \left(\frac{\sigma}{r_{ij}}\right)^{6}\right],
+\end{align}
+where $r$ is the relative distance between the two atoms, $\epsilon$ and $\sigma$ are coupling constants giving the depth of the potential well and the distance where the potential is zero. We can extend this potential to behave differently for several atom types, by allowing the coupling constants to be dependent of the two interacting atoms. The Lennard-Jones potential is then written as
+\begin{align}
+	U_{LJ}(r) = 4\epsilon_{AB}\left[\left(\frac{\sigma_{AB}}{r_{ij}}\right)^{12} - \left(\frac{\sigma_{AB}}{r_{ij}}\right)^{6}\right],
+\end{align}
+where the coupling constants are specified for interacting atom pairs of type $A$ and $B$. If the system has only two different atoms, it is usually called a \textit{binary Lennard-Jones fluid}. The force is given as the gradient of this potential yielding 
+\begin{align*}
+	F_{LJ}(\vec{r}) = -\nabla U_{LJ}(r_{ij}) = 24\epsilon_{AB}\left[\left(\frac{\sigma_{AB}}{r_{ij}}\right)^{13} - \left(\frac{\sigma_{AB}}{r_{ij}}\right)^{7}\right]\vec u_r,
+\end{align*}
+where $\vec u_r$ is the unit vector pointing from atom $i$ to atom $j$. 
+\subsubsection{Silica-water potential}
+\subsection{Time integration}
+As mentioned in the introduction, the system is evolved following Newton's equations of motion. These equations are integrated by some integration scheme.
+\subsection{Time integration}
+\section{Physical properties}
+Molecular dynamics is used to evolve the system in time, and the phase space variables can then be used to sample statistical properties of the system. Properties of interest are kinetic and potential energy, temperature, pressure, diffusion constant and different correlation functions (such as the pair correlation function, cage-correlation function, static and the dynamic structure factor). In this section, we will define these properties and discuss how to measure them.
+\subsection{Kinetic and potential energy}
+We measure the kinetic energy directly through its definition for point particle objects
+\begin{align}
+	E_k = \sum_i \frac{1}{2} m_iv_i^2,
+\end{align}
+and the potential energy through \eqref{eq:md_potential_energy}. 

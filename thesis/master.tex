@@ -1,0 +1,90 @@
+\documentclass[twoside,english, a4paper, 12pt]{uiofysmaster}
+% \usepackage{biblatex}
+
+\author{Anders Hafreager}
+\title{\uppercase{Close enough for gas}}
+\date{October 2013}
+
+\input{preamble}
+\input{customCommands}
+
+% \usepackage{autocite}
+\usepackage[]{biblatex}
+\bibliography{Bibliography/bibliography.bib}
+
+\begin{document}
+
+\maketitle
+\clearpage
+
+\begin{abstract}
+This is an abstract text.
+\end{abstract}
+\begin{dedication}
+  To someone
+  \\\vspace{12pt}
+  This is a dedication to my cat.
+\end{dedication}
+\begin{acknowledgements}
+  I acknowledge my acknowledgements.
+\end{acknowledgements}
+
+\tableofcontents
+\clearpage
+\listoffigures
+\clearpage
+\listoftables
+
+\begin{part}{Introduction}
+\begin{chapter}{Introduction}
+  \input{introduction/introduction}
+\end{chapter}
+
+\begin{chapter}{Background}
+  \input{background/history}
+  \input{background/applications}
+  \input{background/multiscale}
+\end{chapter}
+\end{part}
+
+\begin{part}{Molecular Dynamics}
+  \begin{chapter}{Introduction}
+  \input{MD/introduction}
+  \end{chapter}
+  \input{MD/cppcode}
+  \input{MD/fortrancode}
+\end{part}
+
+\begin{part}{Direct Simulation Monte Carlo}
+
+\begin{chapter}{Kinetic theory}
+  \input{kinetic_theory/origin}
+  \input{kinetic_theory/boltzmann_equation}
+  \input{kinetic_theory/chapman_enskog}
+  \input{kinetic_theory/things}
+\end{chapter}
+
+\begin{chapter}{Direct Simulation Monte Carlo}
+  \input{DSMC/introduction}
+  \input{DSMC/collisions}
+  \input{DSMC/boundary_collisions}
+  \input{DSMC/parallelization}
+  \input{DSMC/code}
+\end{chapter}
+\end{part}
+
+\begin{part}{Visualization}
+
+\end{part}
+%---------------------------------------------------------------------------------------
+% Appendices
+%---------------------------------------------------------------------------------------
+\begin{appendices}
+
+\end{appendices}
+
+%---------------------------------------------------------------------------------------
+% Bibliography
+%---------------------------------------------------------------------------------------
+\printbibliography
+\end{document}

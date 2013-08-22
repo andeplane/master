@@ -1,0 +1,27 @@
+\section{Collisions}
+\subsection{Specular wall}
+\subsection{Thermal wall}
+If we instead look at the wall as an object with a temperature $T_w$, we can think that the molecules will go into the wall, collide as a random walk with the atoms and come out with no self velocity correlation. We can then choose a new, random velocity vector from a distribution making sure that the temperature on average stays the same. We will find this distribution by looking at the velocity distribution of particles going through an imaginary wall during a time $\Delta t$.
+\subsubsection{An imaginary wall}
+We think of an area $A$ randomly placed inside an isotropic gas, and look at the number of particles with velocities in the range $(v, v+dv)$ with direction $(\theta, \theta + d\theta)$ and $(\phi, \phi + d\phi)$. Since the gas is isotropic, the number of particles having velocities within these ranges is 
+\begin{align*}
+	\frac{N}{V}f(v)dv \frac{d\Omega}{4\pi} = nf(v)dv \frac{d\Omega}{4\pi},
+\end{align*}
+where $d\Omega=\sin\theta d\theta d\phi$. During a time $\Delta t$ small enough that there are no collisions, the volume of the prism is $v\Delta t A$, and the number of collision per time per area is 
+\begin{align*}
+	\frac{n}{4\pi} v f(v)dv \sin\theta d\theta d\phi.
+\end{align*}
+If we only look at the particles going through the wall from one side of the wall, we integrate over the angles and get the number density
+\begin{align*}
+	d\nu(v) &= \frac{n}{4\pi} v f(v)dv \int_0^{2\pi}\int_0^{\pi/2}d\theta d\phi \sin\theta
+	&= \frac{n}{4} v f(v) dv.
+\end{align*}
+The total number of particles that passes through the wall is
+\begin{align*}
+	\nu = \int_0^\infty \frac{n}{4} v f(v) dv = \frac{n}{4} \langle v \rangle.
+\end{align*}
+We get the normalized distribution by looking at 
+\begin{align*}
+	f_e(v) = \frac{d\nu}{\nu} = \frac{v}{\langle v \rangle} f(v) dv = \frac{1}{2} \left(\frac{m}{kT}\right)^2 v^3 e^{-mv^2/2kT}dv
+\end{align*}
+which is very similar to the Maxwell distribution but with slightly faster particles. 

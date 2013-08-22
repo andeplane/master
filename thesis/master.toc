@@ -1,0 +1,107 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\defcounter {refsection}{0}\relax 
+\contentsline {part}{I\hspace {1em}Introduction}{17}{part.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {1}Introduction}{19}{chapter.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.1}Introduction}{19}{section.1.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.1.1}Motivation}{19}{subsection.1.1.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.1.2}The structure of this thesis}{19}{subsection.1.1.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {2}Background}{21}{chapter.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.1}History}{22}{section.2.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1.1}Gas dynamics}{22}{subsection.2.1.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1.2}The breakdown of contiinum}{22}{subsection.2.1.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1.3}Porous media}{22}{subsection.2.1.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1.4}Nanoporous media}{22}{subsection.2.1.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.2}Applications}{22}{section.2.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.2.1}Shale gas extraction}{22}{subsection.2.2.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.2.2}Electronic devices}{22}{subsection.2.2.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.3}Multi scale physics}{22}{section.2.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.3.1}Our world}{22}{subsection.2.3.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.3.2}Simulation of the universe}{23}{subsection.2.3.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.3.3}An ideal world}{23}{subsection.2.3.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.3.4}The weakest link}{23}{subsection.2.3.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {part}{II\hspace {1em}Molecular Dynamics}{25}{part.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {3}Introduction}{27}{chapter.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3.1}The model}{27}{section.3.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.1.1}Force calculation - potentials}{28}{subsection.3.1.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{Lennard-Jones potential}{28}{section*.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{Silica-water potential}{29}{section*.5}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.1.2}Time integration}{29}{subsection.3.1.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.1.3}Time integration}{29}{subsection.3.1.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3.2}Physical properties}{29}{section.3.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.2.1}Kinetic and potential energy}{29}{subsection.3.2.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3.3}c++-code}{30}{section.3.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3.4}F77-code}{30}{section.3.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {part}{III\hspace {1em}Direct Simulation Monte Carlo}{31}{part.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {4}Kinetic theory}{33}{chapter.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4.1}Origin}{33}{section.4.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4.2}The Chapman-Enskog method}{33}{section.4.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4.3}Useful things}{33}{section.4.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {4.3.1}Equipartition theorem}{33}{subsection.4.3.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {4.3.2}Maxwell speed distribution}{33}{subsection.4.3.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {5}Direct Simulation Monte Carlo}{35}{chapter.5}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {5.0.3}The model}{35}{subsection.5.0.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {5.1}Collisions}{35}{section.5.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {5.1.1}Specular wall}{35}{subsection.5.1.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {5.1.2}Thermal wall}{35}{subsection.5.1.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{An imaginary wall}{36}{section*.8}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {5.2}Boundary Collisions}{37}{section.5.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {5.2.1}Specular reflection}{37}{subsection.5.2.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {5.2.2}Thermal reflection}{37}{subsection.5.2.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {5.2.3}Geometric represetations}{37}{subsection.5.2.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {5.2.4}Binary walls}{37}{subsection.5.2.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{Normal vectors}{37}{section*.9}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {5.3}Parallelization}{37}{section.5.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {5.4}Code}{37}{section.5.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {part}{IV\hspace {1em}Visualization}{39}{part.4}
