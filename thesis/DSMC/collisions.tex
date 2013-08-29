@@ -1,19 +1,22 @@
-\section{Collisions}
+\section{Surface interactions}
+The effects of surface interactions become significant as the pore sizes decrease. For very small pores, the number of atoms near the surface is comparable with total number of atoms. In MD, these effects are automatically taken care of through the atomic forces, but in DSMC, we need a surface interaction model. We investigate four different models in this section.
 \subsection{Specular wall}
+The specular wall behaves just like a classical mirror; the colliding objects are reflected so that the normal component of the velocity is reversed whereas the tangential components remain unchanged. 
+
 \subsection{Thermal wall}
-If we instead look at the wall as an object with a temperature $T_w$, we can think that the molecules will go into the wall, collide as a random walk with the atoms and come out with no self velocity correlation. We can then choose a new, random velocity vector from a distribution making sure that the temperature on average stays the same. We will find this distribution by looking at the velocity distribution of particles going through an imaginary wall during a time $\Delta t$.
+If we instead think of the wall as an object with a given temperature $T_w$, we can imagine that the molecules go into the wall, collide with the wall atoms as a random walk, and return with no correlation with the incoming velocity. We can then choose a new, random velocity vector from a distribution so that the gas temperature converges to the wall temperature. We can find this by looking at the velocity distribution of particles going through an imaginary wall during a time $\Delta t$.
 \subsubsection{An imaginary wall}
 We think of an area $A$ randomly placed inside an isotropic gas, and look at the number of particles with velocities in the range $(v, v+dv)$ with direction $(\theta, \theta + d\theta)$ and $(\phi, \phi + d\phi)$. Since the gas is isotropic, the number of particles having velocities within these ranges is 
 \begin{align*}
 	\frac{N}{V}f(v)dv \frac{d\Omega}{4\pi} = nf(v)dv \frac{d\Omega}{4\pi},
 \end{align*}
-where $d\Omega=\sin\theta d\theta d\phi$. During a time $\Delta t$ small enough that there are no collisions, the volume of the prism is $v\Delta t A$, and the number of collision per time per area is 
+where $d\Omega=\sin\theta d\theta d\phi$. During a time $\Delta t$ small enough that there are no collisions between particles, the volume of the prism is $v\Delta t A$, and the number of collision per time per area is 
 \begin{align*}
 	\frac{n}{4\pi} v f(v)dv \sin\theta d\theta d\phi.
 \end{align*}
-If we only look at the particles going through the wall from one side of the wall, we integrate over the angles and get the number density
+If we only look at the particles passing through from one side of the wall, we integrate over the angles and get the number density
 \begin{align*}
-	d\nu(v) &= \frac{n}{4\pi} v f(v)dv \int_0^{2\pi}\int_0^{\pi/2}d\theta d\phi \sin\theta
+	d\nu(v) &= \frac{n}{4\pi} v f(v)dv \int_0^{2\pi}\int_0^{\pi/2}d\theta d\phi \sin\theta\\
 	&= \frac{n}{4} v f(v) dv.
 \end{align*}
 The total number of particles that passes through the wall is
@@ -25,3 +28,21 @@ We get the normalized distribution by looking at
 	f_e(v) = \frac{d\nu}{\nu} = \frac{v}{\langle v \rangle} f(v) dv = \frac{1}{2} \left(\frac{m}{kT}\right)^2 v^3 e^{-mv^2/2kT}dv
 \end{align*}
 which is very similar to the Maxwell distribution but with slightly faster particles. 
+
+\subsection{Maxwell scattering}
+\begin{align}
+	R(\vec v'\rightarrow \vec v; x) &= (1-\sigma_v)\delta(\vec v' - \vec v + 2\vec nv_n) + \frac{2\sigma_v\beta_w^4}{\pi}\exp(-\beta_w^2v^2)
+\end{align}
+
+\subsection{The Cercignani-Lampis model}
+Maxwell's scattering kernel was used before the 1960s, before more detailed models were developed. As of today, the most popular one is the Cercignani-Lampis model (Cercignani and Lampis, 1971). The kernel is given as
+\begin{align}
+	\nonumber
+	R(\vec v'\rightarrow \vec v; x) &= \frac{2\sigma_n\sigma_t(2-\sigma_t)\beta_w^4}{\pi}\\
+	\nonumber
+	&\times\exp\Big(-\beta_w^2\frac{v_n^2 + (1-\sigma_n)(v_n')^2}{\sigma_n} - \beta_w^2\frac{(v_t - (1 - \sigma_t)v_t')^2}{\sigma_t(2 - \sigma_t)}\Big)\\
+	&\times I_0\Big(\beta_w^2\frac{2\sqrt{1 - \sigma_t}v_nv_n'}{\sigma_n}\Big),
+\end{align}
+where $v_n$ and $v_t$ again are the normal and tangential components of the velocities and $I_0$ is the zeroth-order modified Bessel function of the first kind. 
+
+\subsection{The random surface model}
