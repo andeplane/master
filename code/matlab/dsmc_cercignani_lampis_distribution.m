@@ -1,10 +1,10 @@
 function dsmc_cercignani_lampis_distribution()
     close all;
     k = 1.3806488e-23;
-    T = 300;
+    T = 100;
     m = 6.6e-26;
     factor = sqrt(2*k*T/m);
-    alpha_n = 0.8;
+    alpha_n = 0.5;
     v_in = linspace(-10,0,100);
     v_out = linspace(0,10,100);
     
