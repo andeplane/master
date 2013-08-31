@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.6.30)  28 AUG 2013 20:10
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.6.30)  31 AUG 2013 15:22
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -605,7 +605,7 @@ Package biblatex Info: ... file 'master.bbl' found.
 (./master.bbl)
 Package biblatex Info: Reference section=0 on input line 15.
 Package biblatex Info: Reference segment=0 on input line 15.
- <figures/uiologo.pdf, id=213, 102.98901pt x 103.39142pt>
+ <figures/uiologo.pdf, id=233, 102.98901pt x 103.39142pt>
 File: figures/uiologo.pdf Graphic file (type pdf)
 
 <use figures/uiologo.pdf>
@@ -710,24 +710,43 @@ Chapter 5.
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
 (hyperref)                than one, level fixed on input line 2.
 
-) (./DSMC/collisions.tex [35] [36]) (./DSMC/boundary_collisions.tex)
-(./DSMC/parallelization.tex) (./DSMC/code.tex)
+) (./DSMC/surface_interactions.tex [35] [36]
+
+LaTeX Warning: Reference `TODO' on page 37 undefined on input line 38.
+
+) (./DSMC/geometry.tex [37]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 8.
+
+(/usr/local/texlive/2012/texmf-dist/tex/latex/base/omscmr.fd
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 8.
+
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [37]
-[38] [39
+ [38])
+(./DSMC/pressure.tex) (./DSMC/parallelization.tex) (./DSMC/code.tex)
+(./DSMC/validation.tex
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
-] [40]
+ [39])
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
-LaTeX Warning: Empty bibliography on input line 89.
+ [40]
+[41] [42
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 90.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 90.
+] [43] [44]
+
+LaTeX Warning: Empty bibliography on input line 91.
+
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 92.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 92.
 (./master.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 90.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 90.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 92.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 92.
 Package rerunfilecheck Info: File `master.out' has not changed.
-(rerunfilecheck)             Checksum: 724B2E26D1F255270BE00CDB90104592;3429.
+(rerunfilecheck)             Checksum: 8DF3516C40CA9F7FC57CFECB27CCD17A;3796.
 
 
 LaTeX Warning: There were undefined references.
@@ -735,16 +754,16 @@ LaTeX Warning: There were undefined references.
 Package logreq Info: Writing requests to 'master.run.xml'.
 \openout1 = `master.run.xml'.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 90.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 92.
  ) 
 Here is how much of TeX's memory you used:
- 12386 strings out of 493488
- 189510 string characters out of 3141326
- 379927 words of memory out of 3000000
- 15355 multiletter control sequences out of 15000+200000
- 24011 words of font info for 54 fonts, out of 3000000 for 9000
+ 12641 strings out of 493488
+ 192502 string characters out of 3141326
+ 490927 words of memory out of 3000000
+ 15554 multiletter control sequences out of 15000+200000
+ 28862 words of font info for 68 fonts, out of 3000000 for 9000
  957 hyphenation exceptions out of 8191
- 36i,12n,58p,1126b,619s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 36i,12n,58p,1137b,1370s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/local/texlive/2012/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}
 </usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><
 /usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></
@@ -756,20 +775,23 @@ l/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/t
 exlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/te
 xlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texl
 ive/2012/texmf-dist/fonts/type1/public/cm-super/sfbl1728.pfb></usr/local/texliv
-e/2012/texmf-dist/fonts/type1/public/cm-super/sfbx1200.pfb></usr/local/texlive/
-2012/texmf-dist/fonts/type1/public/cm-super/sfbx1440.pfb></usr/local/texlive/20
-12/texmf-dist/fonts/type1/public/cm-super/sfbx1728.pfb></usr/local/texlive/2012
-/texmf-dist/fonts/type1/public/cm-super/sfbx2074.pfb></usr/local/texlive/2012/t
-exmf-dist/fonts/type1/public/cm-super/sfbx2488.pfb></usr/local/texlive/2012/tex
-mf-dist/fonts/type1/public/cm-super/sfrm1200.pfb></usr/local/texlive/2012/texmf
--dist/fonts/type1/public/cm-super/sfsl1200.pfb></usr/local/texlive/2012/texmf-d
-ist/fonts/type1/public/cm-super/sfsl1440.pfb></usr/local/texlive/2012/texmf-dis
-t/fonts/type1/public/cm-super/sfsl1728.pfb></usr/local/texlive/2012/texmf-dist/
-fonts/type1/public/cm-super/sfti1200.pfb>
-Output written on master.pdf (40 pages, 305358 bytes).
+e/2012/texmf-dist/fonts/type1/public/cm-super/sfbx1000.pfb></usr/local/texlive/
+2012/texmf-dist/fonts/type1/public/cm-super/sfbx1200.pfb></usr/local/texlive/20
+12/texmf-dist/fonts/type1/public/cm-super/sfbx1440.pfb></usr/local/texlive/2012
+/texmf-dist/fonts/type1/public/cm-super/sfbx1728.pfb></usr/local/texlive/2012/t
+exmf-dist/fonts/type1/public/cm-super/sfbx2074.pfb></usr/local/texlive/2012/tex
+mf-dist/fonts/type1/public/cm-super/sfbx2488.pfb></usr/local/texlive/2012/texmf
+-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/local/texlive/2012/texmf-d
+ist/fonts/type1/public/cm-super/sfrm1200.pfb></usr/local/texlive/2012/texmf-dis
+t/fonts/type1/public/cm-super/sfsl1200.pfb></usr/local/texlive/2012/texmf-dist/
+fonts/type1/public/cm-super/sfsl1440.pfb></usr/local/texlive/2012/texmf-dist/fo
+nts/type1/public/cm-super/sfsl1728.pfb></usr/local/texlive/2012/texmf-dist/font
+s/type1/public/cm-super/sfti1000.pfb></usr/local/texlive/2012/texmf-dist/fonts/
+type1/public/cm-super/sfti1200.pfb>
+Output written on master.pdf (44 pages, 372443 bytes).
 PDF statistics:
- 564 PDF objects out of 1000 (max. 8388607)
- 496 compressed objects within 5 object streams
- 108 named destinations out of 1000 (max. 500000)
- 422 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 658 PDF objects out of 1000 (max. 8388607)
+ 582 compressed objects within 6 object streams
+ 147 named destinations out of 1000 (max. 500000)
+ 462 words of extra memory for PDF output out of 10000 (max. 10000000)
 

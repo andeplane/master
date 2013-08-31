@@ -6,7 +6,7 @@ function velocity_profile_2(file)
     if any(strcmp(who,'file'));
         A = dlmread(file);
     else
-        A = dlmread('../vel_prof/statistics/velocity.txt');
+        A = dlmread('../base_code/statistics/velocity.txt');
     end
     
     

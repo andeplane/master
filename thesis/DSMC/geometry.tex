@@ -1,3 +1,40 @@
 \section{Complex geometries}
+All the surface interaction models from the previous section have the surface normal and tangent vectors as input parameters. These vectors are easy to determine if the system consists of two parallel plates in the xy-plane, or any other mathematically well described geometry. These systems are interesting as validation test cases, but most real world materials have a more complex geometry without any simple mathematical description. A very much used representation of such geometries is a triangle mesh in which the surface consists of many connected triangles. The triangles have a well defined normal vector and tangent plane which is easy to calculate. In this thesis, I have chosen another approach by representing the system as a large, binary three-dimensional matrix. In this section, we will discuss how to create such a matrix, how to identifying the surface points and how to calculate the mentioned vectors.
 \subsection{Binary representation}
-\subsection{Surface vectors}
+With this method, any system geometry is fully described by a three dimensional matrix with dimensions $m\times n\times l$. Each matrix element represents a voxel in the physical space, and can take values 0 or 1. A value of one means that the voxel is filled, whereas zero means empty. No particles can be inside a filled voxel, so this is how we do surface collision detection. 
+\subsection{Collision detection}
+We define a collision as whether or not a particle has moved into a wall during the timestep $\Delta t$. This has to be checked for every particle each timestep, and in the case of a collision, we need to calculate the resultant velocity. The collision detection algorithm is best illustrated by a code example:
+\begin{lstlisting}
+bool did_collide(double *position) {
+	int voxel_index_i = position[0] / system_length[0] * num_voxels[0];
+	int voxel_index_j = position[1] / system_length[1] * num_voxels[1];
+	int voxel_index_k = position[2] / system_length[2] * num_voxels[2];
+
+	// The world matrix is a binary matrix
+	return world_matrix[voxel_index_i, voxel_index_j, voxel_index_k];
+}
+\end{lstlisting}
+This is just a quick memory lookup. The really expensive part of the full collision algorithm is finding exactly which voxel is the first surface voxel the particle hits. We need to precalculate all the surface voxels so they are marked in the matrix during runtime.
+\subsection{Identifying the surface voxels}
+Given the binary matrix, we have identified every solid part of the system. The voxels inside a wall that are not part of the surface all have neighbouring voxels that are also marked as walls. We \textit{define} the surface as the filled voxels that have less than 26 neighbouring filled voxels. The algorithm could be implemented like this (one would also have to take care of the periodic boundary conditions, but that is not important to illustrate the idea):
+\begin{lstlisting}
+bool is_surface(short ***world_matrix, int voxel_index_i, int voxel_index_j, int voxel_index_k) {
+	for(int i=-1;i<1;i++) {
+    	for(int j=-1;j<1;j++) {
+			for(int k=-1;k<1;k++) {
+				// Skip self
+				if(i == j == k == 0) continue; 
+                if(world_matrix[voxel_index_i + i][voxel_index_j + j][voxel_index_k + k] == 0) {
+                	// This neighbour is empty
+                	return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+\end{lstlisting}
+This has to be done for every voxels in the system, but only once per system.
+\subsection{Calculating normal and tangent vectors}
+The last surface properties we need to calculate are the normal and tangent vectors. 
