@@ -1,5 +1,9 @@
+% Creates a box with 
+%
+%
+%
+%
 function create_box(fraction)
-
     voxels = 100;
     N = [voxels voxels voxels];
     A = zeros(N);
@@ -16,10 +20,9 @@ function create_box(fraction)
             end
         end
     end
-
+    
     fid = fopen('/projects/master/code/worlds/box_m.bin', 'w');
     fwrite(fid, N, 'unsigned char');
     fwrite(fid, A, 'unsigned char');
     fclose(fid);
-
 end
