@@ -21,7 +21,7 @@ function create_box(fraction)
         end
     end
     
-    fid = fopen('/projects/master/code/worlds/box_m.bin', 'w');
+    fid = fopen('/projects/master/code/worlds/box_fraction_0.2_m.bin', 'w');
     fwrite(fid, N, 'unsigned char');
     fwrite(fid, A, 'unsigned char');
     fclose(fid);
