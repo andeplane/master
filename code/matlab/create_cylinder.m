@@ -1,9 +1,9 @@
 function create_cylinder(fraction)
 
-voxels = 100;
+voxels = 31;
 N = [voxels voxels voxels];
 A = zeros(N);
-center = 50;
+center = 15;
 
 cylinder_radius = center*fraction;
 
@@ -15,6 +15,13 @@ for i=1:voxels
             dr2 = di*di + dj*dj;
             if dr2 > cylinder_radius^2
                 A(i,j,k) = 1;
+            end
+            
+            if(di == 0 && dj == 0) 
+                %A(i,j,k) = 1;
+                disp('point')
+                i
+                j
             end
         end
     end
@@ -41,6 +48,6 @@ end
 plot(x,y,'ko')
 axis('equal')
 fid = fopen('/projects/master/code/worlds/cylinder_m.bin', 'w');
-fwrite(fid, N, 'unsigned char');
+fwrite(fid, N, 'uint');
 fwrite(fid, A, 'unsigned char');
 fclose(fid);
