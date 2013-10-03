@@ -33,7 +33,7 @@ function create_box_with_rotation_2(theta, voxels)
                 
                 % If the distance is larger than some value, we are outside
                 % the channel.
-                if(best_dist > center*0.2)
+                if(best_dist > center*0.9)
                     A(i,j,k) = 1;
                 else
                     A(i,j,k) = 0;
