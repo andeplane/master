@@ -1,7 +1,7 @@
-N = [10 10 10];
+N = [100 100 100];
 A = zeros(N);
 
 fid = fopen('/projects/master/code/worlds/empty_m.bin', 'w');
-fwrite(fid, N, 'unsigned char');
+fwrite(fid, N, 'uint');
 fwrite(fid, A, 'unsigned char');
 fclose(fid);
