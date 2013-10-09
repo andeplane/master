@@ -43,8 +43,8 @@ float t = 0;
 
 void draw_marching_cubes() {
     if(!marching_cubes) return;
-    // glFrontFace(GL_CCW);
-    // glCullFace(GL_FRONT);
+    glFrontFace(GL_CCW);
+    glCullFace(GL_FRONT);
     // mesh.enable_blend(false);
     mesh.render_vbo();
     // mesh.disable_blend();
@@ -297,7 +297,7 @@ void read_matrix(string filename) {
                         }
                         mesh.add_vertex(triangles[n].p[point]);
                         mesh.add_normal(normal);
-                        mesh.add_color(color, 0.2);
+                        mesh.add_color(color, 1.0);
                     }
                 }
                 total_triangles += num;
