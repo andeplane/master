@@ -11,7 +11,12 @@ using std::ios;
 
 ComplexGeometry::ComplexGeometry()
 {
-
+    vertices = NULL;
+    normals = NULL;
+    tangents1 = NULL;
+    tangents2 = NULL;
+    nx = 0; ny = 0; nz = 0; num_vertices = 0;
+    has_normals_tangents_and_boundary = false;
 }
 
 void ComplexGeometry::load_from_binary_file_without_normals_and_tangents(string filename, bool calculate_normals_and_tangents, int number_of_neighbor_averages) {
@@ -32,6 +37,7 @@ void ComplexGeometry::calculate_normals_tangents_and_inner_points(int number_of_
     calculate_normals(number_of_neighbor_averages);
     calculate_tangents();
     find_boundary_points();
+    has_normals_tangents_and_boundary = true;
 }
 
 void ComplexGeometry::save_to_file(string filename) {
@@ -48,7 +54,7 @@ void ComplexGeometry::save_to_file(string filename) {
 
 
 
-void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octave, int frequency, int amplitude , int seed, float threshold) {
+void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octave, int frequency, int amplitude , int seed, float threshold, bool do_calculate_normals_tangents_and_boundary) {
     Perlin p(octave, frequency, amplitude, seed);
     nx = nx_; ny = ny_; nz = nz_; num_vertices = nx*ny*nz;
 
@@ -77,6 +83,10 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
                 else vertices[index] = 1;
             }
         }
+    }
+
+    if(do_calculate_normals_tangents_and_boundary) {
+        calculate_normals_tangents_and_inner_points(1);
     }
 }
 

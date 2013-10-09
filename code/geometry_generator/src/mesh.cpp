@@ -10,6 +10,9 @@ Mesh::Mesh() {
 }
 
 void Mesh::initialize(unsigned int num_reserved_vertices) {
+    vertices.resize(0);
+    normals.resize(0);
+    colors.resize(0);
     vertices.reserve(3*num_reserved_vertices);
     normals.reserve(3*num_reserved_vertices);
     colors.reserve(4*num_reserved_vertices);
@@ -109,7 +112,6 @@ void Mesh::generate_smooth_normals(map<string, vector<int> > &vertex_map ) {
 		normals[3*i+2] = n1.z;
 	}
 
-    delete vertex_key;
     normals_original.clear();
 }
 

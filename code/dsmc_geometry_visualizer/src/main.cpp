@@ -198,9 +198,9 @@ void read_matrix(string filename) {
         exit(1);
     }
 
-    file.read (reinterpret_cast<char*>(&Nx), sizeof(int));
-    file.read (reinterpret_cast<char*>(&Ny), sizeof(int));
-    file.read (reinterpret_cast<char*>(&Nz), sizeof(int));
+    file.read (reinterpret_cast<char*>(&Nx), sizeof(unsigned int));
+    file.read (reinterpret_cast<char*>(&Ny), sizeof(unsigned int));
+    file.read (reinterpret_cast<char*>(&Nz), sizeof(unsigned int));
     num_voxels = Nx*Ny*Nz;
 
     cout << "World has " << Nx << "x" << Ny << "x" << Nz << "=" << Nx*Ny*Nz << " voxels." << endl;
@@ -224,8 +224,8 @@ void read_matrix(string filename) {
     CVector direction = CVector(-1,-1,-1).Normalize();
     int max_num_triangles = 0;
     TRIANGLE triangles[100];
+    
     char vertex_key[100];
-
     map <string, vector<int> > vertex_map;
     int old_progress = -1;
     for(int i=0; i<Nx-1; i++) {

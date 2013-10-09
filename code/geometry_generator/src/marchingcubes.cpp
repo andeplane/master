@@ -26,10 +26,7 @@ void MarchingCubes::load_from_file(string filename) {
 }
 
 void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry &cg, CVector system_length, const int min_value) {
-    verify_initialized();
-    vertices.resize(0);
-    normals.resize(0);
-    colors.resize(0);
+    initialize(cg.num_vertices);
     num_vertices = 0;
     num_triangles = 0;
 
@@ -107,9 +104,9 @@ void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry 
             }
         }
     }
+    cout << "I am finished with marching cubes " << endl;
     // Free memory
     x.clear(); y.clear(); z.clear();
-    delete vertex_key;
     generate_smooth_normals(vertex_map);
 
     cout << "Marching cubes finished. We have " << num_triangles << " triangles." << endl;
