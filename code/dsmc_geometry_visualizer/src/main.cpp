@@ -30,6 +30,7 @@ DSMCOpenGL dsmcopengl;
 bool paused = false;
 long num_voxels = 0;
 int Nx, Ny, Nz;
+float Lx, Ly, Lz;
 
 bool draw_normals = false;
 bool draw_surface_only = false;
@@ -42,6 +43,8 @@ float t = 0;
 
 void draw_marching_cubes() {
     if(!marching_cubes) return;
+    // glFrontFace(GL_CCW);
+    // glCullFace(GL_FRONT);
     // mesh.enable_blend(false);
     mesh.render_vbo();
     // mesh.disable_blend();
@@ -257,9 +260,9 @@ void read_matrix(string filename) {
 
                 for(int balle=0; balle<8; balle++) {
                     int index = i+x[balle] + (j+y[balle])*Nx + (k+z[balle])*Nx*Ny;
-                    float xx = 50*(float)(i-Nx/2.0+x[balle]) / Nx;
-                    float yy = 50*(float)(j-Ny/2.0+y[balle]) / Ny;
-                    float zz = 50*(float)(k-Nz/2.0+z[balle]) / Nz;
+                    float xx = 100*Lx*(float)(i-Nx/2.0+x[balle]) / Nx;
+                    float yy = 100*Ly*(float)(j-Ny/2.0+y[balle]) / Ny;
+                    float zz = 100*Lz*(float)(k-Nz/2.0+z[balle]) / Nz;
                     
                     cell.p[vertex_count].x = xx;
                     cell.p[vertex_count].y = yy;
@@ -272,11 +275,12 @@ void read_matrix(string filename) {
 
                 for(int n=0; n<num; n++) {
                     CVector normal = (triangles[n].p[0] - triangles[n].p[1]).Cross((triangles[n].p[0] - triangles[n].p[2])).Normalize();
-                    float d = direction.Dot(normal);
-                    if(d<0.3) d=0.3;
-
                     CVector color(i/(float)Nx, 1 - j/(float)Ny, (k+j)/(2.0*Ny));
-                    
+                    // CVector color(0.1 + 0.9*abs(sin(0.1*i)), 0.1+  0.9*abs(cos(0.1*j)), 0.1 + 0.9*abs(sin(0.1*k)));
+                    float r = 125;
+                    float g = 122;
+                    float b = 45;
+                    // CVector color(r/255, g/255, b/255);
                     for(int point = 0; point < 3; point++) {
                         sprintf(vertex_key, "%.2f%.2f%.2f",triangles[n].p[point].x, triangles[n].p[point].y, triangles[n].p[point].z);
                         string key = vertex_key;
@@ -315,6 +319,9 @@ int main(int argc, char **argv)
     
     ini.load("dsmc_geometry_visualizer.ini");
     string world_file = ini.getstring("world_file");
+    Lx = ini.getdouble("Lx");
+    Ly = ini.getdouble("Ly");
+    Lz = ini.getdouble("Lz");
     cout << "Loading world file " << world_file << endl;
     read_matrix(world_file);
 

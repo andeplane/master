@@ -80,6 +80,7 @@ int edgeTable[256]={
 0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x99 , 0x190,
 0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c,
 0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0   };
+
 int triTable[256][16] =
 {{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -394,7 +395,7 @@ int triTable[256][16] =
       vertlist[11] =
          VertexInterp(isolevel,grid.p[3],grid.p[7],grid.val[3],grid.val[7]);
 
-   /* Create the triangle */
+   /* Create the tri1angle */
    ntriang = 0;
    for (i=0;triTable[cubeindex][i]!=-1;i+=3) {
       triangles[ntriang].p[0] = vertlist[triTable[cubeindex][i  ]];

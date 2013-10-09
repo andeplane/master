@@ -86,23 +86,24 @@ void DSMCOpenGL::set_standard_light(float t) {
     float a = 100;
     GLfloat ambient[4] = {0.05f, 0.05f, 0.05f, 1.0f};
     GLfloat diffuse[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    GLfloat position[4] = {a*cos(t), a*sin(t*0.342), a*sin(t*0.442), 1.0f};
+    // GLfloat position[4] = {a*cos(t), a*sin(t*0.342), a*sin(t*0.442), 1.0f};
+    GLfloat position[4] = {camera->position.x, camera->position.y, camera->position.z, 1.0f};
     GLfloat shininess[1] = {10.0f};
     GLfloat specular[4] = {0.2f, 0.2f, 0.2f, 1.0f};
 
     glDisable(GL_LIGHTING);
-    glPushMatrix();
-    glTranslatef(position[0], position[1], position[2]);
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    glBegin(GL_POINTS);
-    for(int i=0; i<1000; i++) {
-        CVector v = CVector(1,1,1).RandomUniform();
-        v = v*0.01;
+    // glPushMatrix();
+    // glTranslatef(position[0], position[1], position[2]);
+    // glColor4f(1.0, 1.0, 1.0, 1.0);
+    // glBegin(GL_POINTS);
+    // for(int i=0; i<1000; i++) {
+    //     CVector v = CVector(1,1,1).RandomUniform();
+    //     v = v*0.01;
 
-        glVertex3f(v.x, v.y, v.z);
-    }
-    glEnd();
-    glPopMatrix();
+    //     glVertex3f(v.x, v.y, v.z);
+    // }
+    // glEnd();
+    // glPopMatrix();
 
     glEnable(GL_LIGHTING);
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);

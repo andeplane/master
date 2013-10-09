@@ -56,11 +56,6 @@ void Mesh::generate_smooth_normals(map<string, vector<int> > &vertex_map ) {
 	// Loop over atoms
     int old_progress = -1;
 	for(int i=0; i<num_vertices; i++) {
-		// if(num_vertices >= 100 && !(i%(num_vertices/100))) {
-  //           printf("Creating smooth normal vectors: %d%% \n",(100*i)/num_vertices);
-  //           fflush(stdout);
-  //       }
-
 		if (i % 1000 == 0) { // put couts at the top to avoid getting killed by "continue" further down
             int progress = floor(i/double(num_vertices) / 0.1);
             if (progress > old_progress) {
@@ -75,6 +70,7 @@ void Mesh::generate_smooth_normals(map<string, vector<int> > &vertex_map ) {
 
 		CVector v1(vertices[3*i+0], vertices[3*i+1], vertices[3*i+2]);
 		CVector n1(normals_original[3*i+0], normals_original[3*i+1], normals_original[3*i+2]);
+		CVector n1_original(normals_original[3*i+0], normals_original[3*i+1], normals_original[3*i+2]);
 		sprintf(vertex_key, "%.2f%.2f%.2f",vertices[3*i+0], vertices[3*i+1], vertices[3*i+2]);
 		string key = vertex_key;
 		std::map<string, vector<int> >::iterator iterator = vertex_map.find(key);
@@ -84,9 +80,9 @@ void Mesh::generate_smooth_normals(map<string, vector<int> > &vertex_map ) {
 			int neighbor_triangle_index = neighbor_triangle_indices[j];
 			if(i != neighbor_triangle_index) {
 				CVector v2(vertices[3*neighbor_triangle_index+0], vertices[3*neighbor_triangle_index+1], vertices[3*neighbor_triangle_index+2]);
-				if((v1 - v2).Length2() < 1e-5) {
+				if(v1 == v2) {
 					CVector n2(normals_original[3*neighbor_triangle_index+0], normals_original[3*neighbor_triangle_index+1], normals_original[3*neighbor_triangle_index+2]);
-					n1 = n1+n2;
+					if(n1_original.Dot(n2) > 0) n1 = n1+n2; // Only add normals pointing in the same direction
 				}
 			}
 		} // end j
