@@ -2,9 +2,10 @@
 #include <mesh.h>
 #include <iostream>
 #include <cvector.h>
-
 using std::cout;
 using std::endl;
+
+class ComplexGeometry;
 
 typedef struct {
    CVector p[3];
@@ -24,6 +25,7 @@ private:
 public:
     int num_triangles;
     MarchingCubes():Mesh() { num_triangles = 0;}
-    void create_marching_cubes_from_integer_matrix(unsigned char *matrix, CVector matrix_dimensions, CVector &system_length, const int &min_value);
-
+    void create_marching_cubes_from_complex_geometry(ComplexGeometry &cg, CVector system_length, const int min_value);
+    void load_from_file(string filename);
+    void save_to_file(string filename);
 };

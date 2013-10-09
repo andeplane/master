@@ -1,8 +1,31 @@
 #include <marchingcubes.h>
 #include <progressbar.h>
 #include <cmath>
+#include <complexgeometry.h>
 
-void MarchingCubes::create_marching_cubes_from_integer_matrix(unsigned char *matrix, CVector matrix_dimensions, CVector &system_length, const int &min_value) {
+void MarchingCubes::save_to_file(string filename) {
+//    ofstream file (filename.c_str(), ios::out | ios::binary);
+//    file.write (reinterpret_cast<char*>(&nx), sizeof(unsigned int));
+//    file.write (reinterpret_cast<char*>(&ny), sizeof(unsigned int));
+//    file.write (reinterpret_cast<char*>(&nz), sizeof(unsigned int));
+//    file.write (reinterpret_cast<char*>(&vertices), 3*num_vertices*sizeof(float));
+//    file.write (reinterpret_cast<char*>(&normals),   3*num_vertices*sizeof(float));
+//    file.close();
+}
+
+void MarchingCubes::load_from_file(string filename) {
+//    ifstream file (filename.c_str(), ios::in | ios::binary);
+//    file.read (reinterpret_cast<char*>(&nx), sizeof(unsigned int));
+//    file.read (reinterpret_cast<char*>(&ny), sizeof(unsigned int));
+//    file.read (reinterpret_cast<char*>(&nz), sizeof(unsigned int));
+//    num_vertices = nx*ny*nz;
+
+//    file.read (reinterpret_cast<char*>(&vertices), 3*num_vertices*sizeof(float));
+//    file.read (reinterpret_cast<char*>(&normals),   3*num_vertices*sizeof(float));
+//    file.close();
+}
+
+void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry &cg, CVector system_length, const int min_value) {
     verify_initialized();
     vertices.resize(0);
     normals.resize(0);
@@ -26,7 +49,8 @@ void MarchingCubes::create_marching_cubes_from_integer_matrix(unsigned char *mat
     // We will smooth the normal vectors, so create a map of equal vertex indices based on position
     char vertex_key[100];
     map <string, vector<int> > vertex_map;
-    int nx = matrix_dimensions.x; int ny = matrix_dimensions.y; int nz = matrix_dimensions.z;
+    int nx = cg.nx; int ny = cg.ny; int nz = cg.nz;
+
     ProgressBar progress_bar(nx-1,"Creating marching cubes");
     TRIANGLE triangles[100]; // Temp list for triangles
     for(int i=0; i<nx-1; i++) {
@@ -45,7 +69,7 @@ void MarchingCubes::create_marching_cubes_from_integer_matrix(unsigned char *mat
                     cell.p[vertex_count].x = xx;
                     cell.p[vertex_count].y = yy;
                     cell.p[vertex_count].z = zz;
-                    cell.val[vertex_count] = (matrix[index] >= min_value);
+                    cell.val[vertex_count] = (cg.vertices[index] >= min_value);
                     vertex_count++;
                 }
 

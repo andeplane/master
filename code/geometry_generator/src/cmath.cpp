@@ -57,7 +57,7 @@ double* CMath::Normal2Euler(double x, double y, double z) {
 
 
 double CMath::RandomUniform() {
-  return (double)rand()/(double)(RAND_MAX+1);
+  return (double)rand()/(RAND_MAX+1);
 }
 
 double CMath::NormalDistribution(double x, double sigma, double mu) {

@@ -11,3 +11,9 @@ src/progressbar.cpp
 src/defines.h
 src/marchingcubes.h
 src/marchingcubes.cpp
+src/complexgeometry.h
+src/complexgeometry.cpp
+src/perlin.h
+src/perlin.cpp
+src/random.h
+src/random.cpp
