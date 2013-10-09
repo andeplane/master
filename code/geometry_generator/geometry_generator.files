@@ -17,3 +17,13 @@ src/perlin.h
 src/perlin.cpp
 src/random.h
 src/random.cpp
+src/copengl.h
+src/copengl.cpp
+src/fpsmanager.hpp
+src/camera.h
+src/camera.cpp
+src/cinifile.h
+src/visualizer.h
+src/visualizer.cpp
+src/cutil.cpp
+src/cutil.h

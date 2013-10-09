@@ -7,6 +7,7 @@
 Mesh::Mesh() {
     is_initialized = false;
     num_vertices = 0;
+    is_vbo_built = false;
 }
 
 void Mesh::initialize(unsigned int num_reserved_vertices) {
@@ -36,6 +37,7 @@ void Mesh::render_triangles() {
 }
 
 void Mesh::render_vbo() {
+    if(!is_vbo_built) throw "VBO not built";
     verify_initialized();
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);

@@ -26,6 +26,7 @@ public:
 	vector<float> colors;
     bool is_initialized;
 	int num_vertices;
+    bool is_vbo_built;
 
     Mesh();
     void verify_initialized();
