@@ -1,13 +1,6 @@
 #include <mesh.h>
 #include <CVector.h>
-
-
-void Mesh::create_sequential(int num_vertices_) {
-	num_vertices = num_vertices_;
-	vertices.reserve(3*num_vertices);
-	normals.reserve(3*num_vertices);
-	colors.reserve(4*num_vertices);
-}
+#include <iomanip>
 
 void Mesh::render_triangles() {
 	glBegin(GL_TRIANGLES);
@@ -57,20 +50,42 @@ void Mesh::disable_blend() {
 	glDisable(GL_BLEND);
 }
 
-void Mesh::generate_smooth_normals() {
+void Mesh::generate_smooth_normals(map<string, vector<int> > &vertex_map ) {
 	vector<float> normals_original = normals;
-
+	char vertex_key[100];
+	// Loop over atoms
+    int old_progress = -1;
 	for(int i=0; i<num_vertices; i++) {
-		cout << "Calculating normals for i=" << i << endl;
+		// if(num_vertices >= 100 && !(i%(num_vertices/100))) {
+  //           printf("Creating smooth normal vectors: %d%% \n",(100*i)/num_vertices);
+  //           fflush(stdout);
+  //       }
+
+		if (i % 1000 == 0) { // put couts at the top to avoid getting killed by "continue" further down
+            int progress = floor(i/double(num_vertices) / 0.1);
+            if (progress > old_progress) {
+                cout << "Creating smooth normal vectors ";
+                cout << "[";
+                cout << setfill('#') << setw(progress) << "";
+                cout << setfill('-') << setw(10-progress) << "";
+                cout << "]" << endl;
+                old_progress = progress;
+            }
+        }
+
 		CVector v1(vertices[3*i+0], vertices[3*i+1], vertices[3*i+2]);
 		CVector n1(normals_original[3*i+0], normals_original[3*i+1], normals_original[3*i+2]);
-		int k1 = max(0, i-12500);
-		int k2 = min(num_vertices-1, i+12500);
-		for(int j=k1; j<k2; j++) {
-			if(i != j) {
-				CVector v2(vertices[3*j+0], vertices[3*j+1], vertices[3*j+2]);
+		sprintf(vertex_key, "%.2f%.2f%.2f",vertices[3*i+0], vertices[3*i+1], vertices[3*i+2]);
+		string key = vertex_key;
+		std::map<string, vector<int> >::iterator iterator = vertex_map.find(key);
+		vector<int> &neighbor_triangle_indices = iterator->second;
+
+		for(int j=0; j<neighbor_triangle_indices.size(); j++) {
+			int neighbor_triangle_index = neighbor_triangle_indices[j];
+			if(i != neighbor_triangle_index) {
+				CVector v2(vertices[3*neighbor_triangle_index+0], vertices[3*neighbor_triangle_index+1], vertices[3*neighbor_triangle_index+2]);
 				if((v1 - v2).Length2() < 1e-5) {
-					CVector n2(normals_original[3*j+0], normals_original[3*j+1], normals_original[3*j+2]);
+					CVector n2(normals_original[3*neighbor_triangle_index+0], normals_original[3*neighbor_triangle_index+1], normals_original[3*neighbor_triangle_index+2]);
 					n1 = n1+n2;
 				}
 			}

@@ -30,6 +30,7 @@ void Camera::init_camera(double speed)
 	yaw_sensitivity   = 0.2; // How sensitive mouse movements affect looking left and right
  
 	// To begin with, we aren't holding down any keys
+	holding_shift 		= false;
 	holding_forward     = false;
 	holding_backward    = false;
 	holding_left_strafe  = false;
@@ -139,7 +140,7 @@ void Camera::move()
 		movement.z += sinYRot;
 	}
  
- 	float speed = 0.1;
+ 	float speed = movement_speed_factor*(1+3*holding_shift);
 	// Normalise our movement vector
 	movement.Normalize();
  

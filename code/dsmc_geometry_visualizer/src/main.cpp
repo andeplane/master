@@ -11,11 +11,14 @@
 #include <time.h>
 #include <marching.cpp>
 #include <mesh.h>
+#include <map>
+#include <iomanip>
 
 // Specify default namespace for commonly used elements
 using std::string;
 using std::cout;
 using std::endl;
+using std::map;
 
 typedef enum {
     voxel_type_empty = 0,
@@ -124,6 +127,9 @@ void handle_keypress(int theKey, int theAction) {
     {
         switch (theKey)
         {
+        case 287:
+            dsmcopengl.camera->holding_shift = true;
+            break;
         case 'W':
             dsmcopengl.camera->holding_forward = true;
             break;
@@ -160,6 +166,9 @@ void handle_keypress(int theKey, int theAction) {
     {
         switch (theKey)
         {
+        case 287:
+            dsmcopengl.camera->holding_shift = false;
+            break;
         case 'W':
             dsmcopengl.camera->holding_forward = false;
             break;
@@ -191,6 +200,8 @@ void read_matrix(string filename) {
     file.read (reinterpret_cast<char*>(&Nz), sizeof(int));
     num_voxels = Nx*Ny*Nz;
 
+    cout << "World has " << Nx << "x" << Ny << "x" << Nz << "=" << Nx*Ny*Nz << " voxels." << endl;
+
     unsigned char *voxels_ = new unsigned char[num_voxels];
     float *normals_   = new float[3*num_voxels];
     float *tangents1_ = new float[3*num_voxels];
@@ -201,40 +212,7 @@ void read_matrix(string filename) {
     file.read (reinterpret_cast<char*>(tangents1_), 3*num_voxels*sizeof(float));
     file.read (reinterpret_cast<char*>(tangents2_), 3*num_voxels*sizeof(float));
     file.close();
-
-    for(int i=0; i<Nx; i++) {
-        for(int j=0; j<Ny; j++) {
-            for(int k=0; k<Nz; k++) {
-                int index = ((i+Nx)%Nx) + ((j+Ny)%Ny)*Nx+ ((k+Nz)%Nz)*Nx*Ny;
-                float x = 10*(float)i / Nx;
-                float y = 10*(float)j / Ny;
-                float z = 10*(float)k / Nz;
-                if(voxels_[index] > voxel_type_empty) {
-                    // We have a wall point
-                    vector<float> pos;
-                    vector<float> normal;
-                    pos.resize(3);
-                    normal.resize(3);
-
-                    pos[0] = x; pos[1] = y; pos[2] = z;
-                    normal[0] = normals_[3*index + 0];
-                    normal[1] = normals_[3*index + 1];
-                    normal[2] = normals_[3*index + 2];
-
-                    points.push_back(pos);
-                    normals.push_back(normal);
-                    point_type.push_back(voxels_[index]);
-                }
-            }
-        }
-    }
-
-    delete voxels_;
-    delete normals_;
-    delete tangents1_;
-    delete tangents2_;
     
-    cout << "We have " << points.size() << " wall points." << endl;
     int total_triangles = 0;
 
     int mesh_vertex_counter = 0;
@@ -243,9 +221,23 @@ void read_matrix(string filename) {
     CVector direction = CVector(-1,-1,-1).Normalize();
     int max_num_triangles = 0;
     TRIANGLE triangles[100];
+    char vertex_key[100];
 
+    map <string, vector<int> > vertex_map;
+    int old_progress = -1;
     for(int i=0; i<Nx-1; i++) {
-        cout << i << " / " << Nx << endl;
+        if (i % 10 == 0) { // put couts at the top to avoid getting killed by "continue" further down
+            int progress = floor(i/double(Nx-1) / 0.1);
+            if (progress > old_progress) {
+                cout << "Creating marching cubes ";
+                cout << "[";
+                cout << setfill('#') << setw(progress) << "";
+                cout << setfill('-') << setw(10-progress) << "";
+                cout << "]" << endl;
+                old_progress = progress;
+            }
+        }
+
         for(int j=0; j<Ny-1; j++) {
             for(int k=0; k<Nz-1; k++) {
                 GRIDCELL cell;
@@ -265,9 +257,9 @@ void read_matrix(string filename) {
 
                 for(int balle=0; balle<8; balle++) {
                     int index = i+x[balle] + (j+y[balle])*Nx + (k+z[balle])*Nx*Ny;
-                    float xx = 10*(float)(i-Nx/2.0+x[balle]) / Nx;
-                    float yy = 10*(float)(j-Ny/2.0+y[balle]) / Ny;
-                    float zz = 10*(float)(k-Nz/2.0+z[balle]) / Nz;
+                    float xx = 50*(float)(i-Nx/2.0+x[balle]) / Nx;
+                    float yy = 50*(float)(j-Ny/2.0+y[balle]) / Ny;
+                    float zz = 50*(float)(k-Nz/2.0+z[balle]) / Nz;
                     
                     cell.p[vertex_count].x = xx;
                     cell.p[vertex_count].y = yy;
@@ -286,6 +278,19 @@ void read_matrix(string filename) {
                     CVector color(i/(float)Nx, 1 - j/(float)Ny, (k+j)/(2.0*Ny));
                     
                     for(int point = 0; point < 3; point++) {
+                        sprintf(vertex_key, "%.2f%.2f%.2f",triangles[n].p[point].x, triangles[n].p[point].y, triangles[n].p[point].z);
+                        string key = vertex_key;
+                        std::map<string, vector<int> >::iterator iter = vertex_map.find(key);
+                        if (iter != vertex_map.end())
+                        {
+                            ((vector<int>&)iter->second).push_back(mesh.num_vertices);
+                        }
+                        else
+                        {
+                            vector<int> vertex_indices;
+                            vertex_indices.push_back(mesh.num_vertices);
+                            vertex_map[key] = vertex_indices;
+                        }
                         mesh.add_vertex(triangles[n].p[point]);
                         mesh.add_normal(normal);
                         mesh.add_color(color, 0.2);
@@ -296,9 +301,9 @@ void read_matrix(string filename) {
         }
     }
     
+    mesh.generate_smooth_normals(vertex_map);
 
-    cout << "Marching cube done, we have " << total_triangles << " triangles." << endl;
-    cout << "Marching cubes gave max_num_triangles = " << max_num_triangles << endl;
+    cout << "Marching cube finished. We have " << total_triangles << " triangles." << endl;
 }
  
 // Fire it up...
@@ -310,12 +315,12 @@ int main(int argc, char **argv)
     
     ini.load("dsmc_geometry_visualizer.ini");
     string world_file = ini.getstring("world_file");
-    cout << world_file << endl;
+    cout << "Loading world file " << world_file << endl;
     read_matrix(world_file);
 
     char *window_title = new char[1000];
     sprintf(window_title, "DSMC geometry Visualizer (DSMCGV) - [%.2f fps]", 60.0);
-    dsmcopengl.initialize(ini.getint("screen_width"),ini.getint("screen_height"), string(window_title), handle_keypress, handle_mouse_move, false, 1);
+    dsmcopengl.initialize(ini.getint("screen_width"),ini.getint("screen_height"), string(window_title), handle_keypress, handle_mouse_move, false, 0.1);
     GLenum error = glewInit();
 
     mesh.build_vbo();

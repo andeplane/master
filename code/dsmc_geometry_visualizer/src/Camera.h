@@ -35,6 +35,7 @@ class Camera
  
         // Holding any keys down?
         bool holding_forward;
+        bool holding_shift;
         bool holding_backward;
         bool holding_left_strafe;
         bool holding_right_strafe;
