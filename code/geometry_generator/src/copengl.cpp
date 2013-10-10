@@ -81,10 +81,10 @@ void COpenGL::initialize(int w, int h, string window_title_, GLFWkeyfun handle_k
 }
 
 void COpenGL::set_standard_light() {
-    return;
+
     float a = 100;
     GLfloat ambient[4] = {0.05f, 0.05f, 0.05f, 1.0f};
-    GLfloat diffuse[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    GLfloat diffuse[4] = {0.5f, 0.5f, 0.5f, 1.0f};
     // GLfloat position[4] = {a*cos(t), a*sin(t*0.342), a*sin(t*0.442), 1.0f};
     GLfloat position[4] = {camera->position.x, camera->position.y, camera->position.z, 1.0f};
     GLfloat shininess[1] = {10.0f};

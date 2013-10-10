@@ -40,22 +40,22 @@ int main(int argc, char **argv)
     while(true) {
          v.render_begin();
          c.render_vbo();
-         glBegin(GL_POINTS);
-         float scale = 50.0;
-         float scale_z = 10.0;
-         CVector offset(-25,-25,-5);
-         for(int i=0; i<cg.nx; i++) {
-             for(int j=0; j<cg.ny; j++) {
-                 for(int k=0; k<cg.nz; k++) {
-                     int index = i + j*cg.nx + k*cg.nx*cg.ny;
-                     if(cg.vertices[index] == 1) {
-                         glVertex3f( (scale*i)/cg.nx+offset.x, (scale*j)/cg.ny + offset.y, (scale_z*k)/cg.nz + offset.z);
-                     }
-                 }
-             }
+//         glBegin(GL_POINTS);
+//         float scale = 50.0;
+//         float scale_z = 10.0;
+//         CVector offset(-25,-25,-5);
+//         for(int i=0; i<cg.nx; i++) {
+//             for(int j=0; j<cg.ny; j++) {
+//                 for(int k=0; k<cg.nz; k++) {
+//                     int index = i + j*cg.nx + k*cg.nx*cg.ny;
+//                     if(cg.vertices[index] == 1) {
+//                         glVertex3f( (scale*i)/cg.nx+offset.x, (scale*j)/cg.ny + offset.y, (scale_z*k)/cg.nz + offset.z);
+//                     }
+//                 }
+//             }
 
-         }
-         glEnd();
+//         }
+//         glEnd();
          v.render_end();
         if(!v.is_running) break;
     }

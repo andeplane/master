@@ -154,7 +154,7 @@ void Mesh::add_color(CVector &v, float alpha) {
 
 void Mesh::add_normal(CVector &v) {
     verify_initialized();
-	normals.push_back(v.x);
-	normals.push_back(v.y);
-	normals.push_back(v.z);
+    normals.push_back(v.x);
+    normals.push_back(v.y);
+    normals.push_back(v.z);
 }

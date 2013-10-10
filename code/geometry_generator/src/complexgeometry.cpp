@@ -35,10 +35,8 @@ void ComplexGeometry::allocate(int nx_, int ny_, int nz_) {
 }
 
 void ComplexGeometry::load_text_files(string base_filename, CVector matrix_size, double threshold) {
-    matrix_size.z = 2;
     allocate(matrix_size.x, matrix_size.y, matrix_size.z);
-    int file_start = 31;
-    int num_files = nz;
+    int file_start = 1;
     char filename[1000];
     int num_vertices_so_far = 0;
     for(int file_num = file_start; file_num<file_start+nz; file_num++) {
@@ -84,7 +82,7 @@ void ComplexGeometry::save_to_vtk(string filename) {
         for (int j = 0; j < ny; j++) {
             for (int i = 0; i < nx; i++) {
                 int index = i + j*nx + k*nx*ny;
-                ofile << vertices[index] << endl;
+                ofile << vertices_float[index] << endl;
             }
         }
     }
@@ -147,6 +145,7 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
                     val += p.Get(x*s, y*s, z*s);
                 }
                 // val = pow(val,4.0)*cos(val);;
+                vertices_float[index] = val;
                 if(val < threshold) vertices[index] = 0;
                 else vertices[index] = 1;
             }

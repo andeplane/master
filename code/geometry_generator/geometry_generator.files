@@ -27,7 +27,4 @@ src/visualizer.h
 src/visualizer.cpp
 src/cutil.cpp
 src/cutil.h
-src/Vectors.h
-src/CIsoSurface.h
-src/Vectors.cpp
 src/CIsoSurface.cpp
