@@ -84,5 +84,5 @@ void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry 
     box_length.x /= cg.nx;
     box_length.y /= cg.ny;
     box_length.z /= cg.nz;
-    create_marching_cubes_from_array(cg.vertices_float, cg.nx, cg.ny, cg.nz, box_length, threshold);
+    create_marching_cubes_from_array(cg.vertices, cg.nx, cg.ny, cg.nz, box_length, threshold);
 }

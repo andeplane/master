@@ -8,8 +8,8 @@ class CVector;
 class ComplexGeometry
 {
 public:
-    unsigned char *vertices;
-    float *vertices_float;
+    float *vertices;
+    unsigned char *vertices_unsigned_char;
     float *normals;
     float *tangents1;
     float *tangents2;
@@ -27,5 +27,6 @@ public:
     void calculate_tangents();
     void calculate_normals(int number_of_neighbor_average);
     void save_to_file(string filename);
-    void save_to_vtk(string filename);
+    void save_vtk(string filename);
+    void load_vtk(string filename);
 };
