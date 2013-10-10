@@ -22,14 +22,16 @@ int main(int argc, char **argv)
     double Ly = ini.getdouble("Ly");
     double Lz = ini.getdouble("Lz");
     ComplexGeometry cg;
-    // cg.create_perlin_geometry(100, 100, 100, 1,1,1,3,0.2, true);
+    cg.create_perlin_geometry(200, 200, 200, 1,1,1,3,0.2, false);
     // cg.save_to_file("perlin.bin");
     string text_files_base_filename = ini.getstring("text_files_base_filename");
     double threshold = ini.getdouble("threshold");
-    cg.load_text_files(text_files_base_filename,CVector(100, 100, 50), threshold);
+    // cg.load_text_files(text_files_base_filename,CVector(100, 100, 50), threshold);
 
+    CVector system_length = CVector(Lx, Ly, Lz);
     MarchingCubes c;
-    c.create_marching_cubes_from_complex_geometry(cg, CVector(Lx, Ly, Lz), threshold);
+    c.create_marching_cubes_from_complex_geometry(cg, system_length, threshold);
+    // c.create_marching_cubes_from_complex_geometry(cg, CVector(Lx, Ly, Lz), threshold);
 
     #ifdef OPENGL
     char *window_title = new char[1000];

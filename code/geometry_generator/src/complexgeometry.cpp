@@ -123,8 +123,6 @@ void ComplexGeometry::save_to_file(string filename) {
     file.close();
 }
 
-
-
 void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octave, int frequency, int amplitude , int seed, float threshold, bool do_calculate_normals_tangents_and_boundary) {
     Perlin p(octave, frequency, amplitude, seed);
     allocate(nx_, ny_, nz_);
@@ -139,7 +137,7 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
 
                 int index = i + j*nx + k*nx*ny;
                 double val = 0;
-                for (int a=0; a<5  ; a++) {
+                for (int a=0; a<10  ; a++) {
                     s = 3.0*a + 2.2513531;
 
                     val += p.Get(x*s, y*s, z*s);
