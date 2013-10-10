@@ -4,10 +4,13 @@
 #include <fstream>
 #include <cmath>
 #include <random.h>
+#include <fstream>
+#include <cvector.h>
 
 using std::ifstream;
 using std::ofstream;
 using std::ios;
+using std::fstream;
 
 ComplexGeometry::ComplexGeometry()
 {
@@ -17,6 +20,76 @@ ComplexGeometry::ComplexGeometry()
     tangents2 = NULL;
     nx = 0; ny = 0; nz = 0; num_vertices = 0;
     has_normals_tangents_and_boundary = false;
+    max_value = 0;
+}
+
+void ComplexGeometry::allocate(int nx_, int ny_, int nz_) {
+    nx = nx_; ny = ny_; nz = nz_;
+    num_vertices = nx*ny*nz;
+
+    vertices = new unsigned char[num_vertices];
+    vertices_float = new float[num_vertices];
+    normals = new float[3*num_vertices];
+    tangents1 = new float[3*num_vertices];
+    tangents2 = new float[3*num_vertices];
+}
+
+void ComplexGeometry::load_text_files(string base_filename, CVector matrix_size, double threshold) {
+    matrix_size.z = 2;
+    allocate(matrix_size.x, matrix_size.y, matrix_size.z);
+    int file_start = 31;
+    int num_files = nz;
+    char filename[1000];
+    int num_vertices_so_far = 0;
+    for(int file_num = file_start; file_num<file_start+nz; file_num++) {
+        sprintf(filename, "%s%02d.txt",base_filename.c_str(), file_num);
+        ifstream infile(filename);
+        for(int line_num=0; line_num<nx; line_num++) {
+            for(int i=0; i<ny; i++) {
+                float value;
+                infile >> value;
+                max_value = max(max_value,value);
+                vertices_float[num_vertices_so_far] = value;
+                vertices[num_vertices_so_far++] = value >= threshold;
+            }
+        }
+        infile.close();
+    }
+
+    // calculate_normals_tangents_and_inner_points(1.0);
+    // save_to_vtk("mus.vtk");
+}
+
+void ComplexGeometry::save_to_vtk(string filename) {
+    ofstream ofile(filename.c_str());
+
+    int N = nx*ny*nz;
+
+    ofile << "# vtk DataFile Version 2.0" << endl;
+    ofile << "structured point" << endl;
+    ofile << "ASCII" << endl;
+    ofile << endl;
+    ofile << "DATASET STRUCTURED_POINTS" << endl;
+    ofile << "DIMENSIONS " << nx << " " << ny << " " << nz << endl;
+    ofile << "ORIGIN 0.0 0.0 0.0" << endl;
+    // ofile << "SPACING 1 1 1" << endl;
+    ofile << "SPACING " << 1.0/double(nx) << " " << 1.0/double(ny) << " " << 1.0/double(nz) << endl;
+    ofile << "POINT_DATA " << N << endl;
+    ofile << "SCALARS atomdist double" << endl;
+    ofile << "LOOKUP_TABLE default" << endl;
+    ofile << endl;
+
+    // column-major ordering...
+    for (int k = 0; k < nz; k++) {
+        for (int j = 0; j < ny; j++) {
+            for (int i = 0; i < nx; i++) {
+                int index = i + j*nx + k*nx*ny;
+                ofile << vertices[index] << endl;
+            }
+        }
+    }
+
+    ofile.close();
 }
 
 void ComplexGeometry::load_from_binary_file_without_normals_and_tangents(string filename, bool calculate_normals_and_tangents, int number_of_neighbor_averages) {
@@ -56,12 +129,7 @@ void ComplexGeometry::save_to_file(string filename) {
 
 void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octave, int frequency, int amplitude , int seed, float threshold, bool do_calculate_normals_tangents_and_boundary) {
     Perlin p(octave, frequency, amplitude, seed);
-    nx = nx_; ny = ny_; nz = nz_; num_vertices = nx*ny*nz;
-
-    vertices = new unsigned char[num_vertices];
-    normals = new float[3*num_vertices];
-    tangents1 = new float[3*num_vertices];
-    tangents2 = new float[3*num_vertices];
+    allocate(nx_, ny_, nz_);
 
     for(int i=0;i<nx;i++) {
         for(int j=0;j<ny;j++) {

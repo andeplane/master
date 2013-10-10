@@ -6,12 +6,13 @@ using std::string;
 
 class Visualizer
 {
-    bool is_running;
 public:
-    Visualizer(int width, int height, string window_title, bool full_screen, double camera_speed);
+    bool is_running;
     COpenGL *opengl;
     char window_title[1000];
-    void begin_draw();
-    void end_draw();
-    bool tick();
+
+    Visualizer(int width, int height, string window_title, bool full_screen, double camera_speed);
+    void render_begin();
+    void render_end();
+    void update_window_title();
 };

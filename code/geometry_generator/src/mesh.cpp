@@ -65,6 +65,7 @@ void Mesh::build_vbo() {
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_buffers[2]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*4*num_vertices, &colors[0], GL_STATIC_DRAW);
+    is_vbo_built = true;
 }
 
 void Mesh::enable_blend(bool inverse) {

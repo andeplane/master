@@ -5,8 +5,12 @@
 COpenGL *ogl;
 
 // Function to draw our scene
-void Visualizer::begin_draw()
+void Visualizer::render_begin()
 {
+    is_running = !glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED);
+    opengl->fps_manager.enforce_fps();
+    opengl->camera->move();
+
     // Clear the screen and depth buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -25,7 +29,7 @@ void Visualizer::begin_draw()
     opengl->set_standard_light();
 }
 
-void Visualizer::end_draw() {
+void Visualizer::render_end() {
     // ----- Stop Drawing Stuff! ------
     glfwSwapBuffers(); // Swap the buffers to display the scene (so we don't have to watch it being drawn!)
 }
@@ -92,15 +96,9 @@ Visualizer::Visualizer(int width, int height, string window_title, bool full_scr
     GLenum error = glewInit();
 }
 
-bool Visualizer::tick() {
-    opengl->camera->move();
-    is_running = !glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED);
-    opengl->fps_manager.enforce_fps();
+void Visualizer::update_window_title() {
     double fps = opengl->fps_manager.average_fps;
     // Calculate the current time in pico seconds to show in the title bar
     sprintf(window_title, "DSMC Geometry Visualizer (DSMCGV) - [%.2f fps]",fps);
     opengl->set_window_title(string(window_title));
-    begin_draw();
-
-    return is_running;
 }

@@ -2,7 +2,7 @@
 #include <progressbar.h>
 #include <cmath>
 #include <complexgeometry.h>
-
+#include <random.h>
 void MarchingCubes::save_to_file(string filename) {
 //    ofstream file (filename.c_str(), ios::out | ios::binary);
 //    file.write (reinterpret_cast<char*>(&nx), sizeof(unsigned int));
@@ -25,7 +25,7 @@ void MarchingCubes::load_from_file(string filename) {
 //    file.close();
 }
 
-void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry &cg, CVector system_length, const int min_value) {
+void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry &cg, CVector system_length, double min_value) {
     initialize(cg.num_vertices);
     num_vertices = 0;
     num_triangles = 0;
@@ -47,6 +47,10 @@ void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry 
     char vertex_key[100];
     map <string, vector<int> > vertex_map;
     int nx = cg.nx; int ny = cg.ny; int nz = cg.nz;
+    Random *rnd = new Random(-time(NULL));
+    float r = 0.4 + 0.6*rnd->next_double();
+    float g = 0.4 + 0.6*rnd->next_double();
+    float b = 0.4 + 0.6*rnd->next_double();
 
     ProgressBar progress_bar(nx-1,"Creating marching cubes");
     TRIANGLE triangles[100]; // Temp list for triangles
@@ -56,27 +60,30 @@ void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry 
             for(int k=0; k<nz-1; k++) {
                 // Create a grid cell containing each of the 8 corners in a cube
                 GRIDCELL cell;
-                int vertex_count = 0;
+                double average_value = 0;
                 for(int point=0; point<8; point++) {
                     int index = i+x[point] + (j+y[point])*nx + (k+z[point])*nx*ny;
                     float xx = system_length.x*(float)(i-nx/2.0+x[point]) / nx;
                     float yy = system_length.y*(float)(j-ny/2.0+y[point]) / ny;
                     float zz = system_length.z*(float)(k-nz/2.0+z[point]) / nz;
+                    average_value += cg.vertices_float[index];
 
-                    cell.p[vertex_count].x = xx;
-                    cell.p[vertex_count].y = yy;
-                    cell.p[vertex_count].z = zz;
-                    cell.val[vertex_count] = (cg.vertices[index] >= min_value);
-                    vertex_count++;
+                    cell.p[point].x = xx;
+                    cell.p[point].y = yy;
+                    cell.p[point].z = zz;
+                    cell.val[point] = cg.vertices_float[index];
+                    // cout << int(cg.vertices[index]) << endl;
                 }
-
-                int num = polygonise(cell, 1, triangles);
+                average_value /= 8;
+                int num = polygonise(cell, min_value, triangles);
                 num_triangles += num;
 
                 // For each triangle, calculate normal vector and add it to the list of vertices, normals and colors
                 for(int n=0; n<num; n++) {
                     CVector normal = (triangles[n].p[0] - triangles[n].p[1]).Cross((triangles[n].p[0] - triangles[n].p[2])).Normalize();
-                    CVector color(1.0, 1.0, 1.0);
+
+                    float color_value = 0.3 + 0.7*average_value/cg.max_value;
+                    CVector color(color_value,color_value,color_value);
 
                     for(int point = 0; point < 3; point++) {
                         // Add this point to the map of vertices so we can create smooth normal vectors later
@@ -442,14 +449,14 @@ int MarchingCubes::polygonise(GRIDCELL grid, double isolevel, TRIANGLE *triangle
       tells us which vertices are inside of the surface
    */
    cubeindex = 0;
-   if (grid.val[0] < isolevel) cubeindex |= 1;
-   if (grid.val[1] < isolevel) cubeindex |= 2;
-   if (grid.val[2] < isolevel) cubeindex |= 4;
-   if (grid.val[3] < isolevel) cubeindex |= 8;
-   if (grid.val[4] < isolevel) cubeindex |= 16;
-   if (grid.val[5] < isolevel) cubeindex |= 32;
-   if (grid.val[6] < isolevel) cubeindex |= 64;
-   if (grid.val[7] < isolevel) cubeindex |= 128;
+   if (grid.val[0] >= isolevel) cubeindex |= 1;
+   if (grid.val[1] >= isolevel) cubeindex |= 2;
+   if (grid.val[2] >= isolevel) cubeindex |= 4;
+   if (grid.val[3] >= isolevel) cubeindex |= 8;
+   if (grid.val[4] >= isolevel) cubeindex |= 16;
+   if (grid.val[5] >= isolevel) cubeindex |= 32;
+   if (grid.val[6] >= isolevel) cubeindex |= 64;
+   if (grid.val[7] >= isolevel) cubeindex |= 128;
 
    /* Cube is entirely in/out of the surface */
    if (edgeTable[cubeindex] == 0) return(0);

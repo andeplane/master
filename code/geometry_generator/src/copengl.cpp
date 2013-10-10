@@ -81,6 +81,7 @@ void COpenGL::initialize(int w, int h, string window_title_, GLFWkeyfun handle_k
 }
 
 void COpenGL::set_standard_light() {
+    return;
     float a = 100;
     GLfloat ambient[4] = {0.05f, 0.05f, 0.05f, 1.0f};
     GLfloat diffuse[4] = {1.0f, 1.0f, 1.0f, 1.0f};
