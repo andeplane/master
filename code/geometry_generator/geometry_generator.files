@@ -29,3 +29,4 @@ src/cutil.cpp
 src/cutil.h
 src/cisosurface.cpp
 src/cisosurface.h
+src/movie.cpp
