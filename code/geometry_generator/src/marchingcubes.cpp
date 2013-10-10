@@ -119,7 +119,7 @@ void MarchingCubes::create_marching_cubes_from_positions(vector<float> &position
         int j = y / system_length.y*num_points.y;
         int k = z / system_length.z*num_points.z;
 
-        int delta = 3;
+        int delta = 1;
         for(int di=-delta; di<=delta; di++) {
             for(int dj=-delta; dj<=delta; dj++) {
                 for(int dk=-delta; dk<=delta; dk++) {

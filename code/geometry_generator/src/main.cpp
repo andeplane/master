@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     double threshold = ini.getdouble("threshold");
 
     ComplexGeometry cg;
-    cg.create_perlin_geometry(100, 100, 100, 1,1,1,3, threshold, true);
+    cg.create_perlin_geometry(100, 100, 100, 1,1,1,3, threshold, false);
     cg.save_to_file("perlin.bin");
 
     string text_files_base_filename = ini.getstring("text_files_base_filename");
@@ -45,9 +45,11 @@ int main(int argc, char **argv)
 //    }
     c.build_vbo();
 
+
     while(true) {
          v.render_begin();
          c.render_vbo();
+
 //         for(int i=0; i<marching_cubes.size(); i++) {
 //             marching_cubes[i].render_vbo();
 //         }

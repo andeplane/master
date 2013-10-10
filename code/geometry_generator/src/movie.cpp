@@ -3,6 +3,7 @@
 #ifdef OPENGL
 #include <visualizer.h>
 #include <copengl.h>
+#include <ctexture.h>
 #endif
 #include <cinifile.h>
 #include <marchingcubes.h>
@@ -26,7 +27,7 @@ int main(int argc, char **argv)
     double threshold = ini.getdouble("threshold");
 
     ComplexGeometry cg;
-    cg.create_perlin_geometry(100, 100, 100, 1,1,1,3, threshold, true);
+    cg.create_perlin_geometry(200, 200, 200, 1,1,1,3, threshold, false);
     // cg.create_sphere(100, 100, 100, 0.8, true, true, 1);
     cg.save_to_file("perlin.bin");
     CVector system_length = CVector(10*Lx, 10*Ly, 10*Lz);
@@ -43,11 +44,14 @@ int main(int argc, char **argv)
     MovieData movie_data(1,1000);
     movie_data.load_movie_files(state_folder,system_length);
     Timestep *timestep = movie_data.first_timestep;
+    CTexture sphere(v.opengl);
+    sphere.create_sphere1("balle",512);
 
     while(true) {
          v.render_begin();
          if(v.opengl->bool1) c.render_vbo();
-         timestep->render_marching_cubes();
+         // timestep->render_marching_cubes();
+         timestep->render_billboards(&sphere);
          v.render_end();
          timestep = timestep->next;
         if(!v.is_running) break;

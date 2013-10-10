@@ -39,6 +39,7 @@ void Mesh::render_triangles() {
 void Mesh::render_vbo() {
     if(!is_vbo_built) throw "VBO not built";
     verify_initialized();
+    glDisable(GL_CULL_FACE);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);

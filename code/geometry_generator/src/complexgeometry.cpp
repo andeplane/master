@@ -232,8 +232,8 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
 
                 // val = pow(val,4.0)*cos(val);
                 vertices[index] = val;
-                if(val >= threshold) vertices_unsigned_char[index] = 0;
-                else vertices_unsigned_char[index] = 1;
+                if(val >= threshold) vertices_unsigned_char[index] = 1;
+                else vertices_unsigned_char[index] = 0;
             }
         }
     }

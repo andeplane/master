@@ -7,6 +7,7 @@
 using std::vector;
 using std::string;
 class CVector;
+class CTexture;
 
 class Timestep
 {
@@ -24,6 +25,7 @@ public:
 #ifdef OPENGL
     void render_points();
     void build_marching_cubes();
+    void render_billboards(CTexture *texture);
     void render_marching_cubes();
 #endif
 };

@@ -18,7 +18,7 @@ void COpenGL::initialize(int w, int h, string window_title_, GLFWkeyfun handle_k
     mid_window_y = window_height/2;
     aspect_ratio = (GLfloat)window_width/GLfloat(window_height);
 
-    field_of_view = 90.0f;            // Define our field of view (i.e. how quickly foreshortening occurs)
+    field_of_view = 60.0f;            // Define our field of view (i.e. how quickly foreshortening occurs)
     near        = 0.01f;             // The near (Z Axis) point of our viewing frustum (default 2.0f)
     far         = 1500.0f;          // The far  (Z Axis) point of our viewing frustum (default 1500.0f)
     bool1 = true;

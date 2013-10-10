@@ -5,6 +5,7 @@
 
 #ifdef OPENGL
 #include <GL/glfw.h>      // Include OpenGL Framework library
+#include <ctexture.h>
 #endif
 
 using std::ifstream;
@@ -22,6 +23,10 @@ Timestep::Timestep(CVector system_length_) {
 void Timestep::render_marching_cubes() {
     if(!is_marching_cubes_built) build_marching_cubes();
     marching_cubes.render_vbo();
+}
+
+void Timestep::render_billboards(CTexture *texture) {
+    texture->render_billboards(positions);
 }
 
 void Timestep::build_marching_cubes() {
