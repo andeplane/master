@@ -30,6 +30,11 @@ public:
     GLfloat field_of_view;
     GLfloat near;
     GLfloat far;
+    bool bool1;
+    bool bool2;
+    bool bool3;
+    bool bool4;
+    bool bool5;
 
     void initialize(int w, int h, string window_title_, GLFWkeyfun cbfun, GLFWmouseposfun, bool full_screen, double camera_speed);
     void pop();

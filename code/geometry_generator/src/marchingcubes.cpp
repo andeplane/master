@@ -27,19 +27,24 @@ void MarchingCubes::load_from_file(string filename) {
 //    file.close();
 }
 template <typename T>
-void MarchingCubes::create_marching_cubes_from_array(const T* scalar_field, int nx, int ny, int nz, CVector box_length, double threshold) {
+void MarchingCubes::create_marching_cubes_from_array(const T* scalar_field, int nx, int ny, int nz, CVector box_length, double threshold, bool larger_than) {
     initialize(nx*ny*nz);
     num_vertices = 0;
     num_triangles = 0;
 
     Random *rnd = new Random(-time(NULL));
 
+
     float r = 0.5 + 0.5*rnd->next_double();
     float g = 0.4 + 0.6*rnd->next_double();
     float b = 0.3 + 0.7*rnd->next_double();
 
-    CIsoSurface<float> surf;
-    surf.GenerateSurface(scalar_field,threshold,nx-1,ny-1,nz-1,box_length.x, box_length.y, box_length.z);
+//    float r = rnd->next_double();
+//    float g = rnd->next_double();
+//    float b = rnd->next_double();
+
+    CIsoSurface<T> surf;
+    surf.GenerateSurface(scalar_field,threshold,nx-1,ny-1,nz-1,box_length.x, box_length.y, box_length.z, larger_than);
 
     for(int triangle=0; triangle<surf.m_nTriangles; triangle++) {
         unsigned int p1_index = surf.m_piTriangleIndices[3*triangle+0];
@@ -77,12 +82,18 @@ void MarchingCubes::create_marching_cubes_from_array(const T* scalar_field, int 
         add_normal(n3);
         add_color(color, 1.0);
     }
+
+    cout << "Marching cubes created with " << surf.m_nTriangles << " triangles." << endl;
 }
 
-void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry &cg, CVector system_length, double threshold) {
+void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry &cg, CVector system_length, double threshold, bool larger_than) {
     CVector box_length = system_length;
     box_length.x /= cg.nx;
     box_length.y /= cg.ny;
     box_length.z /= cg.nz;
-    create_marching_cubes_from_array(cg.vertices, cg.nx, cg.ny, cg.nz, box_length, threshold);
+//    float *field = new float[cg.num_vertices];
+//    for(int n=0; n<cg.num_vertices; n++) {
+//        field[n] = cg.vertices_unsigned_char[n];
+//    }
+    create_marching_cubes_from_array(cg.vertices, cg.nx, cg.ny, cg.nz, box_length, threshold, larger_than);
 }

@@ -327,7 +327,7 @@ template <class T> CIsoSurface<T>::~CIsoSurface()
 	DeleteSurface();
 }
 
-template <class T> void CIsoSurface<T>::GenerateSurface(const T* ptScalarField, T tIsoLevel, unsigned int nCellsX, unsigned int nCellsY, unsigned int nCellsZ, float fCellLengthX, float fCellLengthY, float fCellLengthZ)
+template <class T> void CIsoSurface<T>::GenerateSurface(const T* ptScalarField, T tIsoLevel, unsigned int nCellsX, unsigned int nCellsY, unsigned int nCellsZ, float fCellLengthX, float fCellLengthY, float fCellLengthZ, bool large_than)
 {
 	if (m_bValidSurface)
 		DeleteSurface();
@@ -351,22 +351,26 @@ template <class T> void CIsoSurface<T>::GenerateSurface(const T* ptScalarField, 
 				// Calculate table lookup index from those
 				// vertices which are below the isolevel.
 				unsigned int tableIndex = 0;
-				if (m_ptScalarField[z*nPointsInSlice + y*nPointsInXDirection + x] < m_tIsoLevel)
-					tableIndex |= 1;
-				if (m_ptScalarField[z*nPointsInSlice + (y+1)*nPointsInXDirection + x] < m_tIsoLevel)
-					tableIndex |= 2;
-				if (m_ptScalarField[z*nPointsInSlice + (y+1)*nPointsInXDirection + (x+1)] < m_tIsoLevel)
-					tableIndex |= 4;
-				if (m_ptScalarField[z*nPointsInSlice + y*nPointsInXDirection + (x+1)] < m_tIsoLevel)
-					tableIndex |= 8;
-				if (m_ptScalarField[(z+1)*nPointsInSlice + y*nPointsInXDirection + x] < m_tIsoLevel)
-					tableIndex |= 16;
-				if (m_ptScalarField[(z+1)*nPointsInSlice + (y+1)*nPointsInXDirection + x] < m_tIsoLevel)
-					tableIndex |= 32;
-				if (m_ptScalarField[(z+1)*nPointsInSlice + (y+1)*nPointsInXDirection + (x+1)] < m_tIsoLevel)
-					tableIndex |= 64;
-				if (m_ptScalarField[(z+1)*nPointsInSlice + y*nPointsInXDirection + (x+1)] < m_tIsoLevel)
-					tableIndex |= 128;
+                if(large_than) {
+                    if (m_ptScalarField[z*nPointsInSlice + y*nPointsInXDirection + x] >= m_tIsoLevel) tableIndex |= 1;
+                    if (m_ptScalarField[z*nPointsInSlice + (y+1)*nPointsInXDirection + x] >= m_tIsoLevel) tableIndex |= 2;
+                    if (m_ptScalarField[z*nPointsInSlice + (y+1)*nPointsInXDirection + (x+1)] >= m_tIsoLevel) tableIndex |= 4;
+                    if (m_ptScalarField[z*nPointsInSlice + y*nPointsInXDirection + (x+1)] >= m_tIsoLevel) tableIndex |= 8;
+                    if (m_ptScalarField[(z+1)*nPointsInSlice + y*nPointsInXDirection + x] >= m_tIsoLevel) tableIndex |= 16;
+                    if (m_ptScalarField[(z+1)*nPointsInSlice + (y+1)*nPointsInXDirection + x] >= m_tIsoLevel) tableIndex |= 32;
+                    if (m_ptScalarField[(z+1)*nPointsInSlice + (y+1)*nPointsInXDirection + (x+1)] >= m_tIsoLevel) tableIndex |= 64;
+                    if (m_ptScalarField[(z+1)*nPointsInSlice + y*nPointsInXDirection + (x+1)] >= m_tIsoLevel) tableIndex |= 128;
+                } else {
+                    if (m_ptScalarField[z*nPointsInSlice + y*nPointsInXDirection + x] <= m_tIsoLevel) tableIndex |= 1;
+                    if (m_ptScalarField[z*nPointsInSlice + (y+1)*nPointsInXDirection + x] <= m_tIsoLevel) tableIndex |= 2;
+                    if (m_ptScalarField[z*nPointsInSlice + (y+1)*nPointsInXDirection + (x+1)] <= m_tIsoLevel) tableIndex |= 4;
+                    if (m_ptScalarField[z*nPointsInSlice + y*nPointsInXDirection + (x+1)] <= m_tIsoLevel) tableIndex |= 8;
+                    if (m_ptScalarField[(z+1)*nPointsInSlice + y*nPointsInXDirection + x] <= m_tIsoLevel) tableIndex |= 16;
+                    if (m_ptScalarField[(z+1)*nPointsInSlice + (y+1)*nPointsInXDirection + x] <= m_tIsoLevel) tableIndex |= 32;
+                    if (m_ptScalarField[(z+1)*nPointsInSlice + (y+1)*nPointsInXDirection + (x+1)] <= m_tIsoLevel) tableIndex |= 64;
+                    if (m_ptScalarField[(z+1)*nPointsInSlice + y*nPointsInXDirection + (x+1)] <= m_tIsoLevel) tableIndex |= 128;
+                }
+
 
 				// Now create a triangulation of the isosurface in this
 				// cell.

@@ -30,3 +30,5 @@ src/cutil.h
 src/cisosurface.cpp
 src/cisosurface.h
 src/movie.cpp
+src/moviedata.cpp
+src/moviedata.h

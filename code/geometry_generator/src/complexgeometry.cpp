@@ -55,7 +55,7 @@ void ComplexGeometry::load_text_files(string base_filename, CVector matrix_size,
                 infile >> value;
                 max_value = max(max_value,value);
                 vertices[num_vertices_so_far] = value;
-                vertices[num_vertices_so_far++] = value >= threshold;
+                vertices_unsigned_char[num_vertices_so_far++] = value >= threshold;
             }
         }
         infile.close();
@@ -150,7 +150,7 @@ void ComplexGeometry::save_vtk(string filename) {
     ofile.close();
 }
 
-void ComplexGeometry::load_from_binary_file_without_normals_and_tangents(string filename, bool calculate_normals_and_tangents, int number_of_neighbor_averages) {
+void ComplexGeometry::load_from_binary_file_without_normals_and_tangents(string filename, bool do_calculate_normals_tangents_and_inner_points, int number_of_neighbor_averages) {
     ifstream file (filename.c_str(), ios::in | ios::binary);
     file.read (reinterpret_cast<char*>(&nx), sizeof(unsigned int));
     file.read (reinterpret_cast<char*>(&ny), sizeof(unsigned int));
@@ -161,7 +161,7 @@ void ComplexGeometry::load_from_binary_file_without_normals_and_tangents(string 
     file.close();
     for(int i=0; i<num_vertices; i++) vertices[i] = vertices_unsigned_char[i];
 
-    if(calculate_normals_and_tangents) calculate_normals_tangents_and_inner_points(number_of_neighbor_averages);
+    if(do_calculate_normals_tangents_and_inner_points) calculate_normals_tangents_and_inner_points(number_of_neighbor_averages);
 }
 
 void ComplexGeometry::calculate_normals_tangents_and_inner_points(int number_of_neighbor_averages) {
@@ -172,20 +172,42 @@ void ComplexGeometry::calculate_normals_tangents_and_inner_points(int number_of_
 }
 
 void ComplexGeometry::save_to_file(string filename) {
-    unsigned char *data = new unsigned char[num_vertices];
-    for(int i=0; i<num_vertices; i++) data[i] = vertices[i];
-
     ofstream file (filename.c_str(), ios::out | ios::binary);
     file.write (reinterpret_cast<char*>(&nx), sizeof(unsigned int));
     file.write (reinterpret_cast<char*>(&ny), sizeof(unsigned int));
     file.write (reinterpret_cast<char*>(&nz), sizeof(unsigned int));
-    file.write (reinterpret_cast<char*>(data), num_vertices*sizeof(unsigned char));
+    file.write (reinterpret_cast<char*>(vertices_unsigned_char), num_vertices*sizeof(unsigned char));
     file.write (reinterpret_cast<char*>(normals),   3*num_vertices*sizeof(float));
     file.write (reinterpret_cast<char*>(tangents1), 3*num_vertices*sizeof(float));
     file.write (reinterpret_cast<char*>(tangents2), 3*num_vertices*sizeof(float));
     file.close();
+}
 
-    delete data;
+void ComplexGeometry::create_sphere(int nx_, int ny_, int nz_, float radius, bool inverse, bool do_calculate_normals_tangents_and_inner_points, int number_of_neighbor_averages) {
+    allocate(nx_, ny_, nz_);
+    for(int i=0;i<nx;i++) {
+        for(int j=0;j<ny;j++) {
+            for(int k=0;k<nz;k++) {
+                double x = 2*(i-nx/2.0)/(double)nx;
+                double y = 2*(j-ny/2.0)/(double)ny;
+                double z = 2*(k-nz/2.0)/(double)nz;
+                double r2 = x*x + y*y + z*z;
+                int index = i + j*nx + k*nx*ny;
+
+                if(!inverse && r2 > radius*radius || inverse && r2 < radius*radius) {
+                    vertices_unsigned_char[index] = 1;
+                    vertices[index] = 1;
+                } else {
+                    vertices_unsigned_char[index] = 0;
+                    vertices[index] = 0;
+                }
+            }
+        }
+    }
+
+    if(do_calculate_normals_tangents_and_inner_points) {
+        calculate_normals_tangents_and_inner_points(number_of_neighbor_averages);
+    }
 }
 
 void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octave, int frequency, int amplitude , int seed, float threshold, bool do_calculate_normals_tangents_and_boundary) {
@@ -202,15 +224,15 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
 
                 int index = i + j*nx + k*nx*ny;
                 double val = 0;
-                for (int a=0; a<10  ; a++) {
+                for (int a=0; a<3  ; a++) {
                     s = 3.0*a + 2.2513531;
 
                     val += p.Get(x*s, y*s, z*s);
                 }
                 // val = pow(val,4.0)*cos(val);
                 vertices[index] = val;
-                if(val < threshold) vertices_unsigned_char[index] = 0;
-                else vertices_unsigned_char[index] = 1;
+                if(val >= threshold) vertices_unsigned_char[index] = 1;
+                else vertices_unsigned_char[index] = 0;
             }
         }
     }
@@ -223,9 +245,14 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
 void ComplexGeometry::calculate_normals(int number_of_neighbor_average) {
     bool at_least_one_wall_neighbor;
     bool all_neighbors_are_walls;
+    memset(normals,3*num_vertices, sizeof(float));
+    memset(tangents1,3*num_vertices, sizeof(float));
+    memset(tangents2,3*num_vertices, sizeof(float));
+
     ProgressBar progress_bar(nx, "Creating normals");
     for(int i=0;i<nx;i++) {
         progress_bar.update(i);
+
         for(int j=0;j<ny;j++) {
             for(int k=0;k<nz;k++) {
                 at_least_one_wall_neighbor = false;
@@ -255,7 +282,6 @@ void ComplexGeometry::calculate_normals(int number_of_neighbor_average) {
                 }
 
                 double norm_squared = normals[3*idx+0]*normals[3*idx+0] + normals[3*idx+1]*normals[3*idx+1] + normals[3*idx+2]*normals[3*idx+2];
-
                 if(norm_squared > 0) {
                     normals[3*idx+0] = 0;
                     normals[3*idx+1] = 0;

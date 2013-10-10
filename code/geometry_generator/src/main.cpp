@@ -21,27 +21,36 @@ int main(int argc, char **argv)
     double Lx = ini.getdouble("Lx");
     double Ly = ini.getdouble("Ly");
     double Lz = ini.getdouble("Lz");
-    ComplexGeometry cg;
-    cg.create_perlin_geometry(200, 200, 200, 1,1,1,3,0.2, false);
-    // cg.save_to_file("perlin.bin");
-    string text_files_base_filename = ini.getstring("text_files_base_filename");
     double threshold = ini.getdouble("threshold");
-    // cg.load_text_files(text_files_base_filename,CVector(100, 100, 50), threshold);
+
+    ComplexGeometry cg;
+    cg.create_perlin_geometry(100, 100, 100, 1,1,1,3, threshold, true);
+    cg.save_to_file("perlin.bin");
+
+    string text_files_base_filename = ini.getstring("text_files_base_filename");
+
+    cg.load_text_files(text_files_base_filename,CVector(100, 100, 50), threshold);
 
     CVector system_length = CVector(Lx, Ly, Lz);
     MarchingCubes c;
-    c.create_marching_cubes_from_complex_geometry(cg, system_length, threshold);
+    c.create_marching_cubes_from_complex_geometry(cg, system_length, threshold, true);
     // c.create_marching_cubes_from_complex_geometry(cg, CVector(Lx, Ly, Lz), threshold);
 
     #ifdef OPENGL
     char *window_title = new char[1000];
     sprintf(window_title, "DSMC Geometry Visualizer (DSMCGV) - [%.2f fps]", 60.0);
     Visualizer v(screen_width, screen_height, string(window_title), false, 0.1);
+//    for(int i=0; i<marching_cubes.size(); i++) {
+//        marching_cubes[i].build_vbo();
+//    }
     c.build_vbo();
 
     while(true) {
          v.render_begin();
          c.render_vbo();
+//         for(int i=0; i<marching_cubes.size(); i++) {
+//             marching_cubes[i].render_vbo();
+//         }
 //         glBegin(GL_POINTS);
 //         float scale = 50.0;
 //         float scale_z = 10.0;

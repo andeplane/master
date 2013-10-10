@@ -62,6 +62,9 @@ void handle_keypress(int theKey, int theAction) {
         case 'D':
             ogl->camera->holding_right_strafe = true;
             break;
+        case '1':
+            ogl->bool1 = !ogl->bool1;
+            break;
         }
     }
     else // If a key is released, toggle the relevant key-release flag
