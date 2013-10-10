@@ -41,13 +41,13 @@ int main(int argc, char **argv)
 
     string state_folder = "/projects/master/code/base_code";
     MovieData movie_data(1,1000);
-    movie_data.load_movie_files(state_folder);
+    movie_data.load_movie_files(state_folder,system_length);
     Timestep *timestep = movie_data.first_timestep;
 
     while(true) {
          v.render_begin();
          if(v.opengl->bool1) c.render_vbo();
-         timestep->render();
+         timestep->render_marching_cubes();
          v.render_end();
          timestep = timestep->next;
         if(!v.is_running) break;

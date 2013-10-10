@@ -229,10 +229,11 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
 
                     val += p.Get(x*s, y*s, z*s);
                 }
+
                 // val = pow(val,4.0)*cos(val);
                 vertices[index] = val;
-                if(val >= threshold) vertices_unsigned_char[index] = 1;
-                else vertices_unsigned_char[index] = 0;
+                if(val >= threshold) vertices_unsigned_char[index] = 0;
+                else vertices_unsigned_char[index] = 1;
             }
         }
     }
@@ -245,9 +246,9 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
 void ComplexGeometry::calculate_normals(int number_of_neighbor_average) {
     bool at_least_one_wall_neighbor;
     bool all_neighbors_are_walls;
-    memset(normals,3*num_vertices, sizeof(float));
-    memset(tangents1,3*num_vertices, sizeof(float));
-    memset(tangents2,3*num_vertices, sizeof(float));
+    memset(normals, 0, 3*num_vertices*sizeof(float));
+    memset(tangents1, 0, 3*num_vertices*sizeof(float));
+    memset(tangents2, 0, 3*num_vertices*sizeof(float));
 
     ProgressBar progress_bar(nx, "Creating normals");
     for(int i=0;i<nx;i++) {

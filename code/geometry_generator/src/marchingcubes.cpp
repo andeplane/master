@@ -27,7 +27,10 @@ void MarchingCubes::load_from_file(string filename) {
 //    file.close();
 }
 template <typename T>
-void MarchingCubes::create_marching_cubes_from_array(const T* scalar_field, int nx, int ny, int nz, CVector box_length, double threshold, bool larger_than) {
+void MarchingCubes::create_marching_cubes_from_array(const T* scalar_field, CVector mesh_dimensions, CVector box_length, double threshold, bool larger_than) {
+    int nx = mesh_dimensions.x;
+    int ny = mesh_dimensions.y;
+    int nz = mesh_dimensions.z;
     initialize(nx*ny*nz);
     num_vertices = 0;
     num_triangles = 0;
@@ -95,5 +98,40 @@ void MarchingCubes::create_marching_cubes_from_complex_geometry(ComplexGeometry 
 //    for(int n=0; n<cg.num_vertices; n++) {
 //        field[n] = cg.vertices_unsigned_char[n];
 //    }
-    create_marching_cubes_from_array(cg.vertices, cg.nx, cg.ny, cg.nz, box_length, threshold, larger_than);
+    CVector mesh_dimensions(cg.nx, cg.ny, cg.nz);
+    create_marching_cubes_from_array(cg.vertices, mesh_dimensions, box_length, threshold, larger_than);
+}
+
+void MarchingCubes::create_marching_cubes_from_positions(vector<float> &positions, CVector num_points, CVector system_length, double threshold) {
+    int total_num_vertices = num_points.x*num_points.y*num_points.z;
+    float *number_of_particles_list = new float[total_num_vertices];
+    int num_particles = positions.size() / 3;
+    int nx = num_points.x; int ny = num_points.y; int nz = num_points.z;
+    float max_x = 0;
+
+    for(int n=0; n<num_particles; n++) {
+        float x = positions[3*n+0];
+        float y = positions[3*n+1];
+        float z = positions[3*n+2];
+        max_x = max(max_x,x);
+
+        int i = x / system_length.x*num_points.x;
+        int j = y / system_length.y*num_points.y;
+        int k = z / system_length.z*num_points.z;
+
+        int delta = 3;
+        for(int di=-delta; di<=delta; di++) {
+            for(int dj=-delta; dj<=delta; dj++) {
+                for(int dk=-delta; dk<=delta; dk++) {
+                    int index = ((i+di+nx)%nx) + ((j+dj+ny)%ny)*nx+ ((k+dk+nz)%nz)*nx*ny;
+                    number_of_particles_list[index] += 1;
+                }
+            }
+        }
+    }
+
+    CVector box_length = system_length;
+    box_length = box_length/num_points;
+
+    create_marching_cubes_from_array(number_of_particles_list, num_points, box_length, threshold, true);
 }
