@@ -5,6 +5,8 @@
 #include <defines.h>
 
 #ifdef OPENGL
+#include <cshaders.h>
+#include <testshader.h>
 #include <GL/glfw.h>      // Include OpenGL Framework library
 #endif
 using std::vector;
@@ -12,7 +14,7 @@ using std::map;
 using std::string;
 
 class CVector;
-
+class COpenGL;
 using std::vector;
 
 class Mesh {
@@ -20,6 +22,7 @@ public:
     #ifdef OPENGL
     GLuint vbo_buffers[3];
     #endif
+    TestShader testshader;
 	vector<float> vertices;
 	vector<int>   indices;
 	vector<float> normals;
@@ -40,7 +43,7 @@ public:
     void initialize(unsigned int num_reserved_vertices);
     #ifdef OPENGL
     void render_triangles();
-    void build_vbo();
+    void build_vbo(COpenGL *openglpointer);
     void render_vbo();
     void enable_blend(bool inverse);
     void disable_blend();

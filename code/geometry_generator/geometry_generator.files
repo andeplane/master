@@ -36,3 +36,9 @@ src/ctexture.h
 src/ctexture.cpp
 src/cbitmap.cpp
 src/cbitmap.h
+src/cshaders.h
+src/cshaders.cpp
+src/oglshader.h
+src/oglshader.cpp
+src/testshader.h
+src/testshader.cpp

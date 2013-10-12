@@ -54,7 +54,7 @@ void Mesh::render_vbo() {
 	glDrawArrays(GL_TRIANGLES, 0, num_vertices);
 }
 
-void Mesh::build_vbo() {
+void Mesh::build_vbo(COpenGL *openglpointer) {
     verify_initialized();
 	// generate a buffer for our triangle
     glGenBuffers(3, vbo_buffers);

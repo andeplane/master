@@ -1,11 +1,13 @@
 #pragma once
 #include <GL/glew.h>
 #include <GL/glfw.h>      // Include OpenGL Framework library
+#include <oglshader.h>
 #include <string>
 #include <fpsmanager.hpp> // Include our FpsManager class
 
 using std::string;
 
+class CShaderContainer;
 class FpsManager;
 class Camera;
 class CVector;
@@ -15,6 +17,8 @@ public:
     static const int MIPMAP = 0;
     static const int NOMIPMAP = 1;
     static const int MIPMAPALPHA = 2;
+
+    CShaderContainer shadercontainer;
 
     GLint window_width, window_height; 
     GLint mid_window_x, mid_window_y;
@@ -42,6 +46,12 @@ public:
     void init_GL();
     void set_window_title(string title);
     void set_standard_light();
+    // Fra nicolaas
+    void buffer2texture(GLuint texture, int w, int h, int mipmap);
+    void SetOrthographicProjection();
+    void ResetPerspectiveProjection();
     CVector coord_to_ray(double px, double py);
+    // End fra nicolaas
+
     COpenGL() { }
 }; 

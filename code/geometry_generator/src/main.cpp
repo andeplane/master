@@ -7,6 +7,8 @@
 #include <marchingcubes.h>
 #include <cvector.h>
 #include <complexgeometry.h>
+#include <testshader.h>
+#include <camera.h>
 
 using std::cout;
 using std::endl;
@@ -24,16 +26,16 @@ int main(int argc, char **argv)
     double threshold = ini.getdouble("threshold");
 
     ComplexGeometry cg;
-    cg.create_perlin_geometry(100, 100, 100, 1,1,1,3, threshold, false);
-    cg.save_to_file("perlin.bin");
+    cg.create_perlin_geometry(300, 300, 300, 4.13524,3.215,2.13531,3, threshold, false);
+    // cg.save_to_file("perlin.bin");
 
-    string text_files_base_filename = ini.getstring("text_files_base_filename");
+//    string text_files_base_filename = ini.getstring("text_files_base_filename");
 
-    cg.load_text_files(text_files_base_filename,CVector(100, 100, 50), threshold);
+//    cg.load_text_files(text_files_base_filename,CVector(100, 100, 50), threshold);
 
     CVector system_length = CVector(Lx, Ly, Lz);
     MarchingCubes c;
-    c.create_marching_cubes_from_complex_geometry(cg, system_length, threshold, true);
+    c.create_marching_cubes_from_complex_geometry(cg, system_length, threshold, false);
     // c.create_marching_cubes_from_complex_geometry(cg, CVector(Lx, Ly, Lz), threshold);
 
     #ifdef OPENGL
@@ -43,34 +45,40 @@ int main(int argc, char **argv)
 //    for(int i=0; i<marching_cubes.size(); i++) {
 //        marching_cubes[i].build_vbo();
 //    }
-    c.build_vbo();
-
-
+    c.build_vbo(v.opengl);
+    TestShader shader;
+    shader.COpenGLPointer = v.opengl;
+    try {
+        shader.Initialize("Balle");
+    } catch (string ex) {
+        cout << ex << endl;
+    }
+    
+    float t = 0;
+    float dt = 0.01;
+    float pi = 3.141592653;
+    float frequency = 0.01;
+    float omega = 2*pi*frequency;
+    float A = 10.0;
     while(true) {
-         v.render_begin();
-         c.render_vbo();
-
-//         for(int i=0; i<marching_cubes.size(); i++) {
-//             marching_cubes[i].render_vbo();
-//         }
-//         glBegin(GL_POINTS);
-//         float scale = 50.0;
-//         float scale_z = 10.0;
-//         CVector offset(-25,-25,-5);
-//         for(int i=0; i<cg.nx; i++) {
-//             for(int j=0; j<cg.ny; j++) {
-//                 for(int k=0; k<cg.nz; k++) {
-//                     int index = i + j*cg.nx + k*cg.nx*cg.ny;
-//                     if(cg.vertices[index] == 1) {
-//                         glVertex3f( (scale*i)/cg.nx+offset.x, (scale*j)/cg.ny + offset.y, (scale_z*k)/cg.nz + offset.z);
-//                     }
-//                 }
-//             }
-
-//         }
-//         glEnd();
-         v.render_end();
-        if(!v.is_running) break;
+        try {
+            CVector close_to_me = CVector(0,0,0);//v.opengl->camera->position;
+            close_to_me.x += A*cos(omega*t);
+            close_to_me.y += A*sin(omega*t);
+            // close_to_me.z += A*cos(omega*t)*A*sin(omega*t);
+            t += dt;
+            shader.lightpos = close_to_me;
+            shader.targetdir = v.opengl->camera->target;
+            v.render_begin();
+            shader.Start();
+            c.render_vbo();
+            shader.End();
+            v.render_end();
+            if(!v.is_running) break;
+        } catch (string ex) {
+            cout << "Error: " << ex << endl;
+        }
+        
     }
     #endif
 

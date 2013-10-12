@@ -21,8 +21,8 @@ Timestep::Timestep(CVector system_length_) {
 }
 
 void Timestep::render_marching_cubes() {
-    if(!is_marching_cubes_built) build_marching_cubes();
-    marching_cubes.render_vbo();
+//    if(!is_marching_cubes_built) build_marching_cubes();
+//    marching_cubes.render_vbo();
 }
 
 void Timestep::render_billboards(CTexture *texture) {
@@ -30,9 +30,9 @@ void Timestep::render_billboards(CTexture *texture) {
 }
 
 void Timestep::build_marching_cubes() {
-    marching_cubes.create_marching_cubes_from_positions(positions,CVector(100,100,100), system_length, 1.0);
-    marching_cubes.build_vbo();
-    is_marching_cubes_built = true;
+//    marching_cubes.create_marching_cubes_from_positions(positions,CVector(100,100,100), system_length, 1.0);
+//    marching_cubes.build_vbo();
+//    is_marching_cubes_built = true;
 }
 
 void Timestep::add_molecule_data(vector<float> &new_positions) {

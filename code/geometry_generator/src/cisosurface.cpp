@@ -7,8 +7,8 @@
 // Description: This is the implementation file for the CIsoSurface class.
 
 #include <math.h>
-#include "cisosurface.h"
-
+#include <cisosurface.h>
+#include <cvector.h>
 template <class T> const unsigned int CIsoSurface<T>::m_edgeTable[256] = {
 	0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 	0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
@@ -708,29 +708,46 @@ template <class T> void CIsoSurface<T>::CalculateNormals()
 
 	// Calculate normals.
 	for (unsigned int i = 0; i < m_nTriangles; i++) {
-		VECTOR3D vec1, vec2, normal;
+		VECTOR3D vec1, vec2;
 		unsigned int id0, id1, id2;
 		id0 = m_piTriangleIndices[i*3];
 		id1 = m_piTriangleIndices[i*3+1];
 		id2 = m_piTriangleIndices[i*3+2];
+		// CVector vec1(m_ppt3dVertices[id1][0] - m_ppt3dVertices[id0][0], m_ppt3dVertices[id1][1] - m_ppt3dVertices[id0][1], m_ppt3dVertices[id1][2] - m_ppt3dVertices[id0][2]);
+		// CVector vec2(m_ppt3dVertices[id2][0] - m_ppt3dVertices[id0][0], m_ppt3dVertices[id2][1] - m_ppt3dVertices[id0][1], m_ppt3dVertices[id2][2] - m_ppt3dVertices[id0][2]);
+
 		vec1[0] = m_ppt3dVertices[id1][0] - m_ppt3dVertices[id0][0];
 		vec1[1] = m_ppt3dVertices[id1][1] - m_ppt3dVertices[id0][1];
 		vec1[2] = m_ppt3dVertices[id1][2] - m_ppt3dVertices[id0][2];
 		vec2[0] = m_ppt3dVertices[id2][0] - m_ppt3dVertices[id0][0];
 		vec2[1] = m_ppt3dVertices[id2][1] - m_ppt3dVertices[id0][1];
 		vec2[2] = m_ppt3dVertices[id2][2] - m_ppt3dVertices[id0][2];
-		normal[0] = vec1[2]*vec2[1] - vec1[1]*vec2[2];
-		normal[1] = vec1[0]*vec2[2] - vec1[2]*vec2[0];
-		normal[2] = vec1[1]*vec2[0] - vec1[0]*vec2[1];
-		m_pvec3dNormals[id0][0] += normal[0];
-		m_pvec3dNormals[id0][1] += normal[1];
-		m_pvec3dNormals[id0][2] += normal[2];
-		m_pvec3dNormals[id1][0] += normal[0];
-		m_pvec3dNormals[id1][1] += normal[1];
-		m_pvec3dNormals[id1][2] += normal[2];
-		m_pvec3dNormals[id2][0] += normal[0];
-		m_pvec3dNormals[id2][1] += normal[1];
-		m_pvec3dNormals[id2][2] += normal[2];
+
+		CVector normal = CVector(vec1[2]*vec2[1] - vec1[1]*vec2[2], vec1[0]*vec2[2] - vec1[2]*vec2[0], vec1[1]*vec2[0] - vec1[0]*vec2[1]).Normalize();
+		// normal[0] = vec1[2]*vec2[1] - vec1[1]*vec2[2];
+		// normal[1] = vec1[0]*vec2[2] - vec1[2]*vec2[0];
+		// normal[2] = vec1[1]*vec2[0] - vec1[0]*vec2[1];
+		CVector n1 = CVector(m_pvec3dNormals[id0][0], m_pvec3dNormals[id0][1], m_pvec3dNormals[id0][2]);
+		CVector n2 = CVector(m_pvec3dNormals[id1][0], m_pvec3dNormals[id1][1], m_pvec3dNormals[id1][2]);
+		CVector n3 = CVector(m_pvec3dNormals[id2][0], m_pvec3dNormals[id2][1], m_pvec3dNormals[id2][2]);
+
+		if(normal.Dot(n1) >= 0) {
+			m_pvec3dNormals[id0][0] += normal.x;
+			m_pvec3dNormals[id0][1] += normal.y;
+			m_pvec3dNormals[id0][2] += normal.z;
+		}
+
+		if(normal.Dot(n2) >= 0) {
+			m_pvec3dNormals[id1][0] += normal.x;
+			m_pvec3dNormals[id1][1] += normal.y;
+			m_pvec3dNormals[id1][2] += normal.z;
+		}
+
+		if(normal.Dot(n3) >= 0) {
+			m_pvec3dNormals[id2][0] += normal.x;
+			m_pvec3dNormals[id2][1] += normal.y;
+			m_pvec3dNormals[id2][2] += normal.z;
+		}
 	}
 
 	// Normalize normals.

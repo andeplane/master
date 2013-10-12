@@ -224,13 +224,19 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
 
                 int index = i + j*nx + k*nx*ny;
                 double val = 0;
-                for (int a=0; a<3  ; a++) {
-                    s = 3.0*a + 2.2513531;
+                for (int a=0; a<5  ; a++) {
+                    // s = 3.13531*a + 2.2513531;
+                    s = 8.134246*a + 7.136537345314;
 
                     val += p.Get(x*s, y*s, z*s);
                 }
+                // val = p.Get(val,1.0/(val+0.01), val);
+                
 
-                // val = pow(val,4.0)*cos(val);
+                // val = pow(val,4.0);
+                // val = p.Get(val,val,val);
+                // val = pow(1.0/(val+0.01),3.0);
+                // val = exp(cos(val));
                 vertices[index] = val;
                 if(val >= threshold) vertices_unsigned_char[index] = 1;
                 else vertices_unsigned_char[index] = 0;

@@ -85,7 +85,7 @@ void COpenGL::initialize(int w, int h, string window_title_, GLFWkeyfun handle_k
 }
 
 void COpenGL::set_standard_light() {
-
+    return;
     float a = 100;
     GLfloat ambient[4] = {0.05f, 0.05f, 0.05f, 1.0f};
     GLfloat diffuse[4] = {0.5f, 0.5f, 0.5f, 1.0f};
@@ -183,4 +183,53 @@ CVector COpenGL::coord_to_ray(double px, double py) {
    res = (dir.glMatMul(pm)).Normalize();
    
    return res;       
+}
+
+// switch to a texture class.. much better
+void COpenGL::buffer2texture(GLuint texture, int w, int h, int type) {
+
+  glEnable(GL_TEXTURE_2D);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  if (type==MIPMAP)
+    type = MIPMAPALPHA;
+
+  if (type==NOMIPMAP) {
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glCopyTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,0,0,w,h,0);
+  }
+  if (type==MIPMAPALPHA) {
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glCopyTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,0,0,w,h,0);
+    unsigned char *t = new unsigned char[w*h*4];
+
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    // glTexSubImage2D(GL_TEXTURE_2D,0,0,0,w,h,GL_RGBA, GL_UNSIGNED_BYTE,t);
+    glGetTexImage(GL_TEXTURE_2D,0,GL_RGBA, GL_UNSIGNED_BYTE,t);
+    //  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA ,w, h, GL_RGBA, GL_UNSIGNED_BYTE, t  );
+    delete[] t;
+  }
+
+   glDisable(GL_TEXTURE_2D);
+
+}
+
+void COpenGL::SetOrthographicProjection() {
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  gluOrtho2D(0, window_width, 0, window_height);
+  glScalef(1, -1, 1);
+  glTranslatef(0, -window_height, 0);
+  glMatrixMode(GL_MODELVIEW);
+}
+
+void COpenGL::ResetPerspectiveProjection() {
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
 }
