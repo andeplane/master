@@ -26,12 +26,11 @@ int main(int argc, char **argv)
     double threshold = ini.getdouble("threshold");
 
     ComplexGeometry cg;
-    cg.create_perlin_geometry(300, 300, 300, 4.13524,3.215,2.13531,3, threshold, false);
+    // cg.create_perlin_geometry(100, 100, 100, 4.13524,3.215,2.13531,3, threshold, false);
     // cg.save_to_file("perlin.bin");
 
-//    string text_files_base_filename = ini.getstring("text_files_base_filename");
-
-//    cg.load_text_files(text_files_base_filename,CVector(100, 100, 50), threshold);
+   string text_files_base_filename = ini.getstring("text_files_base_filename");
+   cg.load_text_files(text_files_base_filename,CVector(100, 100, 50), threshold);
 
     CVector system_length = CVector(Lx, Ly, Lz);
     MarchingCubes c;
