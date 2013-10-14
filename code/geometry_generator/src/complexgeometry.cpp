@@ -19,8 +19,10 @@ ComplexGeometry::ComplexGeometry()
     tangents1 = NULL;
     tangents2 = NULL;
     nx = 0; ny = 0; nz = 0; num_vertices = 0;
+    num_voxels = CVector(0,0,0);
     has_normals_tangents_and_boundary = false;
     max_value = 0;
+    global_porosity = -1;
 }
 
 void ComplexGeometry::allocate(int nx_, int ny_, int nz_) {
@@ -33,7 +35,7 @@ void ComplexGeometry::allocate(int nx_, int ny_, int nz_) {
         delete tangents2;
         delete vertices_unsigned_char;
     }
-
+    num_voxels = CVector(nx,ny,nz);
     vertices_unsigned_char = new unsigned char[num_vertices];
     vertices = new float[num_vertices];
     normals = new float[3*num_vertices];
@@ -150,6 +152,14 @@ void ComplexGeometry::save_vtk(string filename) {
     ofile.close();
 }
 
+void ComplexGeometry::calculate_global_porosity() {
+    // Porosity voxels are those with type voxel_type_empty
+    int sum_wall_voxels = 0;
+    for(int i=0; i<num_vertices; i++) sum_wall_voxels += vertices_unsigned_char[i] == voxel_type_empty;
+
+    global_porosity = (float)sum_wall_voxels / (nx*ny*nz);
+}
+
 void ComplexGeometry::load_from_binary_file_without_normals_and_tangents(string filename, bool do_calculate_normals_tangents_and_inner_points, int number_of_neighbor_averages) {
     ifstream file (filename.c_str(), ios::in | ios::binary);
     file.read (reinterpret_cast<char*>(&nx), sizeof(unsigned int));
@@ -159,6 +169,7 @@ void ComplexGeometry::load_from_binary_file_without_normals_and_tangents(string 
 
     file.read (reinterpret_cast<char*>(vertices_unsigned_char), num_vertices*sizeof(unsigned char));
     file.close();
+
     for(int i=0; i<num_vertices; i++) vertices[i] = vertices_unsigned_char[i];
 
     if(do_calculate_normals_tangents_and_inner_points) calculate_normals_tangents_and_inner_points(number_of_neighbor_averages);
@@ -183,6 +194,105 @@ void ComplexGeometry::save_to_file(string filename) {
     file.close();
 }
 
+CVector index_vector_from_index(const int &index, CVector num_processors) {
+    CVector index_vector(0,0,0);
+    int num_proc_x = num_processors.x;
+    int num_proc_y = num_processors.y;
+    int num_proc_z = num_processors.z;
+
+    index_vector.x = index/(num_proc_y*num_proc_z);   // Index in x-direction
+    index_vector.y = (index/num_proc_z)%num_proc_y;   // Index in y-direction
+    index_vector.z = index%num_proc_z;              // Index in z-direction
+
+    return index_vector;
+}
+
+int index_from_ijk(CVector voxel_index_vector, CVector num_voxels) {
+    return voxel_index_vector.x*num_voxels.y*num_voxels.z + voxel_index_vector.y*num_voxels.z + voxel_index_vector.z;
+}
+
+void ComplexGeometry::save_to_file_2(string foldername, CVector num_processors_vector) {
+    int num_processors_total = num_processors_vector.x*num_processors_vector.y*num_processors_vector.z;
+    CVector num_voxels_vector_per_node = CVector(nx,ny,nz)/num_processors_vector;
+    int num_voxels_total_per_node = 3*3*3*num_voxels_vector_per_node.x*num_voxels_vector_per_node.y*num_voxels_vector_per_node.z;
+
+    calculate_global_porosity();
+    char filename[1000];
+    for(int index = 0; index<num_processors_total; index++) {
+
+        sprintf(filename,"%s/%04d.bin",foldername.c_str(), index);
+        ofstream file (filename, ios::out | ios::binary);
+        if(!file.is_open()) {
+            cout << "Could not open " << filename << ". Check your permissions and that the folder exists." << endl;
+            exit(1);
+        }
+
+        CVector index_vector = index_vector_from_index(index, num_processors_vector);
+        CVector voxel_origo = index_vector*num_voxels_vector_per_node;
+
+        unsigned char *local_voxels = new unsigned char[num_voxels_total_per_node];
+        float *local_normals = new float[3*num_voxels_total_per_node];
+        float *local_tangents1 = new float[3*num_voxels_total_per_node];
+        float *local_tangents2 = new float[3*num_voxels_total_per_node];
+
+        int output_data_array_index = 0;
+        int num_empty_voxels = 0;
+        int num_local_voxels = 0;
+        for(int di = -num_voxels_vector_per_node.x; di < 2*num_voxels_vector_per_node.x; di++) {
+            for(int dj = -num_voxels_vector_per_node.y; dj < 2*num_voxels_vector_per_node.y; dj++) {
+                for(int dk = -num_voxels_vector_per_node.z; dk < 2*num_voxels_vector_per_node.z; dk++) {
+                    int i = int(voxel_origo.x + di + nx) % nx;
+                    int j = int(voxel_origo.y + dj + ny) % ny;
+                    int k = int(voxel_origo.z + dk + nz) % nz;
+                    bool is_local_node = (di>0 && di < num_voxels_vector_per_node.x) && (dj>0 && dj < num_voxels_vector_per_node.y) && (dk>0 && dk < num_voxels_vector_per_node.z);
+
+                    CVector global_voxel_index_vector(i,j,k);
+
+                    int global_voxel_index = index_from_ijk(global_voxel_index_vector, num_voxels);
+
+                    local_voxels[output_data_array_index]  = vertices_unsigned_char[global_voxel_index];
+
+                    for(int a=0; a<3; a++) {
+                        local_normals[3*output_data_array_index + a] = normals[3*global_voxel_index + a];
+                        local_tangents1[3*output_data_array_index + a] = tangents1[3*global_voxel_index + a];
+                        local_tangents2[3*output_data_array_index + a] = tangents2[3*global_voxel_index + a];
+                    }
+                    if(is_local_node) {
+                        num_empty_voxels += vertices_unsigned_char[global_voxel_index]==voxel_type_empty;
+                        num_local_voxels++;
+                    }
+
+                    output_data_array_index++;
+                }
+            }
+        }
+
+        float porosity = 0;
+        if(num_local_voxels > 0) porosity = (float)num_empty_voxels / num_local_voxels;
+        unsigned int local_nx = num_voxels_vector_per_node.x;
+        unsigned int local_ny = num_voxels_vector_per_node.y;
+        unsigned int local_nz = num_voxels_vector_per_node.z;
+        cout << "Global porosity: " << global_porosity << endl;
+        cout << "Local porosity: " << porosity << endl;
+        
+        file.write (reinterpret_cast<char*>(&global_porosity), sizeof(float));
+        file.write (reinterpret_cast<char*>(&porosity), sizeof(float));
+        file.write (reinterpret_cast<char*>(&nx), sizeof(unsigned int));
+        file.write (reinterpret_cast<char*>(&ny), sizeof(unsigned int));
+        file.write (reinterpret_cast<char*>(&nz), sizeof(unsigned int));
+        file.write (reinterpret_cast<char*>(&local_nx), sizeof(unsigned int));
+        file.write (reinterpret_cast<char*>(&local_ny), sizeof(unsigned int));
+        file.write (reinterpret_cast<char*>(&local_nz), sizeof(unsigned int));
+
+        file.write (reinterpret_cast<char*>(local_voxels), num_vertices*sizeof(unsigned char));
+        file.write (reinterpret_cast<char*>(local_normals),   3*num_vertices*sizeof(float));
+        file.write (reinterpret_cast<char*>(local_tangents1), 3*num_vertices*sizeof(float));
+        file.write (reinterpret_cast<char*>(local_tangents2), 3*num_vertices*sizeof(float));
+
+        file.close();
+    }
+}
+
 void ComplexGeometry::create_sphere(int nx_, int ny_, int nz_, float radius, bool inverse, bool do_calculate_normals_tangents_and_inner_points, int number_of_neighbor_averages) {
     allocate(nx_, ny_, nz_);
     for(int i=0;i<nx;i++) {
@@ -194,7 +304,7 @@ void ComplexGeometry::create_sphere(int nx_, int ny_, int nz_, float radius, boo
                 double r2 = x*x + y*y + z*z;
                 int index = i + j*nx + k*nx*ny;
 
-                if(!inverse && r2 > radius*radius || inverse && r2 < radius*radius) {
+                if( (!inverse && r2 > radius*radius) || (inverse && r2 < radius*radius)) {
                     vertices_unsigned_char[index] = 1;
                     vertices[index] = 1;
                 } else {
