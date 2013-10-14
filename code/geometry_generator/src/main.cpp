@@ -26,8 +26,8 @@ int main(int argc, char **argv)
     double threshold = ini.getdouble("threshold");
 
     ComplexGeometry cg;
-    cg.create_perlin_geometry(300, 300, 300, 4.13524,3.215,2.13531,3, threshold, false);
-    // cg.save_to_file("perlin.bin");
+    cg.create_perlin_geometry(100, 100, 100, 4,3,2,3, threshold, true);
+    cg.save_to_file("perlin.bin");
 
 //    string text_files_base_filename = ini.getstring("text_files_base_filename");
 
