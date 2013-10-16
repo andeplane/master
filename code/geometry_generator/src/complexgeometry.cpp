@@ -243,15 +243,20 @@ void ComplexGeometry::save_to_file_2(string foldername, CVector num_processors_v
         for(int di = -num_voxels_vector_per_node.x; di < 2*num_voxels_vector_per_node.x; di++) {
             for(int dj = -num_voxels_vector_per_node.y; dj < 2*num_voxels_vector_per_node.y; dj++) {
                 for(int dk = -num_voxels_vector_per_node.z; dk < 2*num_voxels_vector_per_node.z; dk++) {
-                    int i = int(voxel_origo.x + di + nx) % nx;
-                    int j = int(voxel_origo.y + dj + ny) % ny;
-                    int k = int(voxel_origo.z + dk + nz) % nz;
+                    int i = int(voxel_origo.x + di + 10*nx) % nx;
+                    int j = int(voxel_origo.y + dj + 10*ny) % ny;
+                    int k = int(voxel_origo.z + dk + 10*nz) % nz;
 
                     CVector global_voxel_index_vector(i,j,k);
 
                     int global_voxel_index = index_from_ijk(global_voxel_index_vector, num_voxels);
 
                     local_voxels[output_data_array_index]  = vertices_unsigned_char[global_voxel_index];
+
+                    if(output_data_array_index == 8484458) {
+                        cout << i << " " << j << " " << k << endl;
+                        cout << "Value: " << int(local_voxels[output_data_array_index]) << endl;
+                    }
 
                     for(int a=0; a<3; a++) {
                         local_normals[3*output_data_array_index + a] = normals[3*global_voxel_index + a];
@@ -355,7 +360,8 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
                 double z = (k-nz/2.0)/(double)nz;
                 float s = 1.0;
 
-                int index = i + j*nx + k*nx*ny;
+                int index = i*ny*nz + j*nz + k; //new
+                // int index = i + j*nx + k*ny*nx; //old
                 double val = 0;
                 for (int a=0; a<5  ; a++) {
                     // s = 3.13531*a + 2.2513531;

@@ -28,6 +28,7 @@ int main(int argc, char **argv)
     ComplexGeometry cg;
     cg.create_perlin_geometry(100, 100, 100, 4,3,2,3, threshold, true, 1);
     // cg.create_empty_space(100, 100, 100, true, 1.0);
+    // cg.save_to_file("./perlin.bin");
     cg.save_to_file_2("./perlin4/",CVector(1,1,1));
     return 0;
     // cg.save_to_file("perlin.bin");
