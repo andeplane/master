@@ -404,11 +404,13 @@ void ComplexGeometry::calculate_normals(int number_of_neighbor_average) {
                 at_least_one_wall_neighbor = false;
                 all_neighbors_are_walls = true;
 
-                int idx = i + j*nx + k*nx*ny;
+                // int idx = i + j*nx + k*nx*ny;
+                int idx = i*ny*nz + j*nz + k; //new
                 for(int di=-1;di<=1;di++) {
                     for(int dj=-1;dj<=1;dj++) {
                         for(int dk=-1;dk<=1;dk++) {
-                            int idx2 = ((i+di+nx)%nx) + ((j+dj+ny)%ny)*nx+ ((k+dk+nz)%nz)*nx*ny;
+                            int idx2 = ((i+di+nx)%nx)*ny*nz + ((j+dj+ny)%ny)*nz + ((k+dk+nz) % nz); //new
+                            // int idx2 = ((i+di+nx)%nx) + ((j+dj+ny)%ny)*nx+ ((k+dk+nz)%nz)*nx*ny;
 
                             if(vertices_unsigned_char[idx2]>0) {
                                 // If at least one wall neighbor, this is not a single wall voxel
@@ -435,7 +437,8 @@ void ComplexGeometry::calculate_normals(int number_of_neighbor_average) {
                     for(int di=-number_of_neighbor_average; di<=number_of_neighbor_average; di++) {
                         for(int dj=-number_of_neighbor_average; dj<=number_of_neighbor_average; dj++) {
                             for(int dk=-number_of_neighbor_average; dk<=number_of_neighbor_average; dk++) {
-                                int idx2 = ((i+di+nx)%nx) + ((j+dj+ny)%ny)*nx+ ((k+dk+nz)%nz)*nx*ny;
+                                int idx2 = ((i+di+nx)%nx)*ny*nz + ((j+dj+ny)%ny)*nz + ((k+dk+nz) % nz); //new
+                                // int idx2 = ((i+di+nx)%nx) + ((j+dj+ny)%ny)*nx+ ((k+dk+nz)%nz)*nx*ny;
 
                                 normals[3*idx+0] -= vertices_unsigned_char[idx2]*di;
                                 normals[3*idx+1] -= vertices_unsigned_char[idx2]*dj;
@@ -468,7 +471,9 @@ void ComplexGeometry::calculate_tangents() {
         progress_bar.update(i);
         for(int j=0;j<ny;j++) {
             for(int k=0;k<nz;k++) {
-                int idx = i + j*nx + k*nx*ny;
+                // int idx = i + j*nx + k*nx*ny;
+                int idx = i*ny*nz + j*nz + k; //new
+                
                 tangents1[3*idx+0] = rnd->next_double();
                 tangents1[3*idx+1] = rnd->next_double();
                 tangents1[3*idx+2] = rnd->next_double();
