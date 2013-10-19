@@ -41,8 +41,8 @@ public:
     void find_boundary_points();
     void calculate_tangents();
     void calculate_normals(int number_of_neighbor_average);
-    void save_to_file(string filename);
-    void save_to_file_2(string foldername, CVector num_processors_vector);
+    // void save_to_file(string filename);
+    void save_to_file(string foldername, CVector num_processors_vector);
     void save_vtk(string filename);
     void load_vtk(string filename);
 };

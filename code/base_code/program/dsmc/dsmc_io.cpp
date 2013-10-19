@@ -40,8 +40,8 @@ void DSMC_IO::save_state_to_movie_file() {
             sprintf(filename,"movie_files/movie%04d.bin",system->myid);
             movie_file = new ofstream(filename,ios::out | ios::binary);
             movie_file_open = true;
-            data = new float[3*MAX_MOLECULE_NUM];
-            memset(data,0,3*MAX_MOLECULE_NUM*sizeof(float));
+            data = new float[6*MAX_MOLECULE_NUM];
+            memset(data,0,6*MAX_MOLECULE_NUM*sizeof(float));
             delete filename;
         }
 
@@ -50,13 +50,16 @@ void DSMC_IO::save_state_to_movie_file() {
             data[count++] = system->r[3*n+0];
             data[count++] = system->r[3*n+1];
             data[count++] = system->r[3*n+2];
+            data[count++] = system->v[3*n+0];
+            data[count++] = system->v[3*n+1];
+            data[count++] = system->v[3*n+2];
         }
 
-        count /= 4; // This should represent the number of particles, 4 doubles per particle
+        count /= 6; // This should represent the number of particles, 4 doubles per particle
         int actual_movie_molecules = settings->movie_molecules / system->topology->num_processors;
 
         movie_file->write (reinterpret_cast<char*>(&actual_movie_molecules), sizeof(int));
-        movie_file->write (reinterpret_cast<char*>(data), 3*actual_movie_molecules*sizeof(float));
+        movie_file->write (reinterpret_cast<char*>(data), 6*actual_movie_molecules*sizeof(float));
     }
     system->timer->end_io();
 }
@@ -129,8 +132,8 @@ void DSMC_IO::load_state_from_file_binary() {
         v[0] = tmp_data[6*n+3];
         v[1] = tmp_data[6*n+4];
         v[2] = tmp_data[6*n+5];
-
-        Cell *cell = system->all_cells[system->cell_index_from_position(r)];
+        int mapped_cell_index = system->cell_index_map[system->cell_index_from_position(r)];
+        Cell *cell = system->active_cells.at(mapped_cell_index);
         cell->add_molecule(n,system->molecule_index_in_cell,system->molecule_cell_index);
     }
 
@@ -165,22 +168,35 @@ void DSMC_IO::read_grid_matrix(string filename, Grid *grid) {
         cout << "Error, could not open file " << filename << endl;
         exit(1);
     }
-    int Nx, Ny, Nz, points;
+    float porosity_global = 0;
+    float porosity = 0;
+    file.read (reinterpret_cast<char*>(&porosity_global), sizeof(float));
+    file.read (reinterpret_cast<char*>(&porosity), sizeof(float));
+    system->porosity_global = porosity_global;
+    system->porosity = porosity;
 
-    file.read (reinterpret_cast<char*>(&Nx), sizeof(int));
-    file.read (reinterpret_cast<char*>(&Ny), sizeof(int));
-    file.read (reinterpret_cast<char*>(&Nz), sizeof(int));
-    points = Nx*Ny*Nz;
-    grid->Nx = Nx; grid->Ny = Ny; grid->Nz = Nz; grid->points = points;
+    file.read (reinterpret_cast<char*>(&grid->global_nx), sizeof(unsigned int));
+    file.read (reinterpret_cast<char*>(&grid->global_ny), sizeof(unsigned int));
+    file.read (reinterpret_cast<char*>(&grid->global_nz), sizeof(unsigned int));
+    file.read (reinterpret_cast<char*>(&grid->nx), sizeof(unsigned int));
+    file.read (reinterpret_cast<char*>(&grid->ny), sizeof(unsigned int));
+    file.read (reinterpret_cast<char*>(&grid->nz), sizeof(unsigned int));
+    grid->num_voxels = grid->nx*grid->ny*grid->nz;
+    grid->nx_per_cpu = grid->nx / 3; grid->ny_per_cpu = grid->ny / 3; grid->nz_per_cpu = grid->nz / 3;
 
-    grid->voxels = new unsigned char[points];
-    grid->normals   = new float[3*points];
-    grid->tangents1 = new float[3*points];
-    grid->tangents2 = new float[3*points];
+    grid->voxels = new unsigned char[grid->num_voxels];
+    grid->normals   = new float[3*grid->num_voxels];
+    grid->tangents1 = new float[3*grid->num_voxels];
+    grid->tangents2 = new float[3*grid->num_voxels];
+    grid->voxel_origin = CVector(grid->nx/3, grid->ny/3, grid->nz/3);
 
-    file.read (reinterpret_cast<char*>(grid->voxels), points*sizeof(unsigned char));
-    file.read (reinterpret_cast<char*>(grid->normals), 3*points*sizeof(float));
-    file.read (reinterpret_cast<char*>(grid->tangents1), 3*points*sizeof(float));
-    file.read (reinterpret_cast<char*>(grid->tangents2), 3*points*sizeof(float));
+    grid->nx_divided_by_global_nx = (float)grid->nx/grid->global_nx;
+    grid->ny_divided_by_global_ny = (float)grid->ny/grid->global_ny;
+    grid->nz_divided_by_global_nz = (float)grid->nz/grid->global_nz;
+
+    file.read (reinterpret_cast<char*>(grid->voxels), grid->num_voxels*sizeof(unsigned char));
+    file.read (reinterpret_cast<char*>(grid->normals), 3*grid->num_voxels*sizeof(float));
+    file.read (reinterpret_cast<char*>(grid->tangents1), 3*grid->num_voxels*sizeof(float));
+    file.read (reinterpret_cast<char*>(grid->tangents2), 3*grid->num_voxels*sizeof(float));
     file.close();
 }

@@ -6,6 +6,7 @@
 #include <grid.h>
 #include <settings.h>
 #include <colliderbase.h>
+#include <cvector.h>
 
 MoleculeMover::MoleculeMover()
 {
@@ -37,23 +38,14 @@ void MoleculeMover::do_move(double *r, double *v, double dt) {
     r[0] += v[0]*dt;
     r[1] += v[1]*dt;
     r[2] += v[2]*dt;
-
-    if(r[0] > system->length[0])  { r[0] -= system->length[0]; count_periodic[0]++; }
-    else if(r[0] < 0)         { r[0] += system->length[0]; count_periodic[0]--; }
-
-    if(r[1] > system->length[1]) { r[1] -= system->length[1]; count_periodic[1]++;}
-    else if(r[1] < 0)         { r[1] += system->length[1]; count_periodic[1]--; }
-
-    if(r[2] > system->length[2]) { r[2] -= system->length[2]; count_periodic[2]++; }
-    else if(r[2] < 0)         { r[2] += system->length[2]; count_periodic[2]--; }
 }
 
-inline int get_index_of_voxel(double *r, const double &nx_div_lx,const double &ny_div_ly,const double &nz_div_lz, const int &Nx, const int &NyNx) {
+inline int get_index_of_voxel(double *r, const double &nx_div_lx,const double &ny_div_ly,const double &nz_div_lz, const int &Nz, const int &NyNz) {
     int i =  r[0]*nx_div_lx;
     int j =  r[1]*ny_div_ly;
     int k =  r[2]*nz_div_lz;
 
-    return i + j*Nx + k*NyNx;
+    return i*NyNz + j*Nz + k;
 }
 
 int sign(double a) {
@@ -186,20 +178,35 @@ void MoleculeMover::move_molecule_cylinder(int &molecule_index, double dt, Rando
     }
 }
 
-void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, int depth) {
-    double nx_div_lx = grid->Nx*system->one_over_length[0];
-    double ny_div_ly = grid->Ny*system->one_over_length[1];
-    double nz_div_lz = grid->Nz*system->one_over_length[2];
-    int nx = grid->Nx;
-    int nynx = grid->Nx*grid->Ny;
+void MoleculeMover::apply_periodic_boundary_conditions(int &molecule_index, double *r, const CVector &system_length) {
+        if(r[3*molecule_index + 0] >= system_length.x)  { r[3*molecule_index + 0] -= system_length.x; count_periodic[0]++; }
+        else if(r[3*molecule_index + 0] < 0)         { r[3*molecule_index + 0] += system_length.x; count_periodic[0]--; }
 
+        if(r[3*molecule_index + 1] >= system_length.y) { r[3*molecule_index + 1] -= system_length.y; count_periodic[1]++;}
+        else if(r[3*molecule_index + 1] < 0)         { r[3*molecule_index + 1] += system_length.y; count_periodic[1]--; }
+
+        if(r[3*molecule_index + 2] >= system_length.z) { r[3*molecule_index + 2] -= system_length.z; count_periodic[2]++; }
+        else if(r[3*molecule_index + 2] < 0)         { r[3*molecule_index + 2] += system_length.z; count_periodic[2]--; }
+}
+
+int interesting_molecule = 3686;
+int interesting_step = 1;
+int interesting_node = 1;
+
+void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, int depth) {
+//    double nx_div_lx = grid->global_nx*system->one_over_length[0];
+//    double ny_div_ly = grid->global_ny*system->one_over_length[1];
+//    double nz_div_lz = grid->global_nz*system->one_over_length[2];
+//    int nx = grid->Nx;
+//    int nynx = grid->Nx*grid->Ny;
+    // if(system->myid == 1) cout << system->myid << " " << molecule_index << " in step " << system->steps << endl;
     double tau = dt;
-    double r_prime[3];
     double *r = &system->r[3*molecule_index];
     double *v = &system->v[3*molecule_index];
 
     int idx = grid->get_index_of_voxel(r);
-    if(voxels[idx] != voxel_type_empty) {
+
+    if(voxels[idx] != voxel_type_empty && depth==0) {
         cout << "We have fucked up SUPER BIG TIME with molecule " << molecule_index << " at timestep " << system->steps << endl;
         exit(1);
     }
@@ -233,9 +240,9 @@ void MoleculeMover::move_molecule(int &molecule_index, double dt, Random *rnd, i
 
         while(voxels[idx] == voxel_type_boundary) {
             collision_voxel_index = idx;
-            r_prime[0] = r[0] - v[0]*tau; r_prime[1] = r[1] - v[1]*tau; r_prime[2] = r[2] - v[2]*tau; // Move back, but don't care about periodic boundary conditions
             do_move(r, v, -tau); // Move back
-            tau = grid->get_time_until_collision(r_prime, v, collision_voxel_index); // Time until collision with voxel boundary
+
+            tau = grid->get_time_until_collision(r, v, tau, collision_voxel_index); // Time until collision with voxel boundary
             do_move(r, v, tau); // Move over there
             idx = grid->get_index_of_voxel(r);
         }

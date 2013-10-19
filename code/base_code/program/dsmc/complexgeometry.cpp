@@ -6,6 +6,7 @@
 #include <random.h>
 #include <fstream>
 #include <cvector.h>
+#include <cstring>
 
 using std::ifstream;
 using std::ofstream;
@@ -182,17 +183,17 @@ void ComplexGeometry::calculate_normals_tangents_and_inner_points(int number_of_
     has_normals_tangents_and_boundary = true;
 }
 
-void ComplexGeometry::save_to_file(string filename) {
-    ofstream file (filename.c_str(), ios::out | ios::binary);
-    file.write (reinterpret_cast<char*>(&nx), sizeof(unsigned int));
-    file.write (reinterpret_cast<char*>(&ny), sizeof(unsigned int));
-    file.write (reinterpret_cast<char*>(&nz), sizeof(unsigned int));
-    file.write (reinterpret_cast<char*>(vertices_unsigned_char), num_vertices*sizeof(unsigned char));
-    file.write (reinterpret_cast<char*>(normals),   3*num_vertices*sizeof(float));
-    file.write (reinterpret_cast<char*>(tangents1), 3*num_vertices*sizeof(float));
-    file.write (reinterpret_cast<char*>(tangents2), 3*num_vertices*sizeof(float));
-    file.close();
-}
+//void ComplexGeometry::save_to_file(string filename) {
+//    ofstream file (filename.c_str(), ios::out | ios::binary);
+//    file.write (reinterpret_cast<char*>(&nx), sizeof(unsigned int));
+//    file.write (reinterpret_cast<char*>(&ny), sizeof(unsigned int));
+//    file.write (reinterpret_cast<char*>(&nz), sizeof(unsigned int));
+//    file.write (reinterpret_cast<char*>(vertices_unsigned_char), num_vertices*sizeof(unsigned char));
+//    file.write (reinterpret_cast<char*>(normals),   3*num_vertices*sizeof(float));
+//    file.write (reinterpret_cast<char*>(tangents1), 3*num_vertices*sizeof(float));
+//    file.write (reinterpret_cast<char*>(tangents2), 3*num_vertices*sizeof(float));
+//    file.close();
+//}
 
 CVector index_vector_from_index(const int &index, CVector num_processors) {
     CVector index_vector(0,0,0);
@@ -211,15 +212,20 @@ int index_from_ijk(CVector voxel_index_vector, CVector num_voxels) {
     return voxel_index_vector.x*num_voxels.y*num_voxels.z + voxel_index_vector.y*num_voxels.z + voxel_index_vector.z;
 }
 
-void ComplexGeometry::save_to_file_2(string foldername, CVector num_processors_vector) {
+void ComplexGeometry::save_to_file(string foldername, CVector num_processors_vector) {
     int num_processors_total = num_processors_vector.x*num_processors_vector.y*num_processors_vector.z;
     CVector num_voxels_vector_per_node = CVector(nx,ny,nz)/num_processors_vector;
     int num_voxels_total_per_node = 3*3*3*num_voxels_vector_per_node.x*num_voxels_vector_per_node.y*num_voxels_vector_per_node.z;
 
     calculate_global_porosity();
     char filename[1000];
-    for(int index = 0; index<num_processors_total; index++) {
+    unsigned char *local_voxels = new unsigned char[num_voxels_total_per_node];
+    float *local_normals = new float[3*num_voxels_total_per_node];
+    float *local_tangents1 = new float[3*num_voxels_total_per_node];
+    float *local_tangents2 = new float[3*num_voxels_total_per_node];
 
+    ProgressBar p(num_processors_total,"Saving world files");
+    for(int index = 0; index<num_processors_total; index++) {
         sprintf(filename,"%s/%04d.bin",foldername.c_str(), index);
         ofstream file (filename, ios::out | ios::binary);
         if(!file.is_open()) {
@@ -230,16 +236,9 @@ void ComplexGeometry::save_to_file_2(string foldername, CVector num_processors_v
         CVector index_vector = index_vector_from_index(index, num_processors_vector);
         CVector voxel_origo = index_vector*num_voxels_vector_per_node;
 
-        unsigned char *local_voxels = new unsigned char[num_voxels_total_per_node];
-        float *local_normals = new float[3*num_voxels_total_per_node];
-        float *local_tangents1 = new float[3*num_voxels_total_per_node];
-        float *local_tangents2 = new float[3*num_voxels_total_per_node];
-
         int output_data_array_index = 0;
         int num_empty_voxels = 0;
         int num_local_voxels = 0;
-        cout << "nx*ny*nz global is " << nx*ny*nz << endl;
-        cout << "On " << num_processors_total << " cpus, we will create " << num_voxels_total_per_node << " voxels." << endl;
         for(int di = -num_voxels_vector_per_node.x; di < 2*num_voxels_vector_per_node.x; di++) {
             for(int dj = -num_voxels_vector_per_node.y; dj < 2*num_voxels_vector_per_node.y; dj++) {
                 for(int dk = -num_voxels_vector_per_node.z; dk < 2*num_voxels_vector_per_node.z; dk++) {
@@ -252,11 +251,6 @@ void ComplexGeometry::save_to_file_2(string foldername, CVector num_processors_v
                     int global_voxel_index = index_from_ijk(global_voxel_index_vector, num_voxels);
 
                     local_voxels[output_data_array_index]  = vertices_unsigned_char[global_voxel_index];
-
-                    if(output_data_array_index == 8484458) {
-                        cout << i << " " << j << " " << k << endl;
-                        cout << "Value: " << int(local_voxels[output_data_array_index]) << endl;
-                    }
 
                     for(int a=0; a<3; a++) {
                         local_normals[3*output_data_array_index + a] = normals[3*global_voxel_index + a];
@@ -283,9 +277,6 @@ void ComplexGeometry::save_to_file_2(string foldername, CVector num_processors_v
         unsigned int local_nx = 3*num_voxels_vector_per_node.x;
         unsigned int local_ny = 3*num_voxels_vector_per_node.y;
         unsigned int local_nz = 3*num_voxels_vector_per_node.z;
-        cout << "Global porosity: " << global_porosity << endl;
-        cout << "Local porosity: " << porosity << endl;
-        
         file.write (reinterpret_cast<char*>(&global_porosity), sizeof(float));
         file.write (reinterpret_cast<char*>(&porosity), sizeof(float));
         file.write (reinterpret_cast<char*>(&nx), sizeof(unsigned int));
@@ -301,6 +292,8 @@ void ComplexGeometry::save_to_file_2(string foldername, CVector num_processors_v
         file.write (reinterpret_cast<char*>(local_tangents2), 3*output_data_array_index*sizeof(float));
 
         file.close();
+
+        p.update(index);
     }
 }
 
@@ -363,14 +356,14 @@ void ComplexGeometry::create_perlin_geometry(int nx_, int ny_, int nz_, int octa
                 int index = i*ny*nz + j*nz + k; //new
                 // int index = i + j*nx + k*ny*nx; //old
                 double val = 0;
-                for (int a=0; a<5  ; a++) {
+                for (int a=0; a<4  ; a++) {
                     // s = 3.13531*a + 2.2513531;
                     s = 8.134246*a + 7.136537345314;
 
                     val += p.Get(x*s, y*s, z*s);
                 }
                 // val = p.Get(val,1.0/(val+0.01), val);
-                
+
 
                 // val = pow(val,4.0);
                 // val = p.Get(val,val,val);
@@ -465,7 +458,7 @@ void ComplexGeometry::calculate_normals(int number_of_neighbor_average) {
 }
 
 void ComplexGeometry::calculate_tangents() {
-    Random *rnd = new Random(-1);
+    Random *rnd = new Random(-1,0,0);
     ProgressBar progress_bar(nx, "Creating tangent vectors");
     for(int i=0;i<nx;i++) {
         progress_bar.update(i);
@@ -473,7 +466,7 @@ void ComplexGeometry::calculate_tangents() {
             for(int k=0;k<nz;k++) {
                 // int idx = i + j*nx + k*nx*ny;
                 int idx = i*ny*nz + j*nz + k; //new
-                
+
                 tangents1[3*idx+0] = rnd->next_double();
                 tangents1[3*idx+1] = rnd->next_double();
                 tangents1[3*idx+2] = rnd->next_double();

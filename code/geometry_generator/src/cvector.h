@@ -39,7 +39,7 @@ class CVector  {
    }
 
   inline CVector operator-(const CVector& a) const {
-     return CVector(a.x - x, a.y - y, a.z - z);
+     return CVector(x-a.x, y-a.y, z-a.z);
    }
 
   inline void Subtract(const CVector& a)   {
@@ -62,6 +62,10 @@ class CVector  {
  
   inline CVector operator*(double scale) const {
      return CVector(x * scale, y * scale, z * scale);
+   }
+
+  inline CVector operator*(const CVector &o) const {
+     return CVector(x * o.x, y * o.y, z * o.z);
    }
 
   inline CVector operator/(const double scale) const {

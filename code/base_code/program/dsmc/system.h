@@ -44,16 +44,13 @@ private:
     void add_molecules_in_outlet_reservoir(Cell *cell, const double &velocity_std_dev, const int &delta_num_molecules);
     void remove_molecules_in_outlet_reservoir(Cell *cell, const int &delta_num_molecules);
     void add_molecule_to_cell(Cell *cell, const int &molecule_index);
-    void add_molecules_from_mpi(vector<double> &data, const int &num_new_molecules);
+    void add_molecules_from_mpi(double *data, const int &num_new_molecules);
     void remove_molecule_from_system(const long &molecule_index);
     inline void find_position(double *r);
     inline void find_position_in_cell(Cell *cell, double *r);
     inline int cell_index_from_ijk(const int &i, const int &j, const int &k);
-    void update_cell_volume();
     void setup_molecules();
     void setup_cells();
-    void calculate_porosity();
-    void calculate_global_porosity();
     void update_molecule_cells();
     void count_reservoir_particles();
 public:
@@ -69,16 +66,22 @@ public:
     Topology *topology;
 
     vector<Cell*> active_cells;
-    vector<Cell*> all_cells;
-    vector<Cell*> reservoir_A_cells;
-    vector<Cell*> reservoir_B_cells;
+    // vector<Cell*> all_cells;
+//    vector<Cell*> reservoir_A_cells;
+//    vector<Cell*> reservoir_B_cells;
 
-    vector<double> mpi_receive_buffer;
+    double *mpi_receive_buffer;
+    // vector<double> mpi_receive_buffer;
     double *r, *v;
-    vector<unsigned long> molecule_index_in_cell;
-    vector<unsigned long> molecule_cell_index;
-    vector<int> node_num_new_molecules;
-    vector<vector<double> > node_molecule_data;
+    unsigned long *molecule_index_in_cell;
+    // vector<unsigned long> molecule_index_in_cell;
+    // vector<unsigned long> molecule_cell_index;
+    unsigned long *molecule_cell_index;
+    int *node_num_new_molecules;
+    int *cell_index_map;
+    // vector<int> node_num_new_molecules;
+    double **node_molecule_data;
+    // vector<vector<double> > node_molecule_data;
 
     long num_molecules_local;
     long num_molecules_global;
