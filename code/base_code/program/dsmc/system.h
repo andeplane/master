@@ -37,24 +37,24 @@ private:
     void maintain_pressure_A();
     void maintain_pressure_B();
     void maintain_pressure();
-    void find_position_in_reservoirs(double *r, bool find_position_in_source);
+    void find_position_in_reservoirs(float *r, bool find_position_in_source);
     void add_molecules_in_inlet_reservoir(Cell *cell, const double &velocity_std_dev, const int &delta_num_molecules);
     void remove_molecules_in_inlet_reservoir(Cell *cell, const int &delta_num_molecules);
     void add_molecules_in_outlet_reservoir(Cell *cell, const double &velocity_std_dev, const int &delta_num_molecules);
     void remove_molecules_in_outlet_reservoir(Cell *cell, const int &delta_num_molecules);
     void add_molecule_to_cell(Cell *cell, const int &molecule_index);
-    void add_molecules_from_mpi(double *data, const int &num_new_molecules);
+    void add_molecules_from_mpi(float *data, const int &num_new_molecules);
     void remove_molecule_from_system(const long &molecule_index);
     bool validate_number_of_cells();
-    inline void find_position(double *r);
-    inline void find_position_in_cell(Cell *cell, double *r);
+    inline void find_position(float *r);
+    inline void find_position_in_cell(Cell *cell, float *r);
     inline int cell_index_from_ijk(const int &i, const int &j, const int &k);
     void setup_molecules();
     void setup_cells();
     void update_molecule_cells();
     void count_reservoir_particles();
 public:
-    int cell_index_from_position(double *r);
+    int cell_index_from_position(float *r);
 
     DSMC_IO *io;
     DSMCTimer *timer;
@@ -70,9 +70,9 @@ public:
 //    vector<Cell*> reservoir_A_cells;
 //    vector<Cell*> reservoir_B_cells;
 
-    double *mpi_receive_buffer;
+    float *mpi_receive_buffer;
     // vector<double> mpi_receive_buffer;
-    double *r, *v;
+    float *r, *v;
     unsigned long *molecule_index_in_cell;
     // vector<unsigned long> molecule_index_in_cell;
     // vector<unsigned long> molecule_cell_index;
@@ -80,7 +80,7 @@ public:
     int *node_num_new_molecules;
     int *cell_index_map;
     // vector<int> node_num_new_molecules;
-    double **node_molecule_data;
+    float **node_molecule_data;
     vector<int> steps_since_collision;
     // vector<vector<double> > node_molecule_data;
 

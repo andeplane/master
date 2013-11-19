@@ -93,7 +93,7 @@ void DSMC_IO::save_state_to_file_binary() {
         exit(1);
     }
 
-    double *tmp_data = new double[6*N];
+    float *tmp_data = new float[6*N];
 
     int count = 0;
 
@@ -108,7 +108,7 @@ void DSMC_IO::save_state_to_file_binary() {
     }
 
     file.write (reinterpret_cast<char*>(&N), sizeof(int));
-    file.write (reinterpret_cast<char*>(tmp_data), 6*N*sizeof(double));
+    file.write (reinterpret_cast<char*>(tmp_data), 6*N*sizeof(float));
 
     file.close();
     delete tmp_data;
@@ -130,14 +130,14 @@ void DSMC_IO::load_state_from_file_binary() {
     }
 
     file.read(reinterpret_cast<char*>(&N),sizeof(int));
-    double *tmp_data = new double[6*N];
+    float *tmp_data = new float[6*N];
 
-    file.read(reinterpret_cast<char*>(tmp_data), 6*N*sizeof(double));
+    file.read(reinterpret_cast<char*>(tmp_data), 6*N*sizeof(float));
     file.close();
 
     for(int n=0;n<N;n++) {
-        double *r = &system->r[3*n];
-        double *v = &system->v[3*n];
+        float *r = &system->r[3*n];
+        float *v = &system->v[3*n];
 
         r[0] = tmp_data[6*n+0];
         r[1] = tmp_data[6*n+1];

@@ -112,8 +112,9 @@ void System::mpi_move() {
 void System::move() {
     timer->start_moving();
     CVector system_length(length[0], length[1], length[2]);
-    #pragma simd
+    // #pragma simd
     for(int n=0;n<num_molecules_local;n++) {
+        if(steps == 96) cout << n << endl;
         mover->move_molecule(n,dt,rnd,0);
     }
 
@@ -176,7 +177,7 @@ void System::add_molecule_to_cell(Cell *cell, const int &molecule_index) {
     num_molecules_local++;
 }
 
-void System::add_molecules_from_mpi(double *data, const int &num_new_molecules) {
+void System::add_molecules_from_mpi(float *data, const int &num_new_molecules) {
     for(int i=0; i<num_new_molecules; i++) {
         int node_id = topology->index_from_position(&data[6*i+0]);
         if(node_id != myid) {
@@ -434,8 +435,8 @@ void System::initialize(Settings *settings_, int myid_) {
     io = new DSMC_IO(this);
     topology = new Topology(myid, settings->nx, settings->ny, settings->nz, this);
     node_num_new_molecules = new int[topology->num_processors];
-    node_molecule_data = new double*[topology->num_processors];
-    for(int i=0; i<topology->num_processors; i++) { node_molecule_data[i] = new double[MAX_MPI_DATA]; }
+    node_molecule_data = new float*[topology->num_processors];
+    for(int i=0; i<topology->num_processors; i++) { node_molecule_data[i] = new float[MAX_MPI_DATA]; }
     MPI_Barrier(MPI_COMM_WORLD);
     if(myid==0) cout << "Loading world..." << endl;
     world_grid = new Grid(settings->ini_file.getstring("world"),this);
@@ -488,7 +489,7 @@ void System::initialize(Settings *settings_, int myid_) {
     MPI_Reduce(&num_molecules_local, &num_molecules_global, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD) ;
     timer->end_mpi_reduce();
 
-    mpi_receive_buffer = new double[MAX_MPI_DATA];
+    mpi_receive_buffer = new float[MAX_MPI_DATA];
 
     if(myid==0) cout << "Creating surface collider..." << endl;
     double sqrt_wall_temp_over_mass = sqrt(wall_temperature/settings->mass);
@@ -530,7 +531,7 @@ void System::initialize(Settings *settings_, int myid_) {
     timer->end_system_initialize();
 }
 
-inline void System::find_position(double *r) {
+inline void System::find_position(float *r) {
     bool did_collide = true;
     bool is_inside = false;
 
@@ -544,7 +545,7 @@ inline void System::find_position(double *r) {
     }
 }
 
-inline void System::find_position_in_cell(Cell *cell, double *r) {
+inline void System::find_position_in_cell(Cell *cell, float *r) {
     bool did_collide = true;
     while(did_collide) {
         r[0] = cell->origin[0] + cell->Lx*rnd->next_double();
@@ -559,7 +560,7 @@ inline int System::cell_index_from_ijk(const int &i, const int &j, const int &k)
     return i*cells_y*cells_z + j*cells_z + k;
 }
 
-int System::cell_index_from_position(double *r) {
+int System::cell_index_from_position(float *r) {
     int i = r[0]/length[0]*cells_x;
     int j = r[1]/length[1]*cells_y;
     int k = r[2]/length[2]*cells_z;
@@ -575,8 +576,8 @@ void System::setup_molecules() {
         exit(1);
     }
 
-    r = new double[3*MAX_MOLECULE_NUM];
-    v = new double[3*MAX_MOLECULE_NUM];
+    r = new float[3*MAX_MOLECULE_NUM];
+    v = new float[3*MAX_MOLECULE_NUM];
     molecule_index_in_cell = new unsigned long[MAX_MOLECULE_NUM];
     molecule_cell_index = new unsigned long[MAX_MOLECULE_NUM];
     steps_since_collision.resize(MAX_MOLECULE_NUM,0);

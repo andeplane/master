@@ -22,9 +22,9 @@ public:
 
     Topology(int myid_, int nx, int ny, int nz, System *system);
     vector<int> index_vector_from_index(const int &index);
-    vector<int> index_vector_from_position(const double *r);
-    bool is_position_inside(double *r);
-    int index_from_position(const double *r);
+    vector<int> index_vector_from_position(const float *r);
+    bool is_position_inside(float *r);
+    int index_from_position(const float *r);
     int index_from_ijk(int i, int j, int k);
 
 };

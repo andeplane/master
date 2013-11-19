@@ -118,7 +118,7 @@ int Topology::index_from_ijk(int i, int j, int k) {
     return i*num_processors_vector[1]*num_processors_vector[2] + j*num_processors_vector[2] + k;
 }
 
-int Topology::index_from_position(const double *r) {
+int Topology::index_from_position(const float *r) {
     int i = r[0] / system->length[0] * num_processors_vector[0];
     int j = r[1] / system->length[1] * num_processors_vector[1];
     int k = r[2] / system->length[2] * num_processors_vector[2];
@@ -126,7 +126,7 @@ int Topology::index_from_position(const double *r) {
     return index_from_ijk(i,j,k);
 }
 
-vector<int> Topology::index_vector_from_position(const double *r) {
+vector<int> Topology::index_vector_from_position(const float *r) {
     vector<int> index_vector(3,0);
 
     index_vector[0] = r[0] / system->length[0] * num_processors_vector[0];
@@ -136,7 +136,7 @@ vector<int> Topology::index_vector_from_position(const double *r) {
     return index_vector;
 }
 
-bool Topology::is_position_inside(double *r) {
+bool Topology::is_position_inside(float *r) {
     return (r[0] >= origin[0] && r[0] < origin[0]+length[0] &&
             r[1] >= origin[1] && r[1] < origin[1]+length[1] &&
             r[2] >= origin[2] && r[2] < origin[2]+length[2]);
