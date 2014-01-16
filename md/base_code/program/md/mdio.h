@@ -16,6 +16,7 @@ public:
     FILE *energy_file;
     FILE *pressure_file;
     FILE *velocity_file;
+    FILE *count_periodic_file;
 
     MDIO();
     void setup(System *system_);

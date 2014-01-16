@@ -1,36 +1,41 @@
 # This example file shows how to melt an SiO2 system
 
 from mdconfig import *
-
+from md_geometry import *
 # n{x,y,z} is number of processors in each dimension.
 # unit_cells_{x,y,z} is number of unit cells in each dimension.
 # More parameters in constructor.
 
 program = MD()
 md = program.compile(skip_compile=False, name="md")
+geometry = MD_geometry(program)
 
-program.reset()
-program.nodes_x = 2
-program.nodes_y = 2
-program.nodes_z = 2
-program.unit_cells_x = 5
-program.unit_cells_y = 5
-program.unit_cells_z = 5
+if True:
+	program.reset()
+	program.nodes_x = 1
+	program.nodes_y = 1
+	program.nodes_z = 1
+	program.unit_cells_x = 50
+	program.unit_cells_y = 50
+	program.unit_cells_z = 50
 
-program.prepare_new_system()
-program.run(md)
+	program.prepare_new_system()
+	program.run(save_state_path="states/00_initial_state")
 
-program.prepare_thermostat(temperature=300, timesteps=2000, run=True)
-program.prepare_thermalize(timesteps=1000, run=True)
+	#program.prepare_thermostat(temperature=300, timesteps=2000, run=True, save_state_path="states/01_T_300K")
+	#program.prepare_thermalize(timesteps=1000, run=True, save_state_path="states/02_thermalized")
 
-### Create cylinder
-system_length = 57.2
-system_length_half = system_length/2.0
-radius = system_length_half*0.9
+	geometry.create_cylinders(radius=0.01, num_cylinders_per_dimension=4)
 
-program.create_cylinder(radius, 2, system_length_half, system_length_half, system_length_half)
-### End create cylinder
+if False:
+	program.load_state(path="states/03_cylinder")
+	program.gravity_force = 0.001
+	program.gravity_direction = 2
+	program.prepare_thermalize(timesteps=5000, run=True, save_state_path="states/04_cylinder_thermalized")
 
-program.create_movie_files = True
-program.prepare_thermalize(timesteps=1000, run=True)
-program.create_movie(frames=1000)
+	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/05_cylinder_thermalized_more")
+
+if True:
+	program.create_movie_files = True
+	program.prepare_thermalize(timesteps=100, run=True)
+	program.create_movie(frames=100)

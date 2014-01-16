@@ -14,6 +14,7 @@ StatisticsSampler::StatisticsSampler(System *system_) {
     kinetic_energy_sampled_at = -1;
     potential_energy_sampled_at = -1;
     pressure_sampled_at = -1;
+    count_periodic_sampled_at = -1;
 }
 
 void StatisticsSampler::sample_momentum_cm() {
@@ -37,6 +38,7 @@ void StatisticsSampler::sample_momentum_cm() {
 
 void StatisticsSampler::sample_kinetic_energy() {
     if(system->steps == kinetic_energy_sampled_at) return;
+    kinetic_energy_sampled_at = system->steps;
 
     kinetic_energy = 0;
     double kinetic_energy_global = 0;
@@ -47,24 +49,23 @@ void StatisticsSampler::sample_kinetic_energy() {
     MPI_Allreduce(&kinetic_energy, &kinetic_energy_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
     kinetic_energy = kinetic_energy_global;
-    kinetic_energy_sampled_at = system->steps;
 }
 
 void StatisticsSampler::sample_potential_energy() {
     if(system->steps == potential_energy_sampled_at) return;
+    potential_energy_sampled_at = system->steps;
 
     potential_energy = 0;
     MPI_Reduce(&system->potential_energy, &potential_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    potential_energy_sampled_at = system->steps;
 }
 
 void StatisticsSampler::sample_temperature() {
     if(system->steps == temperature_sampled_at) return;
+    temperature_sampled_at = system->steps;
+
     sample_kinetic_energy();
     double kinetic_energy_per_atom = kinetic_energy / system->num_atoms_free_global;
     temperature = 2.0/3*kinetic_energy_per_atom;
-
-    temperature_sampled_at = system->steps;
 }
 
 void StatisticsSampler::sample_pressure() {
@@ -89,6 +90,7 @@ void StatisticsSampler::sample() {
     sample_potential_energy();
     sample_pressure();
     sample_velocity_distribution();
+    sample_count_periodic();
 
     if(system->myid == 0) {
         double potential_energy_per_atom = potential_energy/system->num_atoms_free_global;
@@ -171,4 +173,22 @@ void StatisticsSampler::sample_velocity_distribution() {
     delete vel_global;
     delete count;
     delete count_global;
+}
+
+void StatisticsSampler::sample_count_periodic() {
+    if(system->steps == count_periodic_sampled_at) return;
+    count_periodic_sampled_at = system->steps;
+
+    long count_periodic[3];
+    long count_periodic_global[3];
+    count_periodic[0] = system->count_periodic[0];
+    count_periodic[1] = system->count_periodic[1];
+    count_periodic[2] = system->count_periodic[2];
+
+    memset((void*)count_periodic_global,0,3*sizeof(long));
+    MPI_Reduce(count_periodic,count_periodic_global,3,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+    if(system->myid==0) {
+        double elapsed_time_this_run_fs = system->unit_converter->time_to_SI( (system->t - system->t0)*system->dt)*1e15;
+        fprintf(system->mdio->count_periodic_file,"%E %ld %ld %ld\n",elapsed_time_this_run_fs, count_periodic_global[0], count_periodic_global[1], count_periodic_global[2]);
+    }
 }

@@ -63,9 +63,10 @@ public:
     unsigned long num_atoms_frozen;
     unsigned long num_atoms_free;
     long i,j,k,n,m,a,b,c, nx, ny, nz;
+    long count_periodic[3];
 
     double origo[3];
-    double r_cut, dt, dt_half, potential_energy, t, volume;
+    double r_cut, dt, dt_half, potential_energy, t, t0, volume;
     unsigned int mc[3];  // Usually cell index vector
     unsigned int mc1[3]; // Usually cell index vector
     unsigned int num_cells_including_ghosts_yz,cell_index, cell_index_2,num_cells_including_ghosts_xyz;
@@ -90,4 +91,7 @@ public:
     System();
     void setup(int myid_, Settings *settings_);
     void step();
+    double get_volume() {
+        return system_length[0]*system_length[1]*system_length[2];
+    }
 };

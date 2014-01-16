@@ -44,6 +44,7 @@ int main(int args, char *argv[]) {
     to_continue >> steps;
     to_continue.close();
     system->t = t;
+    system->t0 = t;
     system->steps = steps;
 
     Thermostat thermostat(settings->thermostat_relaxation_time);

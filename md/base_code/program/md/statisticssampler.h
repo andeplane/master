@@ -15,6 +15,7 @@ private:
     unsigned long temperature_sampled_at;
     unsigned long kinetic_energy_sampled_at;
     unsigned long potential_energy_sampled_at;
+    unsigned long count_periodic_sampled_at;
 
 public:
     StatisticsSampler(System *system);
@@ -25,6 +26,7 @@ public:
     void sample_pressure();
     void sample_velocity_distribution();
     void sample_momentum_cm();
+    void sample_count_periodic();
     double pressure;
     double kinetic_energy;
     double potential_energy;

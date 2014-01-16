@@ -10,7 +10,7 @@ import logging
 from datetime import datetime
 
 class MD:
-	def __init__(self, compiler = "icpc", dt=0.02, logging_enabled=True):
+	def __init__(self, compiler = "icpc", name="md", dt=0.02, logging_enabled=True):
 		"""
 		Initializes an object with parameters.
 		"""
@@ -49,6 +49,8 @@ class MD:
 		self.test_mode = False
 		self.logging_enabled = logging_enabled
 		self.total_timesteps = 0
+
+		self.name = name
 
 		logging.basicConfig(filename='run_log.txt',level=logging.INFO)
 		self.log("System initialized")
@@ -159,7 +161,7 @@ class MD:
 		original_file.close()
 		output_file.close()
 	
-	def run(self, executable="md"):
+	def run(self, save_state_path=None):
 		"""
 		Runs specified executable, puts data into a folder, named <project_name>-<name>.
 		
@@ -173,57 +175,53 @@ class MD:
 		self.total_timesteps += self.timesteps
 		if self.test_mode: return
 		
-		if not os.path.isfile(executable):
-			print "Executable "+executable+" is not compiled, aborting!"
+		if not os.path.isfile(self.name):
+			print "Executable "+self.name+" is not compiled, aborting!"
 			exit()
 		
-		self.log("Running executable "+executable)
+		self.log("Running executable "+self.name)
 		now = datetime.now()
 		num_nodes = self.nodes_x*self.nodes_y*self.nodes_z
-		self.run_command("mpirun -n %d ./%s | tee log" % (num_nodes, executable))
+		self.run_command("mpirun -n %d ./%s | tee log" % (num_nodes, self.name))
 		t1 = (datetime.now() - now).seconds
 		steps_per_second = self.timesteps / max(t1,1)
 
 		self.log("Process used %d seconds (%d timesteps per second)" % ( t1, steps_per_second ))
-
-	def create_cylinder(self, radius, cylinder_dimension, center_x, center_y, center_z):
-		num_nodes = self.nodes_x*self.nodes_y*self.nodes_z
-		self.run_command("%s -O3 program/create_cylinder/create_cylinder.cpp -o create_cylinder" % self.compiler)
-		self.run_command("./create_cylinder %d %f %d %f %f %f" % (num_nodes, radius, cylinder_dimension, center_x, center_y, center_z))
-
-	def create_spheres(self, num_spheres, r_min, r_max, x_max, y_max, z_max):
-		num_nodes = self.nodes_x*self.nodes_y*self.nodes_z
-		self.run_command("%s -O3 program/create_spheres/create_spheres.cpp -o create_spheres" % self.compiler)
-		self.run_command("./create_spheres %d %d %f %f %f %f %f" % (num_nodes, num_spheres, r_min, r_max, x_max, y_max, z_max))
+		if not save_state_path is None:
+			self.save_state(save_state_path)
 
 	def create_movie(self, frames):
 		num_nodes = self.nodes_x*self.nodes_y*self.nodes_z
 		self.run_command("%s -O3 program/create_movie/create_movie.cpp -o create_movie" % self.compiler)
 		self.run_command("./create_movie %d %d" % (num_nodes, frames) )
 
-	def reduce_density(self, density, run=False):
+	def reduce_density(self, density):
 		num_nodes = self.nodes_x*self.nodes_y*self.nodes_z
 		self.run_command("%s -O3 program/reduce_density/reduce_density.cpp -o reduce_density" % self.compiler)
 		self.run_command("./reduce_density %d %f" % (num_nodes, density) )
-		if run: self.run()
 
-	def prepare_thermostat(self, temperature, timesteps, run=False):
+	def prepare_thermostat(self, temperature, timesteps, run=False, save_state_path = None):
 		self.thermostat_enabled = True
 		self.temperature = temperature
 		self.timesteps = timesteps
 		self.create_config_file()
 		self.thermostat_enabled = False
-		if run: self.run()
+		if run: self.run(save_state_path = save_state_path)
 
-	def prepare_thermalize(self, timesteps, run=False):
+	def prepare_thermalize(self, timesteps, run=False, save_state_path = None):
 		self.thermostat_enabled = False
 		self.timesteps = timesteps
 		self.create_config_file()
-		if run: self.run()
+		if run: self.run(save_state_path = save_state_path)
 
-	def prepare_new_system(self, run=False):
+	def prepare_new_system(self, run=False, save_state_path = None):
 		self.timesteps = 1
 		self.do_load_state = False
 		self.create_config_file()
 		self.do_load_state = True
-		if run: self.run()
+		volume_file = open('volume.txt','w')
+		volume_per_unit_cell = 3.405**3
+		volume_per_node = self.unit_cells_x*self.unit_cells_y*self.unit_cells_z*volume_per_unit_cell;
+		volume = self.nodes_x*self.nodes_y*self.nodes_z*volume_per_node
+		volume_file.write('%f' % (volume) )
+		if run: self.run(save_state_path = save_state_path)

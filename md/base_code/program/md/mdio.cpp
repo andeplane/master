@@ -16,6 +16,7 @@ void MDIO::setup(System *system_) {
         energy_file = fopen("statistics/energy.txt","w");
         pressure_file = fopen("statistics/pressure.txt","w");
         velocity_file = fopen("statistics/velocity.txt","w");
+        count_periodic_file = fopen("statistics/count_periodic.txt", "w");
     }
 }
 
@@ -113,4 +114,5 @@ void MDIO::finalize() {
     fclose(energy_file);
     fclose(pressure_file);
     fclose(velocity_file);
+    fclose(count_periodic_file);
 }

@@ -16,7 +16,8 @@
 #include <potential_lennard_jones.h>
 
 using namespace std;
-System::System() {
+System::System()
+{
 
 }
 
@@ -148,7 +149,7 @@ void System::create_FCC() {
                         atom_type[num_atoms_local] = ARGON;
 
                         num_atoms_local++;
-                        if(!warning_shown && num_atoms_local >= 0.6*MAX_ATOM_NUM) {
+                        if(!warning_shown && num_atoms_local >= 0.8*MAX_ATOM_NUM) {
                             cout << "                 ### WARNING ###" << endl;
                             cout << "NUMBER OF PARTICLES IS MORE THAN 0.8*MAX_ATOM_NUM" << endl << endl;
                             warning_shown = true;
@@ -187,6 +188,7 @@ void System::init_parameters() {
         num_cells_including_ghosts[a] = num_cells_local[a]+2;
 
         cell_length[a] = node_length[a]/num_cells_local[a];
+        count_periodic[a] = 0;
     }
     volume = system_length[0]*system_length[1]*system_length[2];
 
@@ -293,8 +295,14 @@ void System::mpi_move() {
             /* Register a to-be-copied atom in move_queue[kul|kuh][] */
             if (!atom_moved[i]) { /* Don't scan moved-out atoms */
                 // Check if this atom moved
-                if (atom_did_change_node(positions[i],node_lower)) move_queue[node_lower][ ++move_queue[node_lower][0] ] = i;
-                else if (atom_did_change_node(positions[i],node_higher)) move_queue[node_higher][ ++move_queue[node_higher][0] ] = i;
+                if (atom_did_change_node(positions[i],node_lower)) {
+                    move_queue[node_lower][ ++move_queue[node_lower][0] ] = i;
+                    if(node_index[dimension] == 0) count_periodic[dimension]--;
+                }
+                else if (atom_did_change_node(positions[i],node_higher)) {
+                    move_queue[node_higher][ ++move_queue[node_higher][0] ] = i;
+                    if(node_index[dimension] == num_processors[dimension]-1) count_periodic[dimension]++;
+                }
             }
         }
 
