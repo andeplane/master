@@ -70,7 +70,7 @@ class MD:
 		if self.test_mode: return
 		self.log("Saving state to "+str(path))
 		self.run_command("mkdir -p "+path)
-		self.run_command("cp -r log state_files statistics run_log.txt md.ini Tocontinue "+path)
+		self.run_command("cp -r log state_files statistics volume.txt run_log.txt md.ini Tocontinue "+path)
 		
 
 	def run_command(self, cmd):
@@ -220,7 +220,7 @@ class MD:
 		self.create_config_file()
 		self.do_load_state = True
 		volume_file = open('volume.txt','w')
-		volume_per_unit_cell = 3.405**3
+		volume_per_unit_cell = self.FCC_b**3
 		volume_per_node = self.unit_cells_x*self.unit_cells_y*self.unit_cells_z*volume_per_unit_cell;
 		volume = self.nodes_x*self.nodes_y*self.nodes_z*volume_per_node
 		volume_file.write('%f' % (volume) )

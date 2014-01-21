@@ -3,7 +3,7 @@
 #include <fstream>
 #include <stdlib.h>
 
-#define MAX_ATOM_NUM 1000000
+#define MAX_ATOM_NUM 100000
 #define ARGON  0
 #define FROZEN 1
 double pos_coeff = 3.405;
@@ -11,7 +11,7 @@ double pos_coeff = 3.405;
 using namespace std;
 
 int main(int args, char *argv[]) {
-	if(args < 7) {
+	if(args < 6) {
 		cout << "Please specify the number of cpus, radius, number of cylinders per dimension, lx, ly" << endl;
 		cout << "./create_cylinder int double int double double" << endl;
 		return 0;
