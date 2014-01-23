@@ -21,7 +21,7 @@ class MD:
 		# 	exit()
 
 		self.dt = dt
-		self.FCC_b = 5.72
+		self.FCC_b = 1.54478708
 		self.do_load_state = True
 		self.thermostat_enabled = False
 		self.timesteps = 5000
@@ -219,9 +219,16 @@ class MD:
 		self.do_load_state = False
 		self.create_config_file()
 		self.do_load_state = True
+		# Save volume file
 		volume_file = open('volume.txt','w')
 		volume_per_unit_cell = self.FCC_b**3
 		volume_per_node = self.unit_cells_x*self.unit_cells_y*self.unit_cells_z*volume_per_unit_cell;
 		volume = self.nodes_x*self.nodes_y*self.nodes_z*volume_per_node
 		volume_file.write('%f' % (volume) )
+		volume_file.close()
+		# Save number file
+		number_file = open('number_of_free_atoms.txt', 'w')
+		number_of_atoms = self.unit_cells_x*self.unit_cells_y*self.unit_cells_z*self.nodes_x*self.nodes_y*self.nodes_z*4
+		number_file.write('%f' % (number_of_atoms) )
+		number_file.close()
 		if run: self.run(save_state_path = save_state_path)

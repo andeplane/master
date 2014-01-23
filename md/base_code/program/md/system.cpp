@@ -129,9 +129,9 @@ void System::create_FCC() {
                 for(int k = 0; k < 4; k++) {
                     // Set positions and type
 
-                    r[0] = (x+xCell[k]) * settings->FCC_b/unit_converter->L0_angstrom - origo[0];
-                    r[1] = (y+yCell[k]) * settings->FCC_b/unit_converter->L0_angstrom - origo[1];
-                    r[2] = (z+zCell[k]) * settings->FCC_b/unit_converter->L0_angstrom - origo[2];
+                    r[0] = (x+xCell[k]) * settings->FCC_b - origo[0];
+                    r[1] = (y+yCell[k]) * settings->FCC_b - origo[1];
+                    r[2] = (z+zCell[k]) * settings->FCC_b - origo[2];
                     bool is_mine = true;
                     for(i=0;i<3;i++) {
                         if(!(r[i] >= 0 && r[i] < node_length[i])) is_mine = false;

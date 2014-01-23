@@ -34,6 +34,7 @@ int main(int args, char *argv[]) {
 	
 	double radius_squared = radius*radius;
 	int frozen_atoms = 0;
+	int total_num_atoms = 0;
 
 	double cylinder_center_displacement_x = system_length[0] / num_cylinders_per_dimension;
 	double cylinder_center_displacement_y = system_length[1] / num_cylinders_per_dimension;
@@ -53,6 +54,7 @@ int main(int args, char *argv[]) {
 			
 			atom_type[i] = FROZEN;
 			frozen_atoms++;
+			total_num_atoms++;
 
 			for(int cylinder_x=0; cylinder_x<num_cylinders_per_dimension; cylinder_x++) {
                 for(int cylinder_y=0; cylinder_y<num_cylinders_per_dimension; cylinder_y++) {
@@ -65,7 +67,7 @@ int main(int args, char *argv[]) {
                     if(dr2 < radius_squared) {
                         atom_type[i] = ARGON;
                         frozen_atoms--;
-						freed_this_atom = true;
+                        freed_this_atom = true;
                     }
 
                     if(freed_this_atom) break;
@@ -82,7 +84,14 @@ int main(int args, char *argv[]) {
 		save_state_file.write(reinterpret_cast<char*>(&atom_type),num_particles*sizeof(unsigned long));
 		save_state_file.close();
 	}
-	cout << num_cylinders << " cylinders created with " << frozen_atoms << " frozen atoms." << endl;
-	
+
+	int free_atoms = total_num_atoms - frozen_atoms;
+
+	// Write the number of free atoms
+	cout << num_cylinders << " cylinders created with " << frozen_atoms << " frozen atoms and " << free_atoms << " free atoms." << endl;
+	ofstream free_atoms_file("number_of_free_atoms.txt");
+	free_atoms_file << free_atoms;
+	free_atoms_file.close();
+
 	return 0;
 }
