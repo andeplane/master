@@ -51,6 +51,9 @@ class DSMC:
 		self.movie_every_n_frame = 1
 		self.movie_molecules = 10000
 
+		self.sticky_probability = 0
+		self.sticky_particle_radius = 0
+
 		# Gravity direction also determins which dimension we measure flux in
 		self.gravity = 0
 		self.flow_direction = 2
@@ -185,6 +188,10 @@ class DSMC:
 			line = line.replace('__temperature__',str(self.temperature) )
 			line = line.replace('__wall_temperature__',str(self.wall_temperature) )
 			line = line.replace('__dt__',str(self.dt) )
+
+			line = line.replace('__sticky_particle_radius__',str(self.sticky_particle_radius) )
+			line = line.replace('__sticky_probability__',str(self.sticky_probability) )
+
 			line = line.replace('__statistics_interval__',str(self.statistics_interval) )
 			line = line.replace('__movie_every_n_frame__',str(self.movie_every_n_frame) )
 			line = line.replace('__movie_molecules__',str(self.movie_molecules) )

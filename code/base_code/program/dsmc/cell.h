@@ -28,8 +28,11 @@ public:
 
     System *system;
     vector<int> molecules;
+    vector<int> sticky_particles;
+
     int num_molecules_allocated_memory;
     int num_molecules;
+    vector<Cell *> neighboring_cells;
 
     Cell(System *system);
     ~Cell() {

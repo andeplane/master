@@ -84,7 +84,7 @@ int main(int args, char* argv[]) {
     float t = 0;
     float dt = 0.1;
     float omega = 0.1;
-
+    int steps = 0;
     while(true) {
         v.render_begin();
         // CVector lightpos = CVector(10 + sin(omega*t),10 + cos(omega*t),10);
@@ -100,12 +100,13 @@ int main(int args, char* argv[]) {
         if(v.opengl->bool1) c.render_vbo();
         shader.End();
         
-        if(v.opengl->bool2) sphere.render_billboards(solver->system.r, solver->system.v, solver->system.steps_since_collision, solver->system.num_molecules_local, 10.0);
+        if(v.opengl->bool2) sphere.render_billboards(solver->system.r, solver->system.v, solver->system.steps_since_collision, solver->system.num_molecules_local, 10.0, v.opengl->bool3, &solver->system);
         v.render_end();
         solver->step();
         if(!v.is_running) break;
         v.update_window_title();
         t += dt;
+        steps++;
     }
 
     return 0;

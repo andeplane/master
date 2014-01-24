@@ -19,6 +19,8 @@
 #include <collidermaxwell.h>
 #include <cvector.h>
 #include <cstring>
+#include <boundingbox.h>
+
 void System::step() {
     for(int n=0; n<num_molecules_local; n++) steps_since_collision[n]++;
     steps += 1;
@@ -106,9 +108,8 @@ void System::mpi_move() {
 void System::move() {
     timer->start_moving();
     CVector system_length(length[0], length[1], length[2]);
-    
     for(int n=0;n<num_molecules_local;n++) {
-        mover->move_molecule(n,dt,rnd,0);
+        if(!is_sticky[n]) mover->move_molecule(n,dt,rnd,0);
     }
 
     #pragma simd
@@ -245,6 +246,8 @@ void System::initialize(Settings *settings_, int myid_) {
     steps = 0;
     collisions = 0;
     t = 0;
+    num_sticky_particles = 0;
+    sticky_probability = settings->sticky_probability;
 
     init_randoms();
     unit_converter = new UnitConverter();
@@ -255,6 +258,7 @@ void System::initialize(Settings *settings_, int myid_) {
     one_over_length[1] = 1.0/length[1];
     one_over_length[2] = 1.0/length[2];
 
+    sticky_particle_radius = settings->sticky_particle_radius;
     temperature      = unit_converter->temperature_from_SI(settings->temperature);;
     wall_temperature = unit_converter->temperature_from_SI(settings->wall_temperature);
     most_probable_velocity = sqrt(temperature);  // Most probable initial velocity
@@ -413,7 +417,6 @@ void System::setup_molecules() {
     double sqrt_temp_over_mass = sqrt(temperature/settings->mass);
     double vel = 0.25;
     for(int n=0; n<num_molecules_local; n++) {
-        cout << n << endl;
         v.at(3*n + 0) = rnd->next_gauss()*sqrt_temp_over_mass;
         v.at(3*n + 1) = rnd->next_gauss()*sqrt_temp_over_mass;
         v.at(3*n + 2) = rnd->next_gauss()*sqrt_temp_over_mass;
@@ -424,6 +427,8 @@ void System::setup_molecules() {
         Cell *cell = cell_that_should_contain_molecule(n);
         cell->add_molecule(n,molecule_index_in_cell,molecule_cell_index);
     }
+
+    is_sticky.resize(MAX_MOLECULE_NUM, 0);
 }
 
 void System::setup_cells() {
@@ -480,6 +485,34 @@ void System::setup_cells() {
             active_cells.push_back(cell);
         } else {
             delete cell;
+        }
+    }
+
+    for(int c_x = 0; c_x < cells_x; c_x++) {
+        for(int c_y = 0; c_y < cells_y; c_y++) {
+            for(int c_z = 0; c_z < cells_z; c_z++) {
+                int cell_index = cell_index_from_ijk(c_x, c_y, c_z);
+                int mapped_cell_index = cell_index_map.at(cell_index);
+                if(mapped_cell_index == -1) continue;
+                Cell *cell = active_cells.at(mapped_cell_index);
+
+                for(int di=-1; di <=1; di++) {
+                    for(int dj=-1; dj <=1; dj++) {
+                        for(int dk=-1; dk <=1; dk++) {
+                            if(di==0 && dj==0 && dk==0) continue;
+                            int i = (c_x + di + cells_x) % cells_x;
+                            int j = (c_y + dj + cells_y) % cells_y;
+                            int k = (c_z + dk + cells_z) % cells_z;
+
+                            cell_index = cell_index_from_ijk(i,j,k);
+                            mapped_cell_index = cell_index_map.at(cell_index);
+                            if(mapped_cell_index == -1) continue;
+                            Cell *cell2 = active_cells.at(mapped_cell_index);
+                            cell->neighboring_cells.push_back(cell2);
+                        }
+                    }
+                }
+            }
         }
     }
 

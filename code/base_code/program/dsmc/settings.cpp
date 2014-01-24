@@ -22,6 +22,8 @@ Settings::Settings(string filename) {
     flow_direction = ini_file.getint("flow_direction");
     seed = ini_file.getint("seed");
 
+    sticky_probability = ini_file.getdouble("sticky_probability");
+    sticky_particle_radius = ini_file.getdouble("sticky_particle_radius");
     viscosity = ini_file.getdouble("viscosity");
     mass = ini_file.getdouble("mass");
     temperature = ini_file.getdouble("temperature");

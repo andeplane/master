@@ -6,7 +6,7 @@
 
 using std::vector;
 using std::string;
-
+class System;
 class COpenGL;
 // internal texture structure
 class COpenGLTexture {
@@ -32,5 +32,5 @@ public:
     CTexture(COpenGL *ogl);
     void create_sphere1(string name, int w);
     void load_texture(CBitMap* bmp, COpenGLTexture* texture, bool has_alpha);
-    void render_billboards(vector<double> &positions, vector<double> & velocities, vector<int> &steps_since_collision, int num_particles, float position_scale);
+    void render_billboards(vector<double> &positions, vector<double> & velocities, vector<int> &steps_since_collision, int num_particles, float position_scale, bool only_sticky, System *system);
 };

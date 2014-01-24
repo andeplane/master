@@ -73,10 +73,7 @@ void Cell::collide_molecules(data_type *v0, data_type *v1, const data_type &v_re
 }
 
 int Cell::collide(Random *rnd) {
-
-    //* Skip cells with only one particle
-
-    if( num_molecules < 2 ) return 0;  // Skip to the next cell
+    if( num_molecules < 2 ) return 0; // Skip cells with only one particle
 
     data_type crm = vr_max;     // Current maximum relative speed
 

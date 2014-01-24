@@ -11,6 +11,7 @@ class Settings;
 class DSMCTimer;
 class MoleculeMover;
 class Topology;
+class BoundingBox;
 
 #include <iostream>
 #include <fstream>
@@ -48,11 +49,11 @@ private:
     void setup_cells();
     void update_molecule_cells();
     void count_reservoir_particles();
-    Cell *cell_currently_containing_molecule(const int &molecule_index);
-    Cell *cell_that_should_contain_molecule(const int &molecule_index);
     int cell_index_from_ijk(const int &i, const int &j, const int &k);
 
 public:
+    Cell *cell_that_should_contain_molecule(const int &molecule_index);
+    Cell *cell_currently_containing_molecule(const int &molecule_index);
     void find_position(const int &index);
     int cell_index_from_position(const int &index);
     long get_number_of_atoms_global();
@@ -73,6 +74,15 @@ public:
     vector<data_type> mpi_receive_buffer;
     vector<data_type> r;
     vector<data_type> v;
+
+    // STICKY PARTICLES
+    double sticky_probability;
+    double sticky_particle_radius;
+    int num_sticky_particles;
+    vector<BoundingBox*> bounding_boxes;
+    vector<bool> is_sticky;
+    // END STICKY PARTICLES
+
     vector<int> molecule_index_in_cell;
     vector<int> molecule_cell_index;
     vector<int> node_num_new_molecules;

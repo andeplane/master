@@ -49,7 +49,8 @@ SOURCES += main.cpp \
     camera.cpp \
     geometry.cpp \
     diamondsquare.cpp \
-    statisticalproperty.cpp
+    statisticalproperty.cpp \
+    boundingbox.cpp
 
 HEADERS += \
     system.h \
@@ -93,7 +94,8 @@ HEADERS += \
     diamondsquare.h \
     statisticalproperty.h \
     statisticalvalue.h \
-    defines.h
+    defines.h \
+    boundingbox.h
 
 
 OTHER_FILES += \

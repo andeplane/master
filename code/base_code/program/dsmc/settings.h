@@ -29,6 +29,8 @@ public:
     int seed;
     int max_molecules_per_node;
 
+    double sticky_probability;
+    double sticky_particle_radius;
     double viscosity;
     double mass;
     double temperature;

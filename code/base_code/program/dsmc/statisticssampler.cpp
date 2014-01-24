@@ -58,7 +58,7 @@ void StatisticsSampler::sample() {
     system->timer->end_mpi_reduce();
 
     if(system->myid==0) {
-        cout << system->steps << "   t=" << system->t_in_nano_seconds() << "ns   T=" << system->unit_converter->temperature_to_SI(temperature->get_current_value()) << "K   Collisions: " <<  collisions <<   "   Wall collisions: " << wall_collisions << "   Pressure: " << system->unit_converter->pressure_to_SI(pressure->get_current_value()) <<  "Pa   Molecules: " << system->num_molecules_global << endl ;
+        cout << system->steps << "   t=" << system->t_in_nano_seconds() << "ns   T=" << system->unit_converter->temperature_to_SI(temperature->get_current_value()) << "K   Collisions: " <<  collisions <<   "   Wall collisions: " << wall_collisions << "   Pressure: " << system->unit_converter->pressure_to_SI(pressure->get_current_value()) <<  "Pa   Molecules: " << system->num_molecules_global << " (" << system->num_sticky_particles << " sticky)" <<  endl ;
     }
 
     system->timer->end_sample();

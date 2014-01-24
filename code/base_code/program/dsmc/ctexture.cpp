@@ -2,6 +2,7 @@
 #include <ctexture.h>
 #include <camera.h>
 #include <mpi.h>
+#include <system.h>
 
 CTexture::CTexture(COpenGL *ogl)
 {
@@ -62,7 +63,7 @@ void CTexture::load_texture(CBitMap* bmp, COpenGLTexture* texture, bool has_alph
     else gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGB, bmp->width, bmp->height, GL_RGB, GL_UNSIGNED_BYTE, bmp->data  );
 }
 
-void CTexture::render_billboards(vector<double> &positions, vector<double> &velocities, vector<int> &steps_since_collision, int num_particles, float position_scale) {
+void CTexture::render_billboards(vector<double> &positions, vector<double> &velocities, vector<int> &steps_since_collision, int num_particles, float position_scale, bool only_sticky, System *system) {
     Camera *camera = opengl->camera;
     glEnable(GL_LIGHT0);
     glDisable(GL_LIGHTING);
@@ -104,6 +105,7 @@ void CTexture::render_billboards(vector<double> &positions, vector<double> &velo
     vector<float> new_average_values(3,0);
 
     for(int index=0; index<num_particles; index++) {
+        if(only_sticky && !system->is_sticky[index]) continue;
         float x = positions[3*index+0]*position_scale;
         float y = positions[3*index+1]*position_scale;
         float z = positions[3*index+2]*position_scale;
