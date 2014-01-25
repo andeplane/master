@@ -8,32 +8,33 @@ from md_statistics import *
 # unit_cells_{x,y,z} is number of unit cells in each dimension.
 # More parameters in constructor.
 
-program = MD()
+program = MD(dt=0.01)
 md = program.compile(skip_compile=False, name="md")
 geometry = MD_geometry(program)
 uc = MD_unit_converter(program)
 md_statistics = MD_statistics(program)
+program.nodes_x = 2
+program.nodes_y = 2
+program.nodes_z = 2
+program.unit_cells_x = 10
+program.unit_cells_y = 10
+program.unit_cells_z = 10
 
 if True:
 	program.reset()
-	program.nodes_x = 2
-	program.nodes_y = 2
-	program.nodes_z = 2
-	program.unit_cells_x = 10
-	program.unit_cells_y = 10
-	program.unit_cells_z = 10
 
 	program.prepare_new_system()
-	program.run(save_state_path="states/00_initial_state")
+	program.run()
 
 	program.prepare_thermostat(temperature=300, timesteps=2000, run=True, save_state_path="states/01_T_300K")
 	program.prepare_thermalize(timesteps=1000, run=True, save_state_path="states/02_thermalized")
 	geometry.create_cylinders(radius=0.4, num_cylinders_per_dimension=1)
+	program.save_state(path="states/03_cylinder")
 
 if True:
 	program.load_state(path="states/03_cylinder")
 	ideal_gas_pressure = md_statistics.get_ideal_gas_pressure(temperature=300)
-	pressure_difference = 0.1*ideal_gas_pressure
+	pressure_difference = 0.05*ideal_gas_pressure
 	system_size = md_statistics.calculate_system_length()
 
 	gravity_force = uc.pressure_difference_to_gravity(delta_p=pressure_difference, length=system_size[2])
@@ -41,11 +42,10 @@ if True:
 	print "Gravity force, MD:", gravity_force
 	program.gravity_force = gravity_force
 	program.gravity_direction = 2
-	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/04_cylinder_thermalized")
+	program.prepare_thermalize(timesteps=100000, run=True, save_state_path="states/04_cylinder_thermalized")
 
-	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/05_cylinder_thermalized_more")
-
-if False:
+if True:
+	program.load_state(path="states/04_cylinder_thermalized")
 	program.create_movie_files = True
-	program.prepare_thermalize(timesteps=100, run=True)
-	program.create_movie(frames=100)
+	program.prepare_thermalize(timesteps=1000, run=True)
+	program.create_movie(frames=1000)

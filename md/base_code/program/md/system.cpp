@@ -177,9 +177,9 @@ void System::init_parameters() {
     node_index[2] = myid%settings->nodes_z;
 
     // Size of this node
-    node_length[0] = settings->unit_cells_x*settings->FCC_b/unit_converter->L0_angstrom;
-    node_length[1] = settings->unit_cells_y*settings->FCC_b/unit_converter->L0_angstrom;
-    node_length[2] = settings->unit_cells_z*settings->FCC_b/unit_converter->L0_angstrom;
+    node_length[0] = settings->unit_cells_x*settings->FCC_b;
+    node_length[1] = settings->unit_cells_y*settings->FCC_b;
+    node_length[2] = settings->unit_cells_z*settings->FCC_b;
 
     for(a=0;a<3;a++) {
         system_length[a] = node_length[a]*num_processors[a];

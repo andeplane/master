@@ -6,7 +6,6 @@
 #define MAX_ATOM_NUM 100000
 #define ARGON  0
 #define FROZEN 1
-double pos_coeff = 3.405;
 
 using namespace std;
 
@@ -48,8 +47,8 @@ int main(int args, char *argv[]) {
 		state_file.read(reinterpret_cast<char*>(&atom_type),num_particles*sizeof(unsigned long));
 		
 		for(int i=0;i<num_particles;i++) {
-			double x = data[6*i+0]*pos_coeff;
-			double y = data[6*i+1]*pos_coeff;
+			double x = data[6*i+0];
+			double y = data[6*i+1];
 			bool freed_this_atom = false;
 			
 			atom_type[i] = FROZEN;
