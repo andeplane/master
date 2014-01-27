@@ -143,9 +143,9 @@ void StatisticsSampler::sample_velocity_distribution() {
     memset((void*)vel_global,0,3*num_bins*sizeof(double));
 
     for(unsigned int i=system->num_atoms_frozen;i<system->num_atoms_local;i++) {
-        int bin_x = (system->positions[i][0]+system->origo[0]) / system->system_length[0]*num_bins_per_dimension;
-        int bin_y = (system->positions[i][1]+system->origo[1]) / system->system_length[1]*num_bins_per_dimension;
-        int bin_z = (system->positions[i][2]+system->origo[2]) / system->system_length[2]*num_bins_per_dimension;
+        int bin_x = (system->positions[3*i+0]+system->origo[0]) / system->system_length[0]*num_bins_per_dimension;
+        int bin_y = (system->positions[3*i+1]+system->origo[1]) / system->system_length[1]*num_bins_per_dimension;
+        int bin_z = (system->positions[3*i+2]+system->origo[2]) / system->system_length[2]*num_bins_per_dimension;
         int index = bin_y*num_bins_per_dimension + bin_z;
 
         vel[3*index+0] += system->velocities[3*i+0];

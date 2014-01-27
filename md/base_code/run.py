@@ -13,14 +13,14 @@ md = program.compile(skip_compile=False, name="md")
 geometry = MD_geometry(program)
 uc = MD_unit_converter(program)
 md_statistics = MD_statistics(program)
-program.nodes_x = 2
-program.nodes_y = 2
-program.nodes_z = 2
+program.nodes_x = 1
+program.nodes_y = 1
+program.nodes_z = 1
 program.unit_cells_x = 10
 program.unit_cells_y = 10
 program.unit_cells_z = 10
 
-if True:
+if False:
 	program.reset()
 
 	program.prepare_new_system()
@@ -31,7 +31,7 @@ if True:
 	geometry.create_cylinders(radius=0.4, num_cylinders_per_dimension=1)
 	program.save_state(path="states/03_cylinder")
 
-if True:
+if False:
 	program.load_state(path="states/03_cylinder")
 	ideal_gas_pressure = md_statistics.get_ideal_gas_pressure(temperature=300)
 	pressure_difference = 0.05*ideal_gas_pressure
@@ -45,7 +45,8 @@ if True:
 	program.prepare_thermalize(timesteps=100000, run=True, save_state_path="states/04_cylinder_thermalized")
 
 if True:
-	program.load_state(path="states/04_cylinder_thermalized")
+	#program.load_state(path="states/04_cylinder_thermalized")
+	program.load_state(path="states/03_cylinder")
 	program.create_movie_files = True
 	program.prepare_thermalize(timesteps=1000, run=True)
 	program.create_movie(frames=1000)

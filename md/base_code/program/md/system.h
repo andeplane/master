@@ -10,7 +10,7 @@ class UnitConverter;
 
 #include <fstream>
 #include <vector>
-#define MAX_ATOM_NUM 1000000
+#define MAX_ATOM_NUM 100000
 #define MAX_CELL_NUM 1000
 #define EMPTY -1
 
@@ -75,18 +75,22 @@ public:
     double dr[3];
     double shift_vector[6][3];
     unsigned int move_queue[6][MAX_ATOM_NUM];
-    double mpi_send_buffer[3*MAX_ATOM_NUM];
-    double mpi_receive_buffer[3*MAX_ATOM_NUM];
-    bool atom_moved[MAX_ATOM_NUM];
-    double positions[MAX_ATOM_NUM][3];
-    double accelerations[3*MAX_ATOM_NUM];
+
+    double *mpi_send_buffer;
+    double *mpi_receive_buffer;
+    bool *atom_moved;
+    double *positions;
+    double *accelerations;
+    double *velocities;
+
     double mass_inverse, pressure_forces;
-    double velocities[3*MAX_ATOM_NUM];
-    unsigned long atom_type[MAX_ATOM_NUM];
-    int linked_list_all_atoms[MAX_ATOM_NUM];
-    int linked_list_free_atoms[MAX_ATOM_NUM];
-    bool is_ghost_cell[MAX_CELL_NUM];
-    double initial_positions[3*MAX_ATOM_NUM];
+
+    unsigned long *atom_type;
+    int *linked_list_all_atoms;
+    int *linked_list_free_atoms;
+    bool *is_ghost_cell;
+    double *initial_positions;
+    void apply_harmonic_oscillator();
 
     System();
     void setup(int myid_, Settings *settings_);

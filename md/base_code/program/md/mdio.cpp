@@ -34,14 +34,14 @@ void MDIO::save_state_to_movie_file() {
         }
 
         for(unsigned long n=0;n<system->num_atoms_local;n++) {
-            data[3*n+0] = system->positions[n][0] + system->origo[0];
-            data[3*n+1] = system->positions[n][1] + system->origo[1];
-            data[3*n+2] = system->positions[n][2] + system->origo[2];
+            data[3*n+0] = system->positions[3*n+0] + system->origo[0];
+            data[3*n+1] = system->positions[3*n+1] + system->origo[1];
+            data[3*n+2] = system->positions[3*n+2] + system->origo[2];
         }
 
         movie_file->write (reinterpret_cast<char*>(&system->num_atoms_local), sizeof(unsigned long));
         movie_file->write (reinterpret_cast<char*>(data), 3*system->num_atoms_local*sizeof(double));
-        movie_file->write (reinterpret_cast<char*>(&system->atom_type), system->num_atoms_local*sizeof(unsigned long));
+        movie_file->write (reinterpret_cast<char*>(system->atom_type), system->num_atoms_local*sizeof(unsigned long));
         movie_file->flush();
     }
     system->mdtimer->end_io();
@@ -57,9 +57,9 @@ void MDIO::save_state_to_file_binary() {
     double *tmp_data = new double[6*system->num_atoms_local];
 
     for(unsigned int i=0;i<system->num_atoms_local;i++) {
-        tmp_data[6*i + 0] = system->positions[i][0] + system->origo[0];
-        tmp_data[6*i + 1] = system->positions[i][1] + system->origo[1];
-        tmp_data[6*i + 2] = system->positions[i][2] + system->origo[2];
+        tmp_data[6*i + 0] = system->positions[3*i+0] + system->origo[0];
+        tmp_data[6*i + 1] = system->positions[3*i+1] + system->origo[1];
+        tmp_data[6*i + 2] = system->positions[3*i+2] + system->origo[2];
 
         tmp_data[6*i + 3] = system->velocities[3*i+0];
         tmp_data[6*i + 4] = system->velocities[3*i+1];
@@ -68,7 +68,7 @@ void MDIO::save_state_to_file_binary() {
 
     file.write (reinterpret_cast<char*>(&system->num_atoms_local), sizeof(int));
     file.write (reinterpret_cast<char*>(tmp_data), 6*system->num_atoms_local*sizeof(double));
-    file.write (reinterpret_cast<char*>(&system->atom_type), system->num_atoms_local*sizeof(unsigned long));
+    file.write (reinterpret_cast<char*>(system->atom_type), system->num_atoms_local*sizeof(unsigned long));
 
     file.close();
     delete tmp_data;
@@ -88,13 +88,16 @@ void MDIO::load_state_from_file_binary() {
 
     double *tmp_data = new double[6*system->num_atoms_local];
     file.read(reinterpret_cast<char*>(tmp_data),6*system->num_atoms_local*sizeof(double));
-    file.read(reinterpret_cast<char*>(&system->atom_type), system->num_atoms_local*sizeof(unsigned long));
+    file.read(reinterpret_cast<char*>(system->atom_type), system->num_atoms_local*sizeof(unsigned long));
     file.close();
 
     for(unsigned int i=0;i<system->num_atoms_local;i++) {
-        system->positions[i][0] = tmp_data[6*i+0] - system->origo[0];
-        system->positions[i][1] = tmp_data[6*i+1] - system->origo[1];
-        system->positions[i][2] = tmp_data[6*i+2] - system->origo[2];
+        system->positions[3*i+0] = tmp_data[6*i+0] - system->origo[0];
+        system->positions[3*i+1] = tmp_data[6*i+1] - system->origo[1];
+        system->positions[3*i+2] = tmp_data[6*i+2] - system->origo[2];
+        system->initial_positions[3*i+0] = system->positions[3*i+0];
+        system->initial_positions[3*i+1] = system->positions[3*i+1];
+        system->initial_positions[3*i+2] = system->positions[3*i+2];
 
         system->velocities[3*i+0] = tmp_data[6*i+3];
         system->velocities[3*i+1] = tmp_data[6*i+4];
