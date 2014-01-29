@@ -81,6 +81,7 @@ public:
     bool *atom_moved;
     double *positions;
     double *accelerations;
+    double *accelerations_2;
     double *velocities;
 
     double mass_inverse, pressure_forces;

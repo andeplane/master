@@ -24,11 +24,12 @@ System::System()
 void System::initialize() {
     positions = new double[3*MAX_ATOM_NUM];
     accelerations = new double[3*MAX_ATOM_NUM];
+    accelerations_2 = new double[3*MAX_ATOM_NUM];
     velocities = new double[3*MAX_ATOM_NUM];
     atom_type = new unsigned long[MAX_ATOM_NUM];
     atom_moved = new bool[MAX_ATOM_NUM];
-    mpi_send_buffer = new double[3*MAX_ATOM_NUM];
-    mpi_receive_buffer = new double[3*MAX_ATOM_NUM];
+    mpi_send_buffer = new double[MAX_ATOM_NUM];
+    mpi_receive_buffer = new double[MAX_ATOM_NUM];
 
     linked_list_all_atoms = new int[MAX_ATOM_NUM];
     linked_list_free_atoms = new int[MAX_ATOM_NUM];
@@ -67,8 +68,8 @@ void System::setup(int myid_, Settings *settings_) {
     MPI_Allreduce(&num_atoms_free,&num_atoms_free_global,1,MPI_UNSIGNED_LONG,MPI_SUM,MPI_COMM_WORLD);
 
     mpi_copy();
-    calculate_accelerations();
-    half_kick();
+     calculate_accelerations();
+     half_kick();
 
     if(myid==0) cout << "System size: " << unit_converter->length_to_SI(system_length[0])*1e10 << " Å " << unit_converter->length_to_SI(system_length[1])*1e10 << " Å " << unit_converter->length_to_SI(system_length[2])*1e10 << " Å" << endl;
     if(myid==0) cout << "Atoms: " << num_atoms_all_global << endl;
@@ -82,18 +83,27 @@ void System::setup(int myid_, Settings *settings_) {
 }
 
 void System::rearrange_frozen_atoms() {
-    double positions_copy[num_atoms_local][3];
+    for(int i=0; i<num_atoms_local; i++) {
+        if(atom_type[i] == FROZEN)  {
+            num_atoms_frozen++;
+        } else {
+            num_atoms_free++;
+        }
+    }
+    return;
+
+    double positions_copy[3*num_atoms_local];
+    double initial_positions_copy[3*num_atoms_local];
     double velocities_copy[3*num_atoms_local];
     unsigned long atom_type_copy[num_atoms_local];
 
     for(i=0;i<num_atoms_local;i++) {
-        positions_copy[i][0] = positions[3*i+0];
-        positions_copy[i][1] = positions[3*i+1];
-        positions_copy[i][2] = positions[3*i+2];
+        for(int a=0; a<3; a++) {
+            positions_copy[3*i+a] = positions[3*i+a];
+            initial_positions_copy[3*i+a] = initial_positions[3*i+a];
+            velocities_copy[3*i+a] = velocities[3*i+a];
+        }
 
-        velocities_copy[3*i+0] = velocities[3*i+0];
-        velocities_copy[3*i+1] = velocities[3*i+1];
-        velocities_copy[3*i+2] = velocities[3*i+2];
         atom_type_copy[i] = atom_type[i];
     }
 
@@ -102,13 +112,12 @@ void System::rearrange_frozen_atoms() {
     for(i=0;i<num_atoms_local;i++) {
         if(atom_type_copy[i] == FROZEN) {
             int index = (num_atoms_frozen + num_atoms_free);
+            for(int a=0; a<3; a++) {
+                velocities[3*index+a] = 0;
+                positions[3*index+a] = positions_copy[3*i+a];
+                initial_positions[3*index+a] = initial_positions_copy[3*i+a];
+            }
 
-            velocities[3*index+0] = 0;
-            velocities[3*index+1] = 0;
-            velocities[3*index+2] = 0;
-            positions[3*index+0] = positions_copy[i][0];
-            positions[3*index+1] = positions_copy[i][1];
-            positions[3*index+2] = positions_copy[i][2];
             atom_type[index] = atom_type_copy[i];
             num_atoms_frozen++;
         }
@@ -117,15 +126,14 @@ void System::rearrange_frozen_atoms() {
     for(i=0;i<num_atoms_local;i++) {
         if(atom_type_copy[i] != FROZEN) {
             int index = (num_atoms_frozen + num_atoms_free);
-            velocities[3*index + 0] = velocities_copy[3*i+0];
-            velocities[3*index + 1] = velocities_copy[3*i+1];
-            velocities[3*index + 2] = velocities_copy[3*i+2];
-            positions[3*index+0] = positions_copy[i][0];
-            positions[3*index+1] = positions_copy[i][1];
-            positions[3*index+2] = positions_copy[i][2];
+            for(int a=0; a<3;a++) {
+                velocities[3*index + a] = velocities_copy[3*i+a];
+                positions[3*index+a] = positions_copy[3*i+a];
+                initial_positions[3*index+a] = initial_positions_copy[3*i+a];
+            }
+
             atom_type[index] = atom_type_copy[i];
             num_atoms_free++;
-
         }
     }
 }
@@ -305,7 +313,7 @@ void System::mpi_move() {
 
     for(short dimension=0;dimension<3;dimension++) {
         /* Scan all the residents & immigrants to list moved-out atoms */
-        for (i=num_atoms_frozen; i<num_atoms_local+new_atoms; i++) {
+        for (i=0; i<num_atoms_local+new_atoms; i++) {
             node_lower = 2*dimension;
             node_higher = 2*dimension+1;
             /* Register a to-be-copied atom in move_queue[kul|kuh][] */
@@ -348,44 +356,53 @@ void System::mpi_move() {
 
             /* Message buffering */
             for (i=1; i<=num_send; i++) {
+                int atom_index = move_queue[local_node_id][i];
                 /* Shift the coordinate origin */
-                mpi_send_buffer[6*(i-1)    + 0] = positions[ 3*move_queue[local_node_id][i] + 0] - shift_vector[local_node_id][0];
-                mpi_send_buffer[6*(i-1)    + 1] = positions[ 3*move_queue[local_node_id][i] + 1] - shift_vector[local_node_id][1];
-                mpi_send_buffer[6*(i-1)    + 2] = positions[ 3*move_queue[local_node_id][i] + 2] - shift_vector[local_node_id][2];
-                mpi_send_buffer[6*(i-1)+ 3 + 0] = velocities[3*move_queue[local_node_id][i] + 0];
-                mpi_send_buffer[6*(i-1)+ 3 + 1] = velocities[3*move_queue[local_node_id][i] + 1];
-                mpi_send_buffer[6*(i-1)+ 3 + 2] = velocities[3*move_queue[local_node_id][i] + 2];
+                mpi_send_buffer[9*(i-1)    + 0] = positions[ 3*atom_index + 0] - shift_vector[local_node_id][0];
+                mpi_send_buffer[9*(i-1)    + 1] = positions[ 3*atom_index + 1] - shift_vector[local_node_id][1];
+                mpi_send_buffer[9*(i-1)    + 2] = positions[ 3*atom_index + 2] - shift_vector[local_node_id][2];
+                mpi_send_buffer[9*(i-1)+ 3 + 0] = velocities[3*atom_index + 0];
+                mpi_send_buffer[9*(i-1)+ 3 + 1] = velocities[3*atom_index + 1];
+                mpi_send_buffer[9*(i-1)+ 3 + 2] = velocities[3*atom_index + 2];
+                mpi_send_buffer[9*(i-1)+ 6 + 0] = initial_positions[ 3*atom_index + 0] - shift_vector[local_node_id][0];
+                mpi_send_buffer[9*(i-1)+ 6 + 1] = initial_positions[ 3*atom_index + 1] - shift_vector[local_node_id][1];
+                mpi_send_buffer[9*(i-1)+ 6 + 2] = initial_positions[ 3*atom_index + 2] - shift_vector[local_node_id][2];
                 atom_moved[ move_queue[local_node_id][i] ] = true;
             }
 
             /* Even node: send & recv, if not empty */
             /* Odd node: recv & send, if not empty */
             if (my_parity[dimension] == 0) {
-                MPI_Send(mpi_send_buffer,6*num_send,MPI_DOUBLE,node_id,120,MPI_COMM_WORLD);
-                MPI_Recv(mpi_receive_buffer,6*num_receive,MPI_DOUBLE,MPI_ANY_SOURCE,120,MPI_COMM_WORLD,&status);
+                MPI_Send(mpi_send_buffer,9*num_send,MPI_DOUBLE,node_id,120,MPI_COMM_WORLD);
+                MPI_Recv(mpi_receive_buffer,9*num_receive,MPI_DOUBLE,MPI_ANY_SOURCE,120,MPI_COMM_WORLD,&status);
             }
             else if (my_parity[dimension] == 1) {
-                MPI_Recv(mpi_receive_buffer,6*num_receive,MPI_DOUBLE,MPI_ANY_SOURCE,120,MPI_COMM_WORLD,&status);
-                MPI_Send(mpi_send_buffer,6*num_send,MPI_DOUBLE,node_id,120,MPI_COMM_WORLD);
+                MPI_Recv(mpi_receive_buffer,9*num_receive,MPI_DOUBLE,MPI_ANY_SOURCE,120,MPI_COMM_WORLD,&status);
+                MPI_Send(mpi_send_buffer,9*num_send,MPI_DOUBLE,node_id,120,MPI_COMM_WORLD);
             }
             /* Single layer: Exchange information with myself */
-            else memcpy(mpi_receive_buffer,mpi_send_buffer,6*num_receive*sizeof(double));
+            else memcpy(mpi_receive_buffer,mpi_send_buffer,9*num_receive*sizeof(double));
             //else for (i=0; i<6*num_receive; i++) mpi_receive_buffer[i] = mpi_send_buffer[i];
 
 
             /* Message storing */
             for (i=0; i<num_receive; i++) {
-                atom_type[num_atoms_local+new_atoms+i] = ARGON;
-                atom_moved[num_atoms_local+new_atoms+i] = false;
-                positions [3*(num_atoms_local+new_atoms+i)+0] = mpi_receive_buffer[6*i   + 0];
-                positions [3*(num_atoms_local+new_atoms+i)+1] = mpi_receive_buffer[6*i   + 1];
-                positions [3*(num_atoms_local+new_atoms+i)+2] = mpi_receive_buffer[6*i   + 2];
+                int atom_index = num_atoms_local+new_atoms+i;
 
-                velocities[3*(num_atoms_local+new_atoms+i) + 0] = mpi_receive_buffer[6*i+3 + 0];
-                velocities[3*(num_atoms_local+new_atoms+i) + 1] = mpi_receive_buffer[6*i+3 + 1];
-                velocities[3*(num_atoms_local+new_atoms+i) + 2] = mpi_receive_buffer[6*i+3 + 2];
+                atom_type[atom_index] = ARGON;
+                atom_moved[atom_index] = false;
+                positions [3*atom_index+0] = mpi_receive_buffer[9*i   + 0];
+                positions [3*atom_index+1] = mpi_receive_buffer[9*i   + 1];
+                positions [3*atom_index+2] = mpi_receive_buffer[9*i   + 2];
+
+                velocities[3*atom_index + 0] = mpi_receive_buffer[9*i+3 + 0];
+                velocities[3*atom_index + 1] = mpi_receive_buffer[9*i+3 + 1];
+                velocities[3*atom_index + 2] = mpi_receive_buffer[9*i+3 + 2];
+
+                initial_positions [3*atom_index+0] = mpi_receive_buffer[9*i+6  + 0];
+                initial_positions [3*atom_index+1] = mpi_receive_buffer[9*i+6  + 1];
+                initial_positions [3*atom_index+2] = mpi_receive_buffer[9*i+6  + 2];
             }
-
             /* Increment the # of new atoms */
             new_atoms += num_receive;
 
@@ -396,11 +413,12 @@ void System::mpi_move() {
         mdtimer->end_mpi();
     }
 
-    int ipt = num_atoms_frozen;
-    for (i=num_atoms_frozen; i<num_atoms_local+new_atoms; i++) {
+    int ipt = 0;
+    for (i=0; i<num_atoms_local+new_atoms; i++) {
         if (!atom_moved[i]) {
             for (a=0; a<3; a++) {
                 positions [3*ipt+a] = positions [3*i+a];
+                initial_positions [3*ipt+a] = initial_positions [3*i+a];
                 velocities[3*ipt+a] = velocities[3*i+a];
             }
             atom_type[ipt] = atom_type[i];
@@ -481,8 +499,8 @@ void System::mpi_copy() {
 }
 
 void System::half_kick() {
-    for(n=num_atoms_frozen;n<num_atoms_local;n++) {
-    // for(n=0;n<num_atoms_local;n++) {
+    // for(n=num_atoms_frozen;n<num_atoms_local;n++) {
+    for(n=0;n<num_atoms_local;n++) {
         velocities[3*n+0] += accelerations[3*n+0]*dt_half;
         velocities[3*n+1] += accelerations[3*n+1]*dt_half;
         velocities[3*n+2] += accelerations[3*n+2]*dt_half;
@@ -490,42 +508,17 @@ void System::half_kick() {
 }
 
 void System::full_kick() {
-    for(n=num_atoms_frozen;n<num_atoms_local;n++) {
+    for(n=0;n<num_atoms_local;n++) {
         velocities[3*n+0] += accelerations[3*n+0]*dt;
         velocities[3*n+1] += accelerations[3*n+1]*dt;
         velocities[3*n+2] += accelerations[3*n+2]*dt;
     }
-
-    return;
-//    half_kick();
-
-//    int num_small_steps = 100;
-//    double dt_small = dt/num_small_steps;
-//    for(int i=0; i<num_small_steps; i++) {
-//        apply_harmonic_oscillator();
-//        for(n=0;n<num_atoms_frozen;n++) {
-//            velocities[3*n+0] += 0.5*accelerations_2[3*n+0]*dt_small;
-//            velocities[3*n+1] += 0.5*accelerations_2[3*n+1]*dt_small;
-//            velocities[3*n+2] += 0.5*accelerations_2[3*n+2]*dt_small;
-
-//            positions[n][0] += velocities[3*n+0]*dt_small;
-//            positions[n][1] += velocities[3*n+1]*dt_small;
-//            positions[n][2] += velocities[3*n+2]*dt_small;
-
-//            velocities[3*n+0] += 0.5*accelerations_2[3*n+0]*dt_small;
-//            velocities[3*n+1] += 0.5*accelerations_2[3*n+1]*dt_small;
-//            velocities[3*n+2] += 0.5*accelerations_2[3*n+2]*dt_small;
-//        }
-//    }
-
-//    half_kick();
 }
 
 void System::move() {
     mdtimer->start_moving();
 
     for(n=0;n<num_atoms_local;n++) {
-    // for(n=num_atoms_frozen;n<num_atoms_local;n++) {
         positions[3*n+0] += velocities[3*n+0]*dt;
         positions[3*n+1] += velocities[3*n+1]*dt;
         positions[3*n+2] += velocities[3*n+2]*dt;
@@ -542,16 +535,15 @@ void System::apply_gravity() {
 }
 
 void System::apply_harmonic_oscillator() {
-//    double spring_constant = 40.0;
-//    // for(n=0; n<num_atoms_frozen; n++) {
-//    for(n=0; n<num_atoms_local; n++) {
-//        double dx = positions[n][0] - initial_positions[n][0];
-//        double dy = positions[n][1] - initial_positions[n][1];
-//        double dz = positions[n][2] - initial_positions[n][2];
-//        accelerations_2[3*n+0] = -spring_constant*dx / settings->mass;
-//        accelerations_2[3*n+1] = -spring_constant*dy / settings->mass;
-//        accelerations_2[3*n+2] = -spring_constant*dz / settings->mass;
-//    }
+    double spring_constant = 40.0;
+    for(n=0; n<num_atoms_frozen; n++) {
+        double dx = positions[3*n+0] - initial_positions[3*n+0];
+        double dy = positions[3*n+1] - initial_positions[3*n+1];
+        double dz = positions[3*n+2] - initial_positions[3*n+2];
+        accelerations[3*n+0] += -spring_constant*dx / settings->mass;
+        accelerations[3*n+1] += -spring_constant*dy / settings->mass;
+        accelerations[3*n+2] += -spring_constant*dz / settings->mass;
+    }
 }
 
 void System::step() {

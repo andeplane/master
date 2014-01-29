@@ -31,7 +31,7 @@ if False:
 	geometry.create_cylinders(radius=0.4, num_cylinders_per_dimension=1)
 	program.save_state(path="states/03_cylinder")
 
-if False:
+if True:
 	program.load_state(path="states/03_cylinder")
 	ideal_gas_pressure = md_statistics.get_ideal_gas_pressure(temperature=300)
 	pressure_difference = 0.05*ideal_gas_pressure
@@ -42,10 +42,13 @@ if False:
 	print "Gravity force, MD:", gravity_force
 	program.gravity_force = gravity_force
 	program.gravity_direction = 2
-	program.prepare_thermalize(timesteps=100000, run=True, save_state_path="states/04_cylinder_thermalized")
+	program.thermostat_relaxation_time = 0.1
+	program.temperature = 300
+	program.thermostat_frozen_enabled = True
+	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/04_cylinder_thermalized")
 
 if True:
-	#program.load_state(path="states/04_cylinder_thermalized")
+	program.load_state(path="states/04_cylinder_thermalized")
 	program.load_state(path="states/03_cylinder")
 	program.create_movie_files = True
 	program.prepare_thermalize(timesteps=1000, run=True)

@@ -24,7 +24,7 @@ Settings::Settings(string filename) {
         create_movie = ini_file.getbool("create_movie");
         load_state = ini_file.getbool("load_state");
         thermostat_enabled = ini_file.getbool("thermostat_enabled");
-        many_frozen_atoms =  ini_file.getbool("many_frozen_atoms");
+        thermostat_frozen_enabled =  ini_file.getbool("thermostat_frozen_enabled");
     }
     catch (int e) {
         cout << "Could not load settings file." << endl;

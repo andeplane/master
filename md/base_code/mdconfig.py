@@ -24,6 +24,7 @@ class MD:
 		self.FCC_b = 1.54478708
 		self.do_load_state = True
 		self.thermostat_enabled = False
+		self.thermostat_frozen_enabled = False
 		self.timesteps = 5000
 		self.create_movie_files = False
 		self.movie_every_n_frame = 1
@@ -136,6 +137,7 @@ class MD:
 		for line in original_file:
 			line = line.replace('__FCC_b__',str(self.FCC_b) )
 			line = line.replace('__load_state__',str(self.do_load_state).lower() )
+			line = line.replace('__thermostat_frozen_enabled__',str(self.thermostat_frozen_enabled).lower() )
 			line = line.replace('__thermostat_enabled__',str(self.thermostat_enabled).lower() )
 			line = line.replace('__create_movie__',str(self.create_movie_files).lower() )
 			line = line.replace('__timesteps__',str(self.timesteps) )

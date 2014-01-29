@@ -6,6 +6,7 @@
 #include <mpi.h>
 #include <mdtimer.h>
 #include <iomanip>
+#include <atom_types.h>
 
 StatisticsSampler::StatisticsSampler(System *system_) {
     system = system_;
@@ -43,8 +44,11 @@ void StatisticsSampler::sample_kinetic_energy() {
     kinetic_energy = 0;
     double kinetic_energy_global = 0;
 
-    for(unsigned int i=system->num_atoms_frozen;i<system->num_atoms_local;i++) {
-        kinetic_energy += 0.5*settings->mass*(system->velocities[3*i+0]*system->velocities[3*i+0] + system->velocities[3*i+1]*system->velocities[3*i+1] + system->velocities[3*i+2]*system->velocities[3*i+2]);
+    for(unsigned int i=0;i<system->num_atoms_local;i++) {
+        double vx = system->velocities[3*i+0];
+        double vy = system->velocities[3*i+1];
+        double vz = system->velocities[3*i+2];
+        if(system->atom_type[i] == ARGON) kinetic_energy += 0.5*settings->mass*(vx*vx + vy*vy + vz*vz);
     }
     MPI_Allreduce(&kinetic_energy, &kinetic_energy_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
@@ -115,6 +119,7 @@ void StatisticsSampler::sample() {
 }
 
 void StatisticsSampler::sample_velocity_distribution() {
+    return;
 //    int bins_per_dimension = 50;
 //    int bins_per_dimension_squared = bins_per_dimension*bins_per_dimension;
 //    double *vel = new double[3*bins*bins*bins];

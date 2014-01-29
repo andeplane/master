@@ -54,7 +54,8 @@ int main(int args, char *argv[]) {
         system->sample_statistics = settings->statistics_interval && ((system->steps+1) % settings->statistics_interval == 0);
         system->step();
         if(system->sample_statistics) sampler->sample();
-        if(settings->thermostat_enabled) thermostat.apply(sampler,system,settings->temperature);
+        if(settings->thermostat_enabled) thermostat.apply(sampler,system,settings->temperature, false);
+        if(settings->thermostat_frozen_enabled) thermostat.apply(sampler,system,settings->temperature,true);
         if(settings->create_movie) system->mdio->save_state_to_movie_file();
 	}
 

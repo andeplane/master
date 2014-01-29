@@ -27,6 +27,7 @@ public:
     bool create_movie;
     bool load_state;
     bool thermostat_enabled;
-    bool many_frozen_atoms;
+    bool thermostat_frozen_enabled;
+
 
 };

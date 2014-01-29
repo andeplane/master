@@ -4,6 +4,7 @@ FCC_b = __FCC_b__
 # Run parameters
 load_state = __load_state__
 thermostat_enabled = __thermostat_enabled__
+thermostat_frozen_enabled = __thermostat_frozen_enabled__
 timesteps = __timesteps__
 dt = __dt__
 
@@ -18,9 +19,6 @@ nodes_z = __nodes_z__
 unit_cells_x = __unit_cells_x__
 unit_cells_y = __unit_cells_y__
 unit_cells_z = __unit_cells_z__
-
-# Optimization
-many_frozen_atoms = __many_frozen_atoms__
 
 # Gravity
 gravity_force = __gravity_force__

@@ -52,7 +52,9 @@ void System::calculate_accelerations() {
     for (i=0; i<num_atoms_local+num_atoms_ghost; i++) {
         for (a=0; a<3; a++) mc[a] = (positions[3*i+a]+cell_length[a])/cell_length[a];
         cell_index_from_vector(mc,cell_index);
-
+        if(cell_index > 1000) {
+            cout << "Trouble: " << positions[3*i+0] << " " << positions[3*i+1] << " " << positions[3*i+2] << endl;
+        }
         // Set this atom at the head of the linked list, and update its next
         linked_list_all_atoms[i] = head_all_atoms[cell_index];
         head_all_atoms[cell_index] = i;
