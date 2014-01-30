@@ -479,11 +479,9 @@ void System::move() {
     mdtimer->start_moving();
 
     for(n=0;n<num_atoms_local;n++) {
-        if(atom_type[n] != FROZEN) {
-            positions[3*n+0] += velocities[3*n+0]*dt;
-            positions[3*n+1] += velocities[3*n+1]*dt;
-            positions[3*n+2] += velocities[3*n+2]*dt;
-        }
+        positions[3*n+0] += velocities[3*n+0]*dt;
+        positions[3*n+1] += velocities[3*n+1]*dt;
+        positions[3*n+2] += velocities[3*n+2]*dt;
 
         atom_moved[n] = false;
     }
@@ -498,7 +496,7 @@ void System::apply_gravity() {
 }
 
 void System::apply_harmonic_oscillator() {
-    double spring_constant = 40.0;
+    double spring_constant = 1000.0;
     for(n=0; n<num_atoms_local; n++) {
         if(atom_type[n] == FROZEN) {
             double dx = positions[3*n+0] - initial_positions[3*n+0];
@@ -519,7 +517,7 @@ void System::step() {
     // if(settings->many_frozen_atoms) calculate_accelerations_many_frozen_atoms();
     // else calculate_accelerations();
     calculate_accelerations();
-    // apply_harmonic_oscillator();
+    apply_harmonic_oscillator();
     full_kick();
     steps++;
     t += dt;
