@@ -36,7 +36,8 @@ int main(int args, char *argv[]) {
 	double z_max_half = z_max/2;
 
 	double data[6*MAX_ATOM_NUM];
-	unsigned long  *atom_type = new unsigned long[MAX_ATOM_NUM];
+	unsigned long *atom_type = new unsigned long[MAX_ATOM_NUM];
+	unsigned long *atom_ids = new unsigned long[MAX_ATOM_NUM];
 	char *filename = new char[100];
 	int frozen_atoms = 0;
 	double max_x = 0;
@@ -56,6 +57,7 @@ int main(int args, char *argv[]) {
 			state_file.read(reinterpret_cast<char*>(&num_particles),sizeof(int));
 			state_file.read(reinterpret_cast<char*>(&data),6*num_particles*sizeof(double));
 			state_file.read(reinterpret_cast<char*>(atom_type),num_particles*sizeof(unsigned long));
+			state_file.read(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));
 			
 			// Loop through all atoms and mark them after the criteria
 			for(int i=0;i<num_particles;i++) {
@@ -84,6 +86,7 @@ int main(int args, char *argv[]) {
 			save_state_file.write(reinterpret_cast<char*>(&num_particles),sizeof(int));
 			save_state_file.write(reinterpret_cast<char*>(&data),6*num_particles*sizeof(double));
 			save_state_file.write(reinterpret_cast<char*>(atom_type),num_particles*sizeof(unsigned long));
+			save_state_file.write(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));
 			save_state_file.close();
 		}
 

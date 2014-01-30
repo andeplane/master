@@ -31,7 +31,7 @@ private:
     void set_topology();
     void init_parameters();
     void create_FCC();
-    void rearrange_frozen_atoms();
+    void count_frozen_atoms();
     inline bool atom_did_change_node(double* ri, int ku);
     inline bool atom_should_be_copied(double *ri, int ku);
     inline void cell_index_from_ijk(const int &i, const int &j, const int &k, unsigned int &cell_index);
@@ -79,9 +79,9 @@ public:
     double *mpi_send_buffer;
     double *mpi_receive_buffer;
     bool *atom_moved;
+    unsigned long *atom_ids;
     double *positions;
     double *accelerations;
-    double *accelerations_2;
     double *velocities;
 
     double mass_inverse, pressure_forces;
