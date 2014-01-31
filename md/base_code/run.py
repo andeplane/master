@@ -13,14 +13,16 @@ md = program.compile(skip_compile=False, name="md")
 geometry = MD_geometry(program)
 uc = MD_unit_converter(program)
 md_statistics = MD_statistics(program)
-program.nodes_x = 1
-program.nodes_y = 1
-program.nodes_z = 1
-program.unit_cells_x = 10
-program.unit_cells_y = 10
-program.unit_cells_z = 10
+program.nodes_x = 2
+program.nodes_y = 2
+program.nodes_z = 2
+program.unit_cells_x = 20
+program.unit_cells_y = 20
+program.unit_cells_z = 20
+program.max_number_of_atoms = 1000000
+program.max_number_of_cells = 10000
 
-if False:
+if True:
 	program.reset()
 
 	program.prepare_new_system()
@@ -31,10 +33,10 @@ if False:
 	geometry.create_cylinders(radius=0.4, num_cylinders_per_dimension=1)
 	program.save_state(path="states/03_cylinder")
 
-if True:
+if False:
 	program.load_state(path="states/03_cylinder")
 	ideal_gas_pressure = md_statistics.get_ideal_gas_pressure(temperature=300)
-	pressure_difference = 0.1*ideal_gas_pressure
+	pressure_difference = 0.2*ideal_gas_pressure
 	system_size = md_statistics.calculate_system_length()
 
 	gravity_force = uc.pressure_difference_to_gravity(delta_p=pressure_difference, length=system_size[2])
@@ -45,11 +47,12 @@ if True:
 	program.thermostat_relaxation_time = 0.1
 	program.temperature = 300
 	program.thermostat_frozen_enabled = True
-	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/04_cylinder_thermalized")
-
-if True:
-	program.load_state(path="states/04_cylinder_thermalized")
-	#program.load_state(path="states/03_cylinder")
 	program.create_movie_files = True
-	program.prepare_thermalize(timesteps=1000, run=True)
-	program.create_movie(frames=1000)
+	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/04_cylinder_thermalized")
+	program.create_movie(frames=10000)
+if False:
+	#program.load_state(path="states/04_cylinder_thermalized")
+	program.load_state(path="states/03_cylinder")
+	program.create_movie_files = True
+	program.prepare_thermalize(timesteps=10, run=True)
+	program.create_movie(frames=10)

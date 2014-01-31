@@ -21,6 +21,8 @@ Settings::Settings(string filename) {
         timesteps = ini_file.getint("timesteps");
         movie_every_n_frame = ini_file.getint("movie_every_n_frame");
         statistics_interval = ini_file.getint("statistics_interval");
+        max_number_of_atoms = ini_file.getint("max_number_of_atoms");
+        max_number_of_cells = ini_file.getint("max_number_of_cells");
         create_movie = ini_file.getbool("create_movie");
         load_state = ini_file.getbool("load_state");
         thermostat_enabled = ini_file.getbool("thermostat_enabled");

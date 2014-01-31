@@ -42,6 +42,8 @@ class MD:
 		self.thermostat_relaxation_time = 1
 		self.r_cut = 2.5
 		self.mass = 39.948
+		self.max_number_of_atoms = 100000
+		self.max_number_of_cells = 1000
 
 		self.compiler = compiler
 		self.constants = dict()
@@ -135,6 +137,8 @@ class MD:
 		output_file   = open('md.ini','w');
 
 		for line in original_file:
+			line = line.replace('__max_number_of_cells__',str(self.max_number_of_cells) )
+			line = line.replace('__max_number_of_atoms__',str(self.max_number_of_atoms) )
 			line = line.replace('__FCC_b__',str(self.FCC_b) )
 			line = line.replace('__load_state__',str(self.do_load_state).lower() )
 			line = line.replace('__thermostat_frozen_enabled__',str(self.thermostat_frozen_enabled).lower() )

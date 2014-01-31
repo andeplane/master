@@ -28,7 +28,7 @@ void MDIO::save_state_to_movie_file() {
             sprintf(filename,"movie_files/movie%04d.bin",system->myid);
             movie_file = new ofstream(filename,ios::out | ios::binary);
             movie_file_open = true;
-            data = new double[3*MAX_ATOM_NUM];
+            data = new double[3*system->max_number_of_atoms];
 
             delete filename;
         }

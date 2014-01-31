@@ -3,7 +3,7 @@
 #include <fstream>
 #include <stdlib.h>
 
-#define MAX_ATOM_NUM 100000
+#define MAX_ATOM_NUM 10000000
 #define ARGON  0
 #define FROZEN 1
 

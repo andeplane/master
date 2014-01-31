@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #define MAX_ATOM_NUM 100000
 char atom_type_string[][5] = {"Ar ", "H "};
-
+#define POSITION_SCALING_FACTOR 3.405
 using namespace std;
 
 int main(int args, char *argv[]) {
@@ -43,7 +43,7 @@ int main(int args, char *argv[]) {
 		file << "sup" << endl;
 		for(int n=0;n<num_particles;n++) {
 			// We return height - r(1) because system is inverted        	
-        	file << atom_type_string[atom_type[n]] << positions[3*n+0] << " " << positions[3*n+1] << " " << positions[3*n+2] << " " << atom_ids[n] << endl;
+        	file << atom_type_string[atom_type[n]] << positions[3*n+0]*POSITION_SCALING_FACTOR << " " << positions[3*n+1]*POSITION_SCALING_FACTOR << " " << positions[3*n+2]*POSITION_SCALING_FACTOR << " " << atom_ids[n] << endl;
         	// file << atom_type_string[atom_type[n]] << positions[3*n+0] << " " << positions[3*n+1] << " " << positions[3*n+2] << endl;
 	    }
 

@@ -24,6 +24,8 @@ public:
     int timesteps;
     int movie_every_n_frame;
     int statistics_interval;
+    int max_number_of_atoms;
+    int max_number_of_cells;
     bool create_movie;
     bool load_state;
     bool thermostat_enabled;

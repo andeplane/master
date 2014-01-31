@@ -10,8 +10,6 @@ class UnitConverter;
 
 #include <fstream>
 #include <vector>
-#define MAX_ATOM_NUM 100000
-#define MAX_CELL_NUM 1000
 #define EMPTY -1
 
 using namespace std;
@@ -56,6 +54,8 @@ public:
     double node_length[3];
     double system_length[3];
     int num_nodes;
+    int max_number_of_atoms;
+    int max_number_of_cells;
     unsigned long num_atoms_local;
     unsigned long num_atoms_all_global;
     unsigned long num_atoms_free_global;
@@ -74,7 +74,7 @@ public:
     unsigned int num_cells_including_ghosts[3];
     double dr[3];
     double shift_vector[6][3];
-    unsigned int move_queue[6][MAX_ATOM_NUM];
+    unsigned int **move_queue;
 
     double *mpi_send_buffer;
     double *mpi_receive_buffer;

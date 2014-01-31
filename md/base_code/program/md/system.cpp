@@ -22,23 +22,26 @@ System::System()
 }
 
 void System::initialize() {
-    positions = new double[3*MAX_ATOM_NUM];
-    accelerations = new double[3*MAX_ATOM_NUM];
-    velocities = new double[3*MAX_ATOM_NUM];
-    atom_type = new unsigned long[MAX_ATOM_NUM];
-    atom_moved = new bool[MAX_ATOM_NUM];
-    mpi_send_buffer = new double[MAX_ATOM_NUM];
-    mpi_receive_buffer = new double[MAX_ATOM_NUM];
-    atom_ids = new unsigned long[MAX_ATOM_NUM];
+    positions = new double[3*max_number_of_atoms];
+    accelerations = new double[3*max_number_of_atoms];
+    velocities = new double[3*max_number_of_atoms];
+    atom_type = new unsigned long[max_number_of_atoms];
+    atom_moved = new bool[max_number_of_atoms];
+    mpi_send_buffer = new double[max_number_of_atoms];
+    mpi_receive_buffer = new double[max_number_of_atoms];
+    atom_ids = new unsigned long[max_number_of_atoms];
 
-    linked_list_all_atoms = new int[MAX_ATOM_NUM];
-    linked_list_free_atoms = new int[MAX_ATOM_NUM];
-    is_ghost_cell = new bool[MAX_CELL_NUM];
-    initial_positions = new double[3*MAX_ATOM_NUM];
+    linked_list_all_atoms = new int[max_number_of_atoms];
+    linked_list_free_atoms = new int[max_number_of_atoms];
+    is_ghost_cell = new bool[max_number_of_cells];
+    initial_positions = new double[3*max_number_of_atoms];
+    move_queue = new unsigned int*[6];
+    for(int i=0; i<6; i++) {
+        move_queue[i] = new unsigned int[max_number_of_atoms];
+    }
 }
 
 void System::setup(int myid_, Settings *settings_) {
-    initialize();
     mdtimer = new MDTimer();
     mdtimer->start_system_initialize();
     unit_converter = new UnitConverter();
@@ -50,6 +53,10 @@ void System::setup(int myid_, Settings *settings_) {
     num_atoms_all_global = 0;
     num_atoms_ghost = 0;
     num_nodes = settings->nodes_x*settings->nodes_y*settings->nodes_z;
+    max_number_of_atoms = settings->max_number_of_atoms;
+    max_number_of_cells = settings->max_number_of_cells;
+
+    initialize();
 
     steps = 0;
     rnd = new Random(-(myid+1));
@@ -68,8 +75,8 @@ void System::setup(int myid_, Settings *settings_) {
     MPI_Allreduce(&num_atoms_free,&num_atoms_free_global,1,MPI_UNSIGNED_LONG,MPI_SUM,MPI_COMM_WORLD);
 
     mpi_copy();
-     calculate_accelerations();
-     half_kick();
+    calculate_accelerations();
+    half_kick();
 
     if(myid==0) cout << "System size: " << unit_converter->length_to_SI(system_length[0])*1e10 << " Å " << unit_converter->length_to_SI(system_length[1])*1e10 << " Å " << unit_converter->length_to_SI(system_length[2])*1e10 << " Å" << endl;
     if(myid==0) cout << "Atoms: " << num_atoms_all_global << endl;
@@ -125,10 +132,10 @@ void System::create_FCC() {
                         velocities[3*num_atoms_local+1] = rnd->nextGauss()*sqrt(T*mass_inverse);
                         velocities[3*num_atoms_local+2] = rnd->nextGauss()*sqrt(T*mass_inverse);
                         atom_type[num_atoms_local] = ARGON;
-                        atom_ids[num_atoms_local] = myid*MAX_ATOM_NUM + num_atoms_local;
+                        atom_ids[num_atoms_local] = myid*max_number_of_atoms + num_atoms_local;
 
                         num_atoms_local++;
-                        if(!warning_shown && num_atoms_local >= 0.8*MAX_ATOM_NUM) {
+                        if(!warning_shown && num_atoms_local >= 0.8*max_number_of_atoms) {
                             cout << "                 ### WARNING ###" << endl;
                             cout << "NUMBER OF PARTICLES IS MORE THAN 0.8*MAX_ATOM_NUM" << endl << endl;
                             warning_shown = true;
@@ -231,10 +238,22 @@ void System::set_topology() {
 
 inline void System::cell_index_from_ijk(const int &i, const int &j, const int &k, unsigned int &cell_index) {
     cell_index = i*num_cells_including_ghosts_yz+j*num_cells_including_ghosts[2]+k;
+#ifdef MD_DEBUG
+    if(cell_index > max_number_of_cells-1) {
+        cout << "Too few cells, aborting. Increase program.max_number_of_cells in python script" << endl;
+        MPI_Abort(MPI_COMM_WORLD, 1000);
+    }
+#endif
 }
 
 inline void System::cell_index_from_vector(unsigned int *mc, unsigned int &cell_index) {
     cell_index = mc[0]*num_cells_including_ghosts_yz+mc[1]*num_cells_including_ghosts[2]+mc[2];
+#ifdef MD_DEBUG
+    if(cell_index > max_number_of_cells-1) {
+        cout << "Too few cells, aborting. Increase program.max_number_of_cells in python script" << endl;
+        MPI_Abort(MPI_COMM_WORLD, 1000);
+    }
+#endif
 }
 
 inline bool System::atom_should_be_copied(double* ri, int ku) {
@@ -514,8 +533,7 @@ void System::step() {
     mpi_move();
     mpi_copy();
     if(settings->gravity_direction >= 0) apply_gravity();
-    // if(settings->many_frozen_atoms) calculate_accelerations_many_frozen_atoms();
-    // else calculate_accelerations();
+
     calculate_accelerations();
     apply_harmonic_oscillator();
     full_kick();

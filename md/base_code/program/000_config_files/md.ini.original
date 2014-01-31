@@ -7,6 +7,8 @@ thermostat_enabled = __thermostat_enabled__
 thermostat_frozen_enabled = __thermostat_frozen_enabled__
 timesteps = __timesteps__
 dt = __dt__
+max_number_of_atoms = __max_number_of_atoms__
+max_number_of_cells = __max_number_of_cells__
 
 create_movie = __create_movie__
 movie_every_n_frame = __movie_every_n_frame__
