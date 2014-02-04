@@ -7,9 +7,6 @@
 #define ARGON  0
 #define FROZEN 1
 
-double pos_coeff = 3.405;
-double pos_coeff_squared = pos_coeff*pos_coeff;
-
 using namespace std;
 
 inline double rnd(double min, double max) {

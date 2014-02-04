@@ -510,21 +510,23 @@ void System::move() {
 }
 
 void System::apply_gravity() {
+    double gravity_force_times_dt = settings->gravity_force*dt;
     for(n=0;n<num_atoms_local;n++) {
-        if(atom_type[n] != FROZEN) velocities[3*n+settings->gravity_direction] += settings->gravity_force*dt;
+        if(atom_type[n] != FROZEN) velocities[3*n+settings->gravity_direction] += gravity_force_times_dt;
     }
 }
 
 void System::apply_harmonic_oscillator() {
-    double spring_constant = 1000.0;
+    double spring_constant_times_mass_inverse = 1000.0 * mass_inverse;
     for(n=0; n<num_atoms_local; n++) {
         if(atom_type[n] == FROZEN) {
             double dx = positions[3*n+0] - initial_positions[3*n+0];
             double dy = positions[3*n+1] - initial_positions[3*n+1];
             double dz = positions[3*n+2] - initial_positions[3*n+2];
-            accelerations[3*n+0] += -spring_constant*dx / settings->mass;
-            accelerations[3*n+1] += -spring_constant*dy / settings->mass;
-            accelerations[3*n+2] += -spring_constant*dz / settings->mass;
+
+            accelerations[3*n+0] += -spring_constant_times_mass_inverse*dx;
+            accelerations[3*n+1] += -spring_constant_times_mass_inverse*dy;
+            accelerations[3*n+2] += -spring_constant_times_mass_inverse*dz;
         }
     }
 }
