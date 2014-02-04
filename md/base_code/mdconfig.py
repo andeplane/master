@@ -35,7 +35,6 @@ class MD:
 		self.unit_cells_x = 5
 		self.unit_cells_y = 5
 		self.unit_cells_z = 5
-		self.many_frozen_atoms = False
 		self.gravity_force = 0.000
 		self.gravity_direction = 0
 		self.temperature = 100
@@ -102,7 +101,11 @@ class MD:
 		
 		"""
 		if self.test_mode: return
-
+		self.gravity_force = 0
+		self.gravity_direction = 0
+		self.thermostat_relaxation_time = 1
+		self.thermostat_frozen_enabled = False
+		self.thermostat_enabled = False
 		self.log('Resetting root folder')
 		self.clean()
 		self.run_command('mkdir state_files')
@@ -155,7 +158,6 @@ class MD:
 			line = line.replace('__unit_cells_x__',str(self.unit_cells_x) )
 			line = line.replace('__unit_cells_y__',str(self.unit_cells_y) )
 			line = line.replace('__unit_cells_z__',str(self.unit_cells_z) )
-			line = line.replace('__many_frozen_atoms__',str(self.many_frozen_atoms).lower() )
 			line = line.replace('__gravity_force__',str(self.gravity_force) )
 			line = line.replace('__gravity_direction__', str(self.gravity_direction) )
 			line = line.replace('__thermostat_relaxation_time__', str(self.thermostat_relaxation_time) )
