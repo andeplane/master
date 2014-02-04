@@ -36,15 +36,15 @@ if False:
 	geometry.create_cylinders(radius=0.4, num_cylinders_per_dimension=1)
 	program.save_state(path="states/03_cylinder")
 
-if True:
+if False:
 	program.load_state(path="states/03_cylinder")
 	program.reduce_density(relative_density = 0.1)
 	program.save_state(path="states/04_cylinder_reduced_density")
 
-if False:
-	program.load_state(path="states/03_cylinder")
+if True:
+	program.load_state(path="states/04_cylinder_reduced_density")
 	ideal_gas_pressure = md_statistics.get_ideal_gas_pressure(temperature=300)
-	pressure_difference = 0.2*ideal_gas_pressure
+	pressure_difference = 0.1*ideal_gas_pressure
 	system_size = md_statistics.calculate_system_length()
 
 	gravity_force = uc.pressure_difference_to_gravity(delta_p=pressure_difference, length=system_size[2])
@@ -56,9 +56,9 @@ if False:
 	program.temperature = 300
 	program.thermostat_frozen_enabled = True
 	program.create_movie_files = True
-	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/04_cylinder_thermalized")
+	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/05_cylinder_thermalized")
 	program.create_movie(frames=10000)
-if True:
+if False:
 	#program.load_state(path="states/04_cylinder_thermalized")
 	program.load_state(path="states/04_cylinder_reduced_density")
 	program.create_movie_files = True
