@@ -1,0 +1,34 @@
+# point to the inclue directory
+INCLUDE = program/md
+SOURCEDIR = program/md
+
+INCLUDES = -I$(SOURCEDIR) -I/usr/mpi/gcc/openmpi-1.6.4/include
+# library dir
+#LIBDIR = -L/usr/local/Cellar/open-mpi/1.6.4/lib
+LIBDIR = /usr/mpi/gcc/openmpi-1.6.4/lib
+# compiler specific flags
+# CFLAGS =  -D$(TARGET) -Wall -g -DDEBUG
+CFLAGS =  -D$(TARGET) -ipo -O3 -std=c++11
+# CFLAGS = -D$(TARGET)
+FFLAGS =
+
+PROJECT = main
+
+
+_obj = atom.o cutil.o md.o mdio.o mdtimer.o random.o settings.o statisticssampler.o system.o thermostat.o unitconverter.o
+
+obj_main     = $(patsubst %,$(SOURCEDIR)/%, $(_obj))
+
+CC      = mpic++
+
+default: $(PROJECT)
+
+$(PROJECT):  $(obj_main)
+	$(CC) $(INCLUDES) -o $(PROJECT) $(obj_main) $(FFLAGS)
+%.o: %.cpp
+	$(CC) -c -o $@ $^ $(INCLUDES) $(CFLAGS)
+
+clean:
+	rm program/dsmc/*.o
+
+all: default

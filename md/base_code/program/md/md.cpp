@@ -1,7 +1,6 @@
 #include <iostream>
 #include <math.h>
 #include <time.h>
-#include <armadillo>
 #include <fstream>
 #include <system.h>
 #include <statisticssampler.h>
@@ -15,7 +14,6 @@
 #include <iomanip>
 #include <thermostat.h>
 
-using namespace arma;
 using namespace std;
 
 int main(int args, char *argv[]) {
