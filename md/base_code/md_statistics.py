@@ -1,5 +1,5 @@
 from mdconfig import *
-import matplotlib.pylab as pylab
+#import matplotlib.pylab as pylab
 from math import pi
 
 class MD_statistics:
@@ -21,11 +21,17 @@ class MD_statistics:
 		return [system_length_x, system_length_y, system_length_z]
 
 	def get_volume(self, path = "./"):
-		volume = pylab.loadtxt(path+'/volume.txt')
+		with open(path+'/volume.txt') as f:
+			floats = map(float, f)
+
+		volume = floats[0]
+		#volume = pylab.loadtxt(path+'/volume.txt')
 		return volume
 
 	def get_num_free_atoms(self, path = "./"):
-		num_free_atoms = pylab.loadtxt(path+'/number_of_free_atoms.txt')
+		with open(path+'/number_of_free_atoms.txt') as f:
+			floats = map(float, f)
+		num_free_atoms = floats[0]
 		return num_free_atoms
 
 	def get_density(self, path = "./"):
@@ -34,14 +40,14 @@ class MD_statistics:
 		density = num_free_atoms / volume
 		return density
 
-	def get_number_flow_rate(self, path = "./"):
-		filename = path+"/statistics/count_periodic.txt"
-		count_periodic = pylab.loadtxt(filename)
-		last_count_periodic = count_periodic[-1]
-		time = last_count_periodic[0]
-		count_z = last_count_periodic[3]
-		number_flow_rate = count_z / time
-		return number_flow_rate
+	# def get_number_flow_rate(self, path = "./"):
+	# 	filename = path+"/statistics/count_periodic.txt"
+	# 	count_periodic = pylab.loadtxt(filename)
+	# 	last_count_periodic = count_periodic[-1]
+	# 	time = last_count_periodic[0]
+	# 	count_z = last_count_periodic[3]
+	# 	number_flow_rate = count_z / time
+	# 	return number_flow_rate
 
 	def update_new_volume(self, volume, path = "./"):
 		volume_file = open(path+'/volume.txt', 'w')
