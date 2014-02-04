@@ -15,11 +15,11 @@ function dsmc_cercignani_lampis_distribution()
     Z = 2*V_OUT/alpha_n.*exp( -(V_OUT.^2 + (1-alpha_n)*V_IN.^2)/alpha_n).*besseli(0,bessel_argument);
     
     h_surf = surf(factor*V_IN, factor*V_OUT, Z);
-    xlabel('v_{in}')
-    ylabel('v_{out}')
-    zlabel('p(v_in,v_out)')
-    set(h_surf,'LineStyle','none')
+    xlabel('v_{in} [m/s]', 'fontsize', 15);
+    ylabel('v_{out} [m/s]', 'fontsize', 15);
+    zlabel('p(v_{in},v_{out})', 'fontsize', 15);
+    title('Cercignani-Lampis normal component distribution ', 'fontsize',13);
+    set(h_surf,'LineStyle','none');
     view(2)
-    sum(isnan(Z))
-    
+    colorbar()
 end

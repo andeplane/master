@@ -16,13 +16,13 @@ md_statistics = MD_statistics(program)
 program.nodes_x = 2
 program.nodes_y = 2
 program.nodes_z = 2
-program.unit_cells_x = 20
-program.unit_cells_y = 20
-program.unit_cells_z = 20
+program.unit_cells_x = 10
+program.unit_cells_y = 10
+program.unit_cells_z = 10
 program.max_number_of_atoms = 1000000
 program.max_number_of_cells = 10000
 
-if True:
+if False:
 	program.reset()
 
 	program.prepare_new_system()
@@ -30,8 +30,16 @@ if True:
 
 	program.prepare_thermostat(temperature=300, timesteps=2000, run=True, save_state_path="states/01_T_300K")
 	program.prepare_thermalize(timesteps=1000, run=True, save_state_path="states/02_thermalized")
+
+if False:
+	program.load_state(path="states/02_thermalized")
 	geometry.create_cylinders(radius=0.4, num_cylinders_per_dimension=1)
 	program.save_state(path="states/03_cylinder")
+
+if True:
+	program.load_state(path="states/03_cylinder")
+	program.reduce_density(relative_density = 0.1)
+	program.save_state(path="states/04_cylinder_reduced_density")
 
 if False:
 	program.load_state(path="states/03_cylinder")
@@ -50,9 +58,9 @@ if False:
 	program.create_movie_files = True
 	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/04_cylinder_thermalized")
 	program.create_movie(frames=10000)
-if False:
+if True:
 	#program.load_state(path="states/04_cylinder_thermalized")
-	program.load_state(path="states/03_cylinder")
+	program.load_state(path="states/04_cylinder_reduced_density")
 	program.create_movie_files = True
-	program.prepare_thermalize(timesteps=10, run=True)
-	program.create_movie(frames=10)
+	program.prepare_thermalize(timesteps=100, run=True)
+	program.create_movie(frames=100)

@@ -90,6 +90,8 @@ void System::setup(int myid_, Settings *settings_) {
 }
 
 void System::count_frozen_atoms() {
+    num_atoms_free = 0;
+    num_atoms_frozen = 0;
     for(int i=0; i<num_atoms_local; i++) {
         if(atom_type[i] == FROZEN)  {
             num_atoms_frozen++;
@@ -127,10 +129,9 @@ void System::create_FCC() {
                         for(i=0;i<3;i++) {
                             positions[3*num_atoms_local+i] = r[i];
                             initial_positions[3*num_atoms_local+i] = r[i];
+                            velocities[3*num_atoms_local+i] = rnd->nextGauss()*sqrt(T*mass_inverse);
                         }
-                        velocities[3*num_atoms_local+0] = rnd->nextGauss()*sqrt(T*mass_inverse);
-                        velocities[3*num_atoms_local+1] = rnd->nextGauss()*sqrt(T*mass_inverse);
-                        velocities[3*num_atoms_local+2] = rnd->nextGauss()*sqrt(T*mass_inverse);
+
                         atom_type[num_atoms_local] = ARGON;
                         atom_ids[num_atoms_local] = myid*max_number_of_atoms + num_atoms_local;
 
@@ -509,7 +510,7 @@ void System::move() {
 }
 
 void System::apply_gravity() {
-    for(n=num_atoms_frozen;n<num_atoms_local;n++) {
+    for(n=0;n<num_atoms_local;n++) {
         if(atom_type[n] != FROZEN) velocities[3*n+settings->gravity_direction] += settings->gravity_force*dt;
     }
 }

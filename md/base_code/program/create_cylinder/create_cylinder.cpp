@@ -15,6 +15,7 @@ int main(int args, char *argv[]) {
 		cout << "./create_cylinder int double int double double" << endl;
 		return 0;
 	}
+	cout << "Will create cylinders." << endl;
 
 	int cpus = atoi(argv[1]);
 	double radius = atof(argv[2]);
@@ -26,7 +27,7 @@ int main(int args, char *argv[]) {
 
 	cout << "Will create " << num_cylinders << " cylinders with radii " << radius << " on a system of size (" << system_length[0] << "," << system_length[1] << ")" << endl;
 	
-	double data[6*MAX_ATOM_NUM];
+	double *data = new double[6*MAX_ATOM_NUM];
 	unsigned long *atom_type= new unsigned long[MAX_ATOM_NUM];
 	unsigned long *atom_ids = new unsigned long[MAX_ATOM_NUM];
 	char *filename = new char[100];
@@ -44,7 +45,7 @@ int main(int args, char *argv[]) {
 		ifstream state_file(filename,ios::in | ios::binary);
 
 		state_file.read(reinterpret_cast<char*>(&num_particles),sizeof(int));
-		state_file.read(reinterpret_cast<char*>(&data),6*num_particles*sizeof(double));
+		state_file.read(reinterpret_cast<char*>(data),6*num_particles*sizeof(double));
 		state_file.read(reinterpret_cast<char*>(atom_type),num_particles*sizeof(unsigned long));
 		state_file.read(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));
 		
@@ -81,7 +82,7 @@ int main(int args, char *argv[]) {
 
 		ofstream save_state_file(filename,ios::out | ios::binary);
 		save_state_file.write(reinterpret_cast<char*>(&num_particles),sizeof(int));
-		save_state_file.write(reinterpret_cast<char*>(&data),6*num_particles*sizeof(double));
+		save_state_file.write(reinterpret_cast<char*>(data),6*num_particles*sizeof(double));
 		save_state_file.write(reinterpret_cast<char*>(atom_type),num_particles*sizeof(unsigned long));
 		save_state_file.write(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));
 		save_state_file.close();

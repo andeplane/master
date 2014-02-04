@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
-#define MAX_ATOM_NUM 100000
+#define MAX_ATOM_NUM 10000000
 char atom_type_string[][5] = {"Ar ", "H "};
 #define POSITION_SCALING_FACTOR 3.405
 using namespace std;

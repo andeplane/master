@@ -26,7 +26,7 @@ int main(int args, char *argv[]) {
 	int cpus = atoi(argv[1]);
 	double density = atof(argv[2]);
 
-	double data[6*MAX_ATOM_NUM];
+	double *data = new double[6*MAX_ATOM_NUM];
 	unsigned long *atom_type = new unsigned long[MAX_ATOM_NUM];
 	unsigned long *atom_ids = new unsigned long[MAX_ATOM_NUM];
 	char *filename = new char[100];
@@ -37,7 +37,7 @@ int main(int args, char *argv[]) {
 		sprintf(filename,"state_files/state%04d.bin",cpu);
 		ifstream state_file(filename,ios::in | ios::binary);
 		state_file.read(reinterpret_cast<char*>(&num_particles),sizeof(int));
-		state_file.read(reinterpret_cast<char*>(&data),6*num_particles*sizeof(double));
+		state_file.read(reinterpret_cast<char*>(data),6*num_particles*sizeof(double));
 		state_file.read(reinterpret_cast<char*>(atom_type),num_particles*sizeof(unsigned long));
 		state_file.read(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));
 		for(int n=0; n<num_particles; n++) {
@@ -58,26 +58,26 @@ int main(int args, char *argv[]) {
 			sprintf(filename,"state_files/state%04d.bin",cpu);
 			ifstream state_file(filename,ios::in | ios::binary);
 			state_file.read(reinterpret_cast<char*>(&num_particles),sizeof(int));
-			state_file.read(reinterpret_cast<char*>(&data),6*num_particles*sizeof(double));
+			state_file.read(reinterpret_cast<char*>(data),6*num_particles*sizeof(double));
 			state_file.read(reinterpret_cast<char*>(atom_type),num_particles*sizeof(unsigned long));
 			state_file.read(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));
 
 			// Loop through all atoms and mark them after the criteria
 			int num_conserved_particles = 0;
-			for(int i=0;i<num_particles;i++) {
+			for(int n=0;n<num_particles;n++) {
 				if(atom_type[n] == FROZEN || num_atoms_to_be_removed == 0 || rnd(0,1) < density) {
 					// Keep this particle
-					data[6*num_conserved_particles + 0] = data[6*i + 0];
-					data[6*num_conserved_particles + 1] = data[6*i + 1];
-					data[6*num_conserved_particles + 2] = data[6*i + 2];
-					data[6*num_conserved_particles + 3] = data[6*i + 3];
-					data[6*num_conserved_particles + 4] = data[6*i + 4];
-					data[6*num_conserved_particles + 5] = data[6*i + 5];
-					atom_type[num_conserved_particles] = atom_type[i];
-					atom_ids[num_conserved_particles] = atom_ids[i];
+					data[6*num_conserved_particles + 0] = data[6*n + 0];
+					data[6*num_conserved_particles + 1] = data[6*n + 1];
+					data[6*num_conserved_particles + 2] = data[6*n + 2];
+					data[6*num_conserved_particles + 3] = data[6*n + 3];
+					data[6*num_conserved_particles + 4] = data[6*n + 4];
+					data[6*num_conserved_particles + 5] = data[6*n + 5];
+					atom_type[num_conserved_particles] = atom_type[n];
+					atom_ids[num_conserved_particles] = atom_ids[n];
 
 					num_conserved_particles++;
-					total_free_atoms += (atom_type[i] != FROZEN); // Count new total number of free atoms
+					total_free_atoms += (atom_type[n] != FROZEN); // Count new total number of free atoms
 
 				} else num_atoms_to_be_removed--; // Count that we skipped this particle.
 			}
@@ -85,7 +85,7 @@ int main(int args, char *argv[]) {
 
 			ofstream save_state_file(filename,ios::out | ios::binary);
 			save_state_file.write(reinterpret_cast<char*>(&num_conserved_particles),sizeof(int));
-			save_state_file.write(reinterpret_cast<char*>(&data),6*num_conserved_particles*sizeof(double));
+			save_state_file.write(reinterpret_cast<char*>(data),6*num_conserved_particles*sizeof(double));
 			save_state_file.write(reinterpret_cast<char*>(atom_type),num_conserved_particles*sizeof(unsigned long));
 			save_state_file.write(reinterpret_cast<char*>(atom_ids),num_conserved_particles*sizeof(unsigned long));
 			save_state_file.close();

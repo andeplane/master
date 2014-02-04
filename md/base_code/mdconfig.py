@@ -201,10 +201,10 @@ class MD:
 		self.run_command("%s -O3 program/create_movie/create_movie.cpp -o create_movie" % self.compiler)
 		self.run_command("./create_movie %d %d" % (num_nodes, frames) )
 
-	def reduce_density(self, density):
+	def reduce_density(self, relative_density):
 		num_nodes = self.nodes_x*self.nodes_y*self.nodes_z
 		self.run_command("%s -O3 program/reduce_density/reduce_density.cpp -o reduce_density" % self.compiler)
-		self.run_command("./reduce_density %d %f" % (num_nodes, density) )
+		self.run_command("./reduce_density %d %f" % (num_nodes, relative_density) )
 
 	def prepare_thermostat(self, temperature, timesteps, run=False, save_state_path = None):
 		self.thermostat_enabled = True
