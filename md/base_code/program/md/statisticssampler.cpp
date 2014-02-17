@@ -61,6 +61,7 @@ void StatisticsSampler::sample_potential_energy() {
 
     potential_energy = 0;
     MPI_Reduce(&system->potential_energy, &potential_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    cout << "System potential energy: " << potential_energy << endl;
 }
 
 void StatisticsSampler::sample_temperature() {

@@ -13,23 +13,23 @@ md = program.compile(skip_compile=False, name="md")
 geometry = MD_geometry(program)
 uc = MD_unit_converter(program)
 md_statistics = MD_statistics(program)
-program.nodes_x = 2
-program.nodes_y = 2
-program.nodes_z = 2
+program.nodes_x = 1
+program.nodes_y = 1
+program.nodes_z = 1
 program.unit_cells_x = 10
 program.unit_cells_y = 10
 program.unit_cells_z = 10
 program.max_number_of_atoms = 1000000
 program.max_number_of_cells = 10000
 
-if False:
+if True:
 	program.reset()
 
 	program.prepare_new_system()
 	program.run()
 
 	program.prepare_thermostat(temperature=300, timesteps=2000, run=True, save_state_path="states/01_T_300K")
-	program.prepare_thermalize(timesteps=1000, run=True, save_state_path="states/02_thermalized")
+	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/02_thermalized")
 
 if False:
 	program.load_state(path="states/02_thermalized")
@@ -41,7 +41,7 @@ if False:
 	program.reduce_density(relative_density = 0.1)
 	program.save_state(path="states/04_cylinder_reduced_density")
 
-if True:
+if False:
 	program.load_state(path="states/04_cylinder_reduced_density")
 	ideal_gas_pressure = md_statistics.get_ideal_gas_pressure(temperature=300)
 	pressure_difference = 0.1*ideal_gas_pressure

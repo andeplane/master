@@ -134,4 +134,5 @@ void System::calculate_accelerations() {
     // cout << "Atoms: " << potential_energy_count << endl;
     pressure_forces /= mass_inverse;
     mdtimer->end_forces();
+    // cout << "Potential energy: " << potential_energy << endl;
 }
