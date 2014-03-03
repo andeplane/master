@@ -72,8 +72,7 @@ class MD:
 		if self.test_mode: return
 		self.log("Saving state to "+str(path))
 		self.run_command("mkdir -p "+path)
-		self.run_command("cp -r log state_files statistics volume.txt number_of_free_atoms.txt run_log.txt md.ini Tocontinue "+path)
-		
+		self.run_command("cp -r log state_files statistics volume.txt number_of_free_atoms.txt run_log.txt md.ini Tocontinue "+path)		
 
 	def run_command(self, cmd):
 		"""
