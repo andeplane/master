@@ -11,7 +11,7 @@ class MD_geometry:
 		self.run_command("%s -O3 program/create_spheres/create_spheres.cpp -o create_spheres" % self.compiler)
 		self.run_command("./create_spheres %d %d %f %f %f %f %f" % (num_nodes, num_spheres, r_min, r_max, x_max, y_max, z_max))
 
-	def create_cylinders(self, radius = 0.4, num_cylinders_per_dimension = 1):
+	def create_cylinders(self, radius = 0.45, num_cylinders_per_dimension = 1):
 		system_length = self.md_statistics.calculate_system_length()
 		num_nodes = self.md.nodes_x*self.md.nodes_y*self.md.nodes_z
 		max_length = max(system_length[0], system_length[1])
