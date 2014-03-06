@@ -61,7 +61,6 @@ void StatisticsSampler::sample_potential_energy() {
 
     potential_energy = 0;
     MPI_Reduce(&system->potential_energy, &potential_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    cout << "System potential energy: " << potential_energy << endl;
 }
 
 void StatisticsSampler::sample_temperature() {
@@ -100,7 +99,6 @@ void StatisticsSampler::sample() {
     if(system->myid == 0) {
         double potential_energy_per_atom = potential_energy/system->num_atoms_free_global;
         double kinetic_energy_per_atom = kinetic_energy/system->num_atoms_free_global;
-
         fprintf(system->mdio->energy_file, "%.15f %.15f %.15f %.15f %.15f\n",t_in_pico_seconds,
                 system->unit_converter->energy_to_ev(kinetic_energy_per_atom),
                 system->unit_converter->energy_to_ev(potential_energy_per_atom),
@@ -113,7 +111,8 @@ void StatisticsSampler::sample() {
                 );
         cout.setf(ios::fixed);
         cout.precision(5);
-        cout << "Timestep " << setw(6) << system->steps << "   t=" << t_in_pico_seconds << " ps   T=" << system->unit_converter->temperature_to_SI(temperature) << " K" << endl;
+        double total_energy = kinetic_energy + potential_energy;
+        cout << "Timestep " << setw(6) << system->steps << "   t=" << t_in_pico_seconds << " ps   T=" << system->unit_converter->temperature_to_SI(temperature) << " K   E=" << system->unit_converter->energy_to_ev(total_energy) << " eV   Pot=" << system->unit_converter->energy_to_ev(potential_energy) << " eV" << endl;
     }
 
     system->mdtimer->end_sampling();

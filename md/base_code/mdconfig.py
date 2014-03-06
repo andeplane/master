@@ -112,7 +112,7 @@ class MD:
 		self.run_command('mkdir statistics')
 		self.run_command('echo 0.0 0 > Tocontinue')
 
-	def compile(self, path = "./program/md", name="md", skip_compile = False):
+	def compile(self, path = "./program/md", skip_compile = False):
 		if not skip_compile:
 			current_directory = os.getcwd()
 			os.chdir(path)
@@ -123,10 +123,10 @@ class MD:
 			move_command = 'mv '+path+'/md ./%s' % name
 			self.run_command(move_command)
 
-		if not os.path.isfile("./"+name):
-			print "Executable ./"+name+" is not compiled, aborting!"
+		if not os.path.isfile("./"+self.name):
+			print "Executable ./"+self.name+" is not compiled, aborting!"
 			exit()
-		return './%s' % name
+		return './%s' % self.name
 
 	def create_config_file(self, config_file='md.ini.original'):
 		"""
@@ -215,8 +215,18 @@ class MD:
 		self.thermostat_enabled = False
 		if run: self.run(save_state_path = save_state_path)
 
+	def prepare_frozen_thermostat(self, temperature, timesteps, run=False, save_state_path = None):
+		self.thermostat_enabled = False
+		self.thermostat_frozen_enabled = True
+		self.temperature = temperature
+		self.timesteps = timesteps
+		self.create_config_file()
+		self.thermostat_frozen_enabled = False
+		if run: self.run(save_state_path = save_state_path)
+
 	def prepare_thermalize(self, timesteps, run=False, save_state_path = None):
 		self.thermostat_enabled = False
+		self.thermostat_frozen_enabled = False
 		self.timesteps = timesteps
 		self.create_config_file()
 		if run: self.run(save_state_path = save_state_path)

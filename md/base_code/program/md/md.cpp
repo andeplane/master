@@ -49,7 +49,7 @@ int main(int args, char *argv[]) {
     StatisticsSampler *sampler = new StatisticsSampler(system);
 
     for(int i=0;i<settings->timesteps;i++) {
-        system->sample_statistics = settings->statistics_interval && ((system->steps+1) % settings->statistics_interval == 0);
+        system->sample_statistics = settings->statistics_interval && ((system->steps) % settings->statistics_interval == 0);
         system->step();
         if(system->sample_statistics) sampler->sample();
         if(settings->thermostat_enabled) thermostat.apply(sampler,system,settings->temperature, false);

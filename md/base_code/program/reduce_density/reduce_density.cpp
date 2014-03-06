@@ -27,8 +27,10 @@ int main(int args, char *argv[]) {
 	unsigned long *atom_type = new unsigned long[MAX_ATOM_NUM];
 	unsigned long *atom_ids = new unsigned long[MAX_ATOM_NUM];
 	char *filename = new char[100];
-	int total_free_atoms = 0;
+	int num_free_atoms = 0;
+	int num_frozen_atoms = 0;
 	int num_particles;
+	cout << "I will reduce the relative density to " << density << endl;
 	for(int cpu=0;cpu<cpus;cpu++) { 
 		// Read binary file
 		sprintf(filename,"state_files/state%04d.bin",cpu);
@@ -38,15 +40,15 @@ int main(int args, char *argv[]) {
 		state_file.read(reinterpret_cast<char*>(atom_type),num_particles*sizeof(unsigned long));
 		state_file.read(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));
 		for(int n=0; n<num_particles; n++) {
-			if(atom_type[n] != FROZEN) {
-				total_free_atoms++;
-			}
+			if(atom_type[n] == FROZEN) num_frozen_atoms++;
+			else num_free_atoms++;
 		}
 	}
-
-	int num_atoms_to_be_removed = total_free_atoms*(1 - density);
+	int num_atoms_to_be_removed = num_free_atoms*(1 - density);
 	int num_atoms_to_be_removed0 = num_atoms_to_be_removed;
-	total_free_atoms = 0; // Recount in loop 
+	cout << "All state files read. I found " << num_frozen_atoms << " frozen atoms and " << num_free_atoms << " free atoms. (total " << num_free_atoms+num_frozen_atoms << ")" << endl;
+	cout << "I will remove approximately " << num_atoms_to_be_removed << " atoms." << endl;
+	num_free_atoms = 0; // Recount in loop 
 
 	while(num_atoms_to_be_removed > 0) {
 		for(int cpu=0;cpu<cpus;cpu++) { 
@@ -74,7 +76,7 @@ int main(int args, char *argv[]) {
 					atom_ids[num_conserved_particles] = atom_ids[n];
 
 					num_conserved_particles++;
-					total_free_atoms += (atom_type[n] != FROZEN); // Count new total number of free atoms
+					num_free_atoms += (atom_type[n] != FROZEN); // Count new total number of free atoms
 
 				} else num_atoms_to_be_removed--; // Count that we skipped this particle.
 			}
@@ -86,7 +88,6 @@ int main(int args, char *argv[]) {
 			save_state_file.write(reinterpret_cast<char*>(atom_type),num_conserved_particles*sizeof(unsigned long));
 			save_state_file.write(reinterpret_cast<char*>(atom_ids),num_conserved_particles*sizeof(unsigned long));
 			save_state_file.close();
-			cout << "CPU " << cpu << " had " << num_particles << ". I now have " << num_conserved_particles << endl;
 		}
 	}
 
@@ -94,7 +95,7 @@ int main(int args, char *argv[]) {
 
 	cout << endl << "Removed " << num_atoms_to_be_removed0 << " atoms. The density is now " << density << endl;
 	ofstream free_atoms_file("number_of_free_atoms.txt");
-	free_atoms_file << total_free_atoms;
+	free_atoms_file << num_free_atoms;
 	free_atoms_file.close();
 
 	return 0;
