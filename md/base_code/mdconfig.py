@@ -21,7 +21,8 @@ class MD:
 		# 	exit()
 
 		self.dt = dt
-		self.FCC_b = 1.54478708
+		self.FCC_b = 1.54478708 # Correct
+		
 		self.do_load_state = True
 		self.thermostat_enabled = False
 		self.thermostat_frozen_enabled = False
@@ -36,7 +37,7 @@ class MD:
 		self.unit_cells_y = 5
 		self.unit_cells_z = 5
 		self.gravity_force = 0.000
-		self.gravity_direction = 0
+		self.gravity_direction = -1
 		self.temperature = 100
 		self.thermostat_relaxation_time = 1
 		self.r_cut = 2.5

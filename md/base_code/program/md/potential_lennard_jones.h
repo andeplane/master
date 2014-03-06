@@ -43,10 +43,6 @@ void System::calculate_accelerations() {
     mdtimer->start_forces();
     double rr_cut = r_cut*r_cut;
 
-    /* Reset the potential, pressure & forces */
-    potential_energy = 0;
-    pressure_forces = 0;
-    memset(accelerations,0,num_atoms_local*3*sizeof(double));
     for (c=0; c<num_cells_including_ghosts_xyz; c++) { head_all_atoms[c] = EMPTY; head_free_atoms[c] = EMPTY; }
 
     for (i=0; i<num_atoms_local+num_atoms_ghost; i++) {
@@ -59,6 +55,10 @@ void System::calculate_accelerations() {
     }
 
     double mass_inverse_24 = mass_inverse*24;
+
+    double r_cut_squared_inverse = 1.0/rr_cut;
+    double r_cut_6_inverse = r_cut_squared_inverse*r_cut_squared_inverse*r_cut_squared_inverse;
+    double potential_energy_correction = 4*r_cut_6_inverse*(r_cut_6_inverse - 1);
 
     // Loop through all local cells (not including ghosts)
     for (mc[0]=1; mc[0]<=num_cells_local[0]; mc[0]++) {
@@ -93,7 +93,7 @@ void System::calculate_accelerations() {
                                             double force = (2*dr6_inverse-1)*dr6_inverse*dr2_inverse*mass_inverse_24;
 
                                             if(sample_statistics) {
-                                                double potential_energy_tmp = 4*dr6_inverse*(dr6_inverse - 1);
+                                                double potential_energy_tmp = 4*dr6_inverse*(dr6_inverse - 1) - potential_energy_correction;
                                                 if(is_local_atom) {
                                                     potential_energy += potential_energy_tmp;
                                                     pressure_forces += force*dr2;

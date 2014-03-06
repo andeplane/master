@@ -30,6 +30,7 @@ private:
     void init_parameters();
     void create_FCC();
     void count_frozen_atoms();
+    void reset();
     inline bool atom_did_change_node(double* ri, int ku);
     inline bool atom_should_be_copied(double *ri, int ku);
     inline void cell_index_from_ijk(const int &i, const int &j, const int &k, unsigned int &cell_index);
@@ -58,10 +59,13 @@ public:
     int max_number_of_cells;
     unsigned long num_atoms_local;
     unsigned long num_atoms_all_global;
-    unsigned long num_atoms_free_global;
-    unsigned long num_atoms_ghost;
-    unsigned long num_atoms_frozen;
     unsigned long num_atoms_free;
+    unsigned long num_atoms_free_global;
+    unsigned long num_atoms_frozen_global;
+    unsigned long num_atoms_frozen;
+    unsigned long num_atoms_ghost;
+
+
     long i,j,k,n,m,a,b,c, nx, ny, nz;
     long count_periodic[3];
 

@@ -31,6 +31,8 @@ public:
     double kinetic_energy;
     double potential_energy;
     double temperature;
+    double temperature_free_atoms;
+    double temperature_frozen_atoms;
     double v_cm[3];
     double p_cm[3];
 };

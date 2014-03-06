@@ -11,37 +11,40 @@ md_statistics = MD_statistics(program)
 program.nodes_x = 2
 program.nodes_y = 2
 program.nodes_z = 2
-program.unit_cells_x = 20
-program.unit_cells_y = 20
-program.unit_cells_z = 20
+program.unit_cells_x = 10
+program.unit_cells_y = 10
+program.unit_cells_z = 10
 program.max_number_of_atoms = 1000000
 program.max_number_of_cells = 10000
-
-if True:
+skip_start = False
+if not skip_start:
 	program.reset()
 
 	program.prepare_new_system()
 	program.run()
 
-	for i in range(1):
-		#print "With thermostat"
-		program.prepare_thermostat(temperature=300, timesteps=2000, run=True, save_state_path="states/01_T_300K")
-		print "Thermalizing"
-		program.prepare_thermalize(timesteps=100000, run=True, save_state_path="states/02_thermalized")
+	#program.prepare_thermostat(temperature=300, timesteps=2000, run=True, save_state_path="states/01_T_300K")
+	program.load_state(path="states/01_T_300K")
+	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/02_thermalized")
 
-if False:
+if not skip_start:
 	program.load_state(path="states/02_thermalized")
 	geometry.create_cylinders(radius=0.45, num_cylinders_per_dimension=1)
 	program.save_state(path="states/03_cylinder")
 
-if False:
+if not skip_start:
 	program.load_state(path="states/03_cylinder")
 	program.reduce_density(relative_density = 0.01)
 	program.save_state(path="states/04_cylinder_reduced_density")
 
 print "Density: ", uc.number_density_to_si(md_statistics.get_density())
+
+program.load_state(path="states/04_cylinder_reduced_density")
+#program.prepare_thermostat(temperature=300, timesteps=2000, run=True)
+program.prepare_thermalize(timesteps=1000000, run=True)
+
 exit()
-if True:
+if False:
 	program.load_state(path="states/04_cylinder_reduced_density")
 	ideal_gas_pressure = md_statistics.get_ideal_gas_pressure(temperature=300)
 	pressure_difference = 0.1*ideal_gas_pressure
@@ -63,5 +66,5 @@ if True:
 	#program.load_state(path="states/04_cylinder_thermalized")
 	program.load_state(path="states/04_cylinder_reduced_density")
 	program.create_movie_files = True
-	program.prepare_thermalize(timesteps=100, run=True)
-	program.create_movie(frames=100)
+	program.prepare_thermalize(timesteps=10000, run=True)
+	program.create_movie(frames=10000)

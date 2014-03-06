@@ -8,14 +8,16 @@
 #include <iomanip>
 #include <atom_types.h>
 
-StatisticsSampler::StatisticsSampler(System *system_) {
+StatisticsSampler::StatisticsSampler(System *system_) :
+    temperature_sampled_at(-1),
+    kinetic_energy_sampled_at(-1),
+    potential_energy_sampled_at(-1),
+    pressure_sampled_at(-1),
+    count_periodic_sampled_at(-1)
+{
     system = system_;
     settings = system->settings;
-    temperature_sampled_at = -1;
-    kinetic_energy_sampled_at = -1;
-    potential_energy_sampled_at = -1;
-    pressure_sampled_at = -1;
-    count_periodic_sampled_at = -1;
+
 }
 
 void StatisticsSampler::sample_momentum_cm() {
@@ -48,7 +50,7 @@ void StatisticsSampler::sample_kinetic_energy() {
         double vx = system->velocities[3*i+0];
         double vy = system->velocities[3*i+1];
         double vz = system->velocities[3*i+2];
-        if(system->atom_type[i] == ARGON) kinetic_energy += 0.5*settings->mass*(vx*vx + vy*vy + vz*vz);
+        kinetic_energy += 0.5*settings->mass*(vx*vx + vy*vy + vz*vz);
     }
     MPI_Allreduce(&kinetic_energy, &kinetic_energy_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
@@ -68,8 +70,28 @@ void StatisticsSampler::sample_temperature() {
     temperature_sampled_at = system->steps;
 
     sample_kinetic_energy();
-    double kinetic_energy_per_atom = kinetic_energy / system->num_atoms_free_global;
+    double kinetic_energy_per_atom = kinetic_energy / system->num_atoms_all_global;
     temperature = 2.0/3*kinetic_energy_per_atom;
+
+    double kinetic_energy_free_atoms = 0;
+    double kinetic_energy_frozen_atoms = 0;
+    for(int n=0; n<system->num_atoms_local; n++) {
+        double v_squared = system->velocities[3*n+0]*system->velocities[3*n+0] + system->velocities[3*n+1]*system->velocities[3*n+1] + system->velocities[3*n+2]*system->velocities[3*n+2];
+        if(system->atom_type[n] == ARGON) {
+            kinetic_energy_free_atoms += 0.5*system->settings->mass*v_squared;
+        } else {
+            kinetic_energy_frozen_atoms += 0.5*system->settings->mass*v_squared;
+        }
+    }
+
+    double kinetic_energy_free_atoms_global = 0;
+    double kinetic_energy_frozen_atoms_global = 0;
+    MPI_Reduce(&kinetic_energy_free_atoms,&kinetic_energy_free_atoms_global,1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&kinetic_energy_frozen_atoms,&kinetic_energy_frozen_atoms_global,1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    if(system->myid==0) {
+        temperature_free_atoms = 2.0/(3*system->num_atoms_free_global)*kinetic_energy_free_atoms_global;
+        temperature_frozen_atoms = 2.0/(3*system->num_atoms_frozen_global)*kinetic_energy_frozen_atoms_global;
+    }
 }
 
 void StatisticsSampler::sample_pressure() {
@@ -112,7 +134,7 @@ void StatisticsSampler::sample() {
         cout.setf(ios::fixed);
         cout.precision(5);
         double total_energy = kinetic_energy + potential_energy;
-        cout << "Timestep " << setw(6) << system->steps << "   t=" << t_in_pico_seconds << " ps   T=" << system->unit_converter->temperature_to_SI(temperature) << " K   E=" << system->unit_converter->energy_to_ev(total_energy) << " eV   Pot=" << system->unit_converter->energy_to_ev(potential_energy) << " eV" << endl;
+        cout << "Timestep " << setw(6) << system->steps << "   t=" << t_in_pico_seconds << " ps   T=" << system->unit_converter->temperature_to_SI(temperature) << " K   T(gas)=" << system->unit_converter->temperature_to_SI(temperature_free_atoms) << "K   E=" << system->unit_converter->energy_to_ev(total_energy) << " eV   Pot=" << system->unit_converter->energy_to_ev(potential_energy) << " eV" << endl;
     }
 
     system->mdtimer->end_sampling();

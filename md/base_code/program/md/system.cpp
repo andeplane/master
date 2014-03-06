@@ -73,6 +73,7 @@ void System::setup(int myid_, Settings *settings_) {
 
     MPI_Allreduce(&num_atoms_local,&num_atoms_all_global,1,MPI_UNSIGNED_LONG,MPI_SUM,MPI_COMM_WORLD);
     MPI_Allreduce(&num_atoms_free,&num_atoms_free_global,1,MPI_UNSIGNED_LONG,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&num_atoms_frozen,&num_atoms_frozen_global,1,MPI_UNSIGNED_LONG,MPI_SUM,MPI_COMM_WORLD);
 
     mpi_copy();
     calculate_accelerations();
@@ -517,29 +518,43 @@ void System::apply_gravity() {
 }
 
 void System::apply_harmonic_oscillator() {
-    double spring_constant_times_mass_inverse = 1000.0 * mass_inverse;
+    double spring_constant = 1000.0;
+    double spring_constant_times_mass_inverse = spring_constant * mass_inverse;
     for(n=0; n<num_atoms_local; n++) {
         if(atom_type[n] == FROZEN) {
             double dx = positions[3*n+0] - initial_positions[3*n+0];
             double dy = positions[3*n+1] - initial_positions[3*n+1];
             double dz = positions[3*n+2] - initial_positions[3*n+2];
+            double dr2 = dx*dx + dy*dy + dz*dz;
 
             accelerations[3*n+0] += -spring_constant_times_mass_inverse*dx;
             accelerations[3*n+1] += -spring_constant_times_mass_inverse*dy;
             accelerations[3*n+2] += -spring_constant_times_mass_inverse*dz;
+            potential_energy += 0.5*spring_constant*dr2;
         }
     }
 }
 
+void System::reset() {
+    /* Reset the potential, pressure & forces */
+    memset(accelerations,0,3*num_atoms_local*sizeof(double));
+    potential_energy = 0;
+    pressure_forces = 0;
+}
+
 void System::step() {
+    half_kick();
     move();
     mpi_move();
     mpi_copy();
+    reset();
     if(settings->gravity_direction >= 0) apply_gravity();
 
     calculate_accelerations();
     apply_harmonic_oscillator();
-    full_kick();
+    half_kick();
+
+
     steps++;
     t += dt;
 }
