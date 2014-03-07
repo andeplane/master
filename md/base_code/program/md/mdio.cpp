@@ -67,7 +67,7 @@ void MDIO::save_state_to_file_binary() {
         tmp_data[6*i + 5] = system->velocities[3*i+2];
     }
 
-    file.write (reinterpret_cast<char*>(&system->num_atoms_local), sizeof(int));
+    file.write (reinterpret_cast<char*>(&system->num_atoms_local), sizeof(unsigned long));
     file.write (reinterpret_cast<char*>(tmp_data), 6*system->num_atoms_local*sizeof(double));
     file.write (reinterpret_cast<char*>(system->atom_type), system->num_atoms_local*sizeof(unsigned long));
     file.write (reinterpret_cast<char*>(system->atom_ids), system->num_atoms_local*sizeof(unsigned long));
@@ -85,8 +85,12 @@ void MDIO::load_state_from_file_binary() {
     sprintf(filename,"state_files/state%04d.bin",system->myid);
 
     ifstream file (filename, ios::in | ios::binary);
+    if(!file.is_open()) {
+        cerr << system->myid << " could not open file " << filename << ". Aborting!" << endl;
+        exit(1);
+    }
 
-    file.read(reinterpret_cast<char*>(&system->num_atoms_local),sizeof(int));
+    file.read(reinterpret_cast<char*>(&system->num_atoms_local),sizeof(unsigned long));
 
     double *tmp_data = new double[6*system->num_atoms_local];
     file.read(reinterpret_cast<char*>(tmp_data),6*system->num_atoms_local*sizeof(double));

@@ -63,8 +63,6 @@ class MD:
 			logging.info("#LOG "+str(datetime.now())+" : "+message)
 
 	def load_state(self, path):
-		if self.test_mode: return
-
 		self.clean()
 		self.log("Loading state from "+path)
 		self.run_command("cp -r "+path+"/ ./")
@@ -121,7 +119,7 @@ class MD:
 			#self.run_command('make clean')
 			self.run_command('make')
 			os.chdir(current_directory)
-			move_command = 'mv '+path+'/md ./%s' % name
+			move_command = 'mv '+path+'/md ./%s' % self.name
 			self.run_command(move_command)
 
 		if not os.path.isfile("./"+self.name):
