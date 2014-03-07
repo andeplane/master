@@ -44,7 +44,7 @@ int main(int args, char *argv[]) {
 		sprintf(filename,"state_files/state%04d.bin",cpu);
 		ifstream state_file(filename,ios::in | ios::binary);
 
-		state_file.read(reinterpret_cast<char*>(&num_particles),sizeof(int));
+		state_file.read(reinterpret_cast<char*>(&num_particles),sizeof(unsigned long));
 		state_file.read(reinterpret_cast<char*>(data),6*num_particles*sizeof(double));
 		state_file.read(reinterpret_cast<char*>(atom_type),num_particles*sizeof(unsigned long));
 		state_file.read(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));
@@ -81,7 +81,7 @@ int main(int args, char *argv[]) {
 		state_file.close();
 
 		ofstream save_state_file(filename,ios::out | ios::binary);
-		save_state_file.write(reinterpret_cast<char*>(&num_particles),sizeof(int));
+		save_state_file.write(reinterpret_cast<char*>(&num_particles),sizeof(unsigned long));
 		save_state_file.write(reinterpret_cast<char*>(data),6*num_particles*sizeof(double));
 		save_state_file.write(reinterpret_cast<char*>(atom_type),num_particles*sizeof(unsigned long));
 		save_state_file.write(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));

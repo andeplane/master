@@ -100,7 +100,7 @@ class MD:
 		"""
 		if self.test_mode: return
 		self.gravity_force = 0
-		self.gravity_direction = 0
+		self.gravity_direction = -1
 		self.thermostat_relaxation_time = 1
 		self.thermostat_frozen_enabled = False
 		self.thermostat_enabled = False
