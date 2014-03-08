@@ -31,7 +31,7 @@ int main(int args, char *argv[]) {
 	unsigned long *atom_type= new unsigned long[MAX_ATOM_NUM];
 	unsigned long *atom_ids = new unsigned long[MAX_ATOM_NUM];
 	char *filename = new char[100];
-	int num_particles;
+	unsigned long num_particles;
 	
 	double radius_squared = radius*radius;
 	int frozen_atoms = 0;

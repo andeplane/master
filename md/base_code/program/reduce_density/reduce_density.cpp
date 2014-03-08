@@ -27,9 +27,9 @@ int main(int args, char *argv[]) {
 	unsigned long *atom_type = new unsigned long[MAX_ATOM_NUM];
 	unsigned long *atom_ids = new unsigned long[MAX_ATOM_NUM];
 	char *filename = new char[100];
-	int num_free_atoms = 0;
-	int num_frozen_atoms = 0;
-	int num_particles;
+	unsigned long num_free_atoms = 0;
+	unsigned long num_frozen_atoms = 0;
+	unsigned long num_particles;
 	cout << "I will reduce the relative density to " << density << endl;
 	for(int cpu=0;cpu<cpus;cpu++) { 
 		// Read binary file

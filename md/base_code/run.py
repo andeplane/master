@@ -8,9 +8,9 @@ md = program.compile(skip_compile=True)
 geometry = MD_geometry(program)
 uc = MD_unit_converter(program)
 md_statistics = MD_statistics(program)
-program.nodes_x = 4
-program.nodes_y = 4
-program.nodes_z = 4
+program.nodes_x = 2
+program.nodes_y = 2
+program.nodes_z = 2
 program.unit_cells_x = 10
 program.unit_cells_y = 10
 program.unit_cells_z = 10
@@ -20,16 +20,16 @@ if False:
 	program.reset()
 	program.prepare_new_system()
 	program.run()
-	for i in range(5):
-		print "### Applying thermostat, T=300K ###"
-		program.prepare_thermostat(temperature=300, timesteps=2000, run=True)
-		print "### Thermalizing ... ###"
-		program.prepare_thermalize(timesteps=2000, run=True)
+	# for i in range(5):
+	# 	print "### Applying thermostat, T=300K ###"
+	# 	program.prepare_thermostat(temperature=300, timesteps=2000, run=True)
+	# 	print "### Thermalizing ... ###"
+	# 	program.prepare_thermalize(timesteps=2000, run=True)
 
 	print "### Applying thermostat, T=300K ###"
 	program.prepare_thermostat(temperature=300, timesteps=2000, run=True, save_state_path="states/01_T_300K")
 	print "### Thermalizing ... ###"
-	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/02_thermalized")
+	program.prepare_thermalize(timesteps=2000, run=True, save_state_path="states/02_thermalized")
 
 program.load_state(path="states/02_thermalized")
 print "### Creating cylinder ###"
@@ -49,7 +49,6 @@ for i in range(len(densities)):
 	print "### Reducing density to %e ###" % (density)
 	program.reduce_density(relative_density = ratio)
 	program.max_number_of_atoms = 1000000
-	exit()
 	print "### Applying thermostat, 300K ###"
 	for i in range(3):
 		program.prepare_thermostat(temperature=300, timesteps=2000, run=True)
