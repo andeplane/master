@@ -65,7 +65,7 @@ class MD:
 	def load_state(self, path):
 		self.clean()
 		self.log("Loading state from "+path)
-		self.run_command("cp -r "+path+"/ ./")
+		self.run_command("cp -r "+path+"/* ./")
 
 	def save_state(self, path):
 		if self.test_mode: return

@@ -8,63 +8,69 @@ md = program.compile(skip_compile=True)
 geometry = MD_geometry(program)
 uc = MD_unit_converter(program)
 md_statistics = MD_statistics(program)
-program.nodes_x = 2
-program.nodes_y = 2
-program.nodes_z = 2
+program.nodes_x = 4
+program.nodes_y = 4
+program.nodes_z = 4
 program.unit_cells_x = 10
 program.unit_cells_y = 10
 program.unit_cells_z = 10
-program.max_number_of_atoms = 1000000
 program.max_number_of_cells = 10000
-skip_start = False
-if not skip_start:
-	program.reset()
 
+if False:
+	program.reset()
 	program.prepare_new_system()
 	program.run()
+	for i in range(5):
+		print "### Applying thermostat, T=300K ###"
+		program.prepare_thermostat(temperature=300, timesteps=2000, run=True)
+		print "### Thermalizing ... ###"
+		program.prepare_thermalize(timesteps=2000, run=True)
 
-	#program.prepare_thermostat(temperature=300, timesteps=2000, run=True, save_state_path="states/01_T_300K")
-	program.load_state(path="states/01_T_300K")
+	print "### Applying thermostat, T=300K ###"
+	program.prepare_thermostat(temperature=300, timesteps=2000, run=True, save_state_path="states/01_T_300K")
+	print "### Thermalizing ... ###"
 	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/02_thermalized")
 
-if not skip_start:
-	program.load_state(path="states/02_thermalized")
-	geometry.create_cylinders(radius=0.45, num_cylinders_per_dimension=1)
-	program.save_state(path="states/03_cylinder")
+program.load_state(path="states/02_thermalized")
+print "### Creating cylinder ###"
+geometry.create_cylinders(radius=0.45, num_cylinders_per_dimension=1)
+program.save_state(path="states/03_cylinder")
 
-if not skip_start:
+program.test_mode = False
+initial_density = uc.number_density_to_si(md_statistics.get_density(path="states/03_cylinder"))
+densities = [2e25, 4e25, 6e25, 8e25, 1e26, 3e26, 5e26, 7e26, 9e26, 1e27, 5e27, 1e28]
+for i in range(len(densities)):
+	print "### Loading cylinder ###"
+	# Reload the cylinder again
 	program.load_state(path="states/03_cylinder")
-	program.reduce_density(relative_density = 0.01)
-	program.save_state(path="states/04_cylinder_reduced_density")
-
-print "Density: ", uc.number_density_to_si(md_statistics.get_density())
-
-program.load_state(path="states/04_cylinder_reduced_density")
-#program.prepare_thermostat(temperature=300, timesteps=2000, run=True)
-program.prepare_thermalize(timesteps=1000000, run=True)
-
-exit()
-if False:
-	program.load_state(path="states/04_cylinder_reduced_density")
+	density = densities[len(densities)-1-i]
+	ratio = density / initial_density
+	
+	print "### Reducing density to %e ###" % (density)
+	program.reduce_density(relative_density = ratio)
+	program.max_number_of_atoms = 1000000
+	exit()
+	print "### Applying thermostat, 300K ###"
+	for i in range(3):
+		program.prepare_thermostat(temperature=300, timesteps=2000, run=True)
+		program.prepare_thermalize(timesteps=2000, run=True)
+	
+	print "### Thermalizing ... ###"
+	program.prepare_thermalize(timesteps=10000, run=True)
+	
 	ideal_gas_pressure = md_statistics.get_ideal_gas_pressure(temperature=300)
+	print "### Ideal gas pressure= %e ###" % (uc.pressure_to_si(P=ideal_gas_pressure))
 	pressure_difference = 0.1*ideal_gas_pressure
 	system_size = md_statistics.calculate_system_length()
-
 	gravity_force = uc.pressure_difference_to_gravity(delta_p=pressure_difference, length=system_size[2])
-	print "Gravity force, SI:", uc.acceleration_to_si(gravity_force)
-	print "Gravity force, MD:", gravity_force
+	
 	program.gravity_force = gravity_force
 	program.gravity_direction = 2
 	program.thermostat_relaxation_time = 0.1
-	program.temperature = 300
-	program.thermostat_frozen_enabled = True
-	program.create_movie_files = True
-	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/05_cylinder_thermalized")
-	program.create_movie(frames=10000)
-
-if True:
-	#program.load_state(path="states/04_cylinder_thermalized")
-	program.load_state(path="states/04_cylinder_reduced_density")
-	program.create_movie_files = True
-	program.prepare_thermalize(timesteps=10000, run=True)
-	program.create_movie(frames=10000)
+	
+	state_base_name = "states/%e/" % (density)
+	
+	print "### Thermalizing with gravity ... ###"
+	program.prepare_frozen_thermostat(temperature=300, timesteps=20000, run=True, save_state_path=state_base_name+"04_thermalized")
+	print "### Sampling statistics ###"
+	program.prepare_frozen_thermostat(temperature=300, timesteps=50000, run=True, save_state_path=state_base_name+"05_sampling")

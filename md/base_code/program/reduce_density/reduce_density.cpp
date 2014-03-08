@@ -35,7 +35,7 @@ int main(int args, char *argv[]) {
 		// Read binary file
 		sprintf(filename,"state_files/state%04d.bin",cpu);
 		ifstream state_file(filename,ios::in | ios::binary);
-		state_file.read(reinterpret_cast<char*>(&num_particles),sizeof(int));
+		state_file.read(reinterpret_cast<char*>(&num_particles),sizeof(unsigned long));
 		state_file.read(reinterpret_cast<char*>(data),6*num_particles*sizeof(double));
 		state_file.read(reinterpret_cast<char*>(atom_type),num_particles*sizeof(unsigned long));
 		state_file.read(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));
