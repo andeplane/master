@@ -85,15 +85,12 @@ void MDIO::load_state_from_file_binary() {
     sprintf(filename,"state_files/state%04d.bin",system->myid);
 
     ifstream file (filename, ios::in | ios::binary);
-    cout << system->myid << " will load from filename " << endl;
     if(!file.is_open()) {
         cerr << system->myid << " could not open file " << filename << ". Aborting!" << endl;
         exit(1);
     }
 
-    cout << system->myid << " passed open file test" << endl;
     file.read(reinterpret_cast<char*>(&system->num_atoms_local), sizeof(unsigned long));
-    cout << system->myid << " read " << system->num_atoms_local << " atoms." << endl;
 
     double *tmp_data = new double[6*system->num_atoms_local];
     file.read(reinterpret_cast<char*>(tmp_data),6*system->num_atoms_local*sizeof(double));

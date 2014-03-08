@@ -42,7 +42,6 @@ void System::initialize() {
 }
 
 void System::setup(int myid_, Settings *settings_) {
-    cout << "#1" << endl;
     mdtimer = new MDTimer();
     mdtimer->start_system_initialize();
     unit_converter = new UnitConverter();
@@ -67,18 +66,14 @@ void System::setup(int myid_, Settings *settings_) {
     mdio = new MDIO();
     mdio->setup(this);
     set_topology();
-    cout << "#2" << endl;
     if(settings->load_state) mdio->load_state_from_file_binary();
     else create_FCC();
-    cout << "#3" << endl;
 
     count_frozen_atoms();
 
     MPI_Allreduce(&num_atoms_local,&num_atoms_all_global,1,MPI_UNSIGNED_LONG,MPI_SUM,MPI_COMM_WORLD);
     MPI_Allreduce(&num_atoms_free,&num_atoms_free_global,1,MPI_UNSIGNED_LONG,MPI_SUM,MPI_COMM_WORLD);
     MPI_Allreduce(&num_atoms_frozen,&num_atoms_frozen_global,1,MPI_UNSIGNED_LONG,MPI_SUM,MPI_COMM_WORLD);
-
-    cout << "#4" << endl;
 
     mpi_copy();
     calculate_accelerations();

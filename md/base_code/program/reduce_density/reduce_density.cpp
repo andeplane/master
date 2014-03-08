@@ -62,7 +62,7 @@ int main(int args, char *argv[]) {
 			state_file.read(reinterpret_cast<char*>(atom_ids),num_particles*sizeof(unsigned long));
 
 			// Loop through all atoms and mark them after the criteria
-			int num_conserved_particles = 0;
+			unsigned long num_conserved_particles = 0;
 			for(int n=0;n<num_particles;n++) {
 				if(atom_type[n] == FROZEN || num_atoms_to_be_removed == 0 || rnd(0,1) < density) {
 					// Keep this particle

@@ -16,7 +16,7 @@ program.unit_cells_y = 10
 program.unit_cells_z = 10
 program.max_number_of_cells = 10000
 
-if False:
+if True:
 	program.reset()
 	program.prepare_new_system()
 	program.run()
@@ -27,9 +27,9 @@ if False:
 	# 	program.prepare_thermalize(timesteps=2000, run=True)
 
 	print "### Applying thermostat, T=300K ###"
-	program.prepare_thermostat(temperature=300, timesteps=2000, run=True, save_state_path="states/01_T_300K")
+	program.prepare_thermostat(temperature=300, timesteps=200, run=True, save_state_path="states/01_T_300K")
 	print "### Thermalizing ... ###"
-	program.prepare_thermalize(timesteps=2000, run=True, save_state_path="states/02_thermalized")
+	program.prepare_thermalize(timesteps=200, run=True, save_state_path="states/02_thermalized")
 
 program.load_state(path="states/02_thermalized")
 print "### Creating cylinder ###"
