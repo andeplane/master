@@ -108,7 +108,7 @@ void System::create_FCC() {
     double zCell[4] = {0, 0, 0.5, 0.5};
 
     double r[3];
-    double T = unit_converter->temperature_from_SI(settings->temperature);
+    double T = settings->temperature;
 
     bool warning_shown = false;
     for(int x = 0; x < settings->nodes_x*settings->unit_cells_x; x++) {

@@ -1,10 +1,9 @@
 from mdconfig import *
-from math import sqrt, pi
 from md_statistics import *
+from math import sqrt, pi
 
-class MD_unit_converter:
+class MDUnitConverter:
 	def __init__(self, md):
-		self.md_statistics = MD_statistics(md)
 		self.md = md
 		self.m0 = 1.66053886e-27  # si
 		self.L0A = 3.405
@@ -111,13 +110,15 @@ class MD_unit_converter:
 	def gravity_to_pressure_difference(self, g, length):
 		''' Converts gravity driven force to equivalent pressure difference
 		'''
-		density = self.md_statistics.get_density()
+		md_statistics = MDStatistics(self.md, self)
+		density = md_statistics.get_density()
 		return g*density*self.md.mass*length
 
 	def pressure_difference_to_gravity(self, delta_p, length):
 		''' Converts gravity driven force to equivalent pressure difference
 		'''
-		density = self.md_statistics.get_density()
+		md_statistics = MDStatistics(self.md, self)
+		density = md_statistics.get_density()
 		return delta_p / (length*density*self.md.mass)
 
 	def density_from_knudsen_number(self, knudsen_number, length, SI=False):
@@ -133,5 +134,6 @@ class MD_unit_converter:
 				Kn=mean_free_path/length
 		''' 
 		sigma = 1.0 # Diameter
-		density = self.md_statistics.get_density()
+		md_statistics = MDStatistics(self.md, self)
+		density = md_statistics.get_density()
 		return 1.0/(sqrt(2.0)*pi*sigma**2*knudsen_number*density)

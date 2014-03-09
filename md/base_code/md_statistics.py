@@ -1,10 +1,11 @@
 from mdconfig import *
-#import matplotlib.pylab as pylab
+from md_unit_converter import *
 from math import pi
 
-class MD_statistics:
-	def __init__(self, md):
+class MDStatistics():
+	def __init__(self, md, unit_converter):
 		self.md = md
+		self.unit_converter = unit_converter
 
 	def get_total_unit_cells(self):
 		total_unit_cells_x = self.md.unit_cells_x*self.md.nodes_x
@@ -25,7 +26,6 @@ class MD_statistics:
 			floats = map(float, f)
 
 		volume = floats[0]
-		#volume = pylab.loadtxt(path+'/volume.txt')
 		return volume
 
 	def get_num_free_atoms(self, path = "./"):
@@ -40,15 +40,6 @@ class MD_statistics:
 		density = num_free_atoms / volume
 		return density
 
-	# def get_number_flow_rate(self, path = "./"):
-	# 	filename = path+"/statistics/count_periodic.txt"
-	# 	count_periodic = pylab.loadtxt(filename)
-	# 	last_count_periodic = count_periodic[-1]
-	# 	time = last_count_periodic[0]
-	# 	count_z = last_count_periodic[3]
-	# 	number_flow_rate = count_z / time
-	# 	return number_flow_rate
-
 	def update_new_volume(self, volume, path = "./"):
 		volume_file = open(path+'/volume.txt', 'w')
 		volume_file.write(str(volume))
@@ -59,13 +50,29 @@ class MD_statistics:
 		pressure = density*temperature
 		return pressure
 
-	def calculate_permeability(self, porosity, path = "./"):
-		volume = self.get_volume(path=path)
-		num_free_atoms = self.get_num_free_atoms(path=path)
-		number_flow_rate = self.get_number_flow_rate(path=path)
-		density = num_free_atoms / volume
-		volume_per_atom = volume / num_free_atoms
-		volumetric_flow_rate = number_flow_rate*volume_per_atom
-		sigma = 3.405
-		viscosity = 5.0/(16.0*sigma**2)*sqrt(self.md.mass*self.md.temperature/pi)
-		
+	def calc_mean_free_path(self, path="./"):
+		from math import sqrt
+		density = self.get_density(path=path)
+		diam = 1.0
+		return 1.0/(sqrt(2)*pi*diam**2*density)
+
+	def get_gravity_force(self, path="./"):
+		import re
+		ini_filename = path+"/md.ini"
+		f = open(ini_filename,'r')
+		content = f.read()
+		f.close()
+		regex_float = '[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?'
+		rg = re.compile('(gravity_force = )+('+regex_float+')', re.IGNORECASE)
+		matches = rg.search(content)
+		force = None
+		if matches:
+			force = float(matches.group(2))
+
+		return force
+
+	def calc_viscosity(self, path="./"):
+		from math import sqrt, pi
+		density = self.get_density(path=path)
+		diam = 1.0
+		return 5.0/(16.0*sigma**2)*sqrt(self.md.mass*self.md.temperature/pi)

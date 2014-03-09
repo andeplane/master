@@ -1,10 +1,12 @@
 from md_statistics import *
+from md_unit_converter import *
 from math import pi
 
-class MD_geometry:
+class MDGeometry:
 	def __init__(self, md):
 		self.md = md
-		self.md_statistics = MD_statistics(md)
+		self.unit_converter = MDUnitConverter(md)
+		self.md_statistics = MDStatistics(md, self.unit_converter)
 	
 	def create_spheres(self, num_spheres, r_min, r_max, x_max, y_max, z_max):
 		num_nodes = self.nodes_x*self.nodes_y*self.nodes_z

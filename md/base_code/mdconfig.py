@@ -104,6 +104,7 @@ class MD:
 		self.thermostat_relaxation_time = 1
 		self.thermostat_frozen_enabled = False
 		self.thermostat_enabled = False
+		self.temperature = 1.0
 		self.log('Resetting root folder')
 		self.clean()
 		self.run_command('mkdir state_files')
