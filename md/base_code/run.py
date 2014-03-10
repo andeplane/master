@@ -11,27 +11,27 @@ md_statistics = MDStatistics(program, unit_converter)
 program.nodes_x = 2
 program.nodes_y = 2
 program.nodes_z = 2
-program.unit_cells_x = 5
-program.unit_cells_y = 5
-program.unit_cells_z = 5
+program.unit_cells_x = 3
+program.unit_cells_y = 3
+program.unit_cells_z = 3
 program.max_number_of_cells = 10000
-T = unit_converter.temperature_from_si(300)
+temperature = unit_converter.temperature_from_si(300)
+program.test_mode = False
 
 if True:
 	program.reset()
 	program.prepare_new_system()
 	program.run()
-	for i in range(5):
-		print "### Applying thermostat, T=300K ###"
-		program.prepare_thermostat(temperature=T, timesteps=2000, run=True)
-		print "### Thermalizing ... ###"
-		program.prepare_thermalize(timesteps=2000, run=True)
+	#for i in range(5):
+	#	print "### Applying thermostat, T=300K ###"
+	#	program.prepare_thermostat(temperature=temperature, timesteps=2000, run=True)
+	#	print "### Thermalizing ... ###"
+	#	program.prepare_thermalize(timesteps=2000, run=True)
 
 	print "### Applying thermostat, T=300K ###"
-	
-	program.prepare_thermostat(temperature=T, timesteps=200, run=True, save_state_path="states/01_T_300K")
+	program.prepare_thermostat(temperature=temperature, timesteps=2000, run=True, save_state_path="states/01_T_300K")
 	print "### Thermalizing ... ###"
-	program.prepare_thermalize(timesteps=200, run=True, save_state_path="states/02_thermalized")
+	program.prepare_thermalize(timesteps=10000, run=True, save_state_path="states/02_thermalized")
 
 program.load_state(path="states/02_thermalized")
 print "### Creating cylinder ###"
@@ -51,17 +51,18 @@ for i in range(len(densities)):
 	print "### Reducing density to %e ###" % (density)
 	program.reduce_density(relative_density = ratio)
 	program.max_number_of_atoms = 1000000
+
 	print "### Applying thermostat, 300K ###"
 	for i in range(3):
-		program.prepare_thermostat(temperature=T, timesteps=2000, run=True)
+		program.prepare_thermostat(temperature=temperature, timesteps=2000, run=True)
 		program.prepare_thermalize(timesteps=2000, run=True)
 	
 	print "### Thermalizing ... ###"
 	program.prepare_thermalize(timesteps=10000, run=True)
 	
-	ideal_gas_pressure = md_statistics.get_ideal_gas_pressure(temperature=T)
+	ideal_gas_pressure = md_statistics.get_ideal_gas_pressure(temperature=temperature)
 	print "### Ideal gas pressure= %e ###" % (unit_converter.pressure_to_si(P=ideal_gas_pressure))
-	pressure_difference = 0.1*ideal_gas_pressure
+	pressure_difference = 0.05*ideal_gas_pressure
 	system_size = md_statistics.calculate_system_length()
 	gravity_force = unit_converter.pressure_difference_to_gravity(delta_p=pressure_difference, length=system_size[2])
 	
@@ -72,6 +73,6 @@ for i in range(len(densities)):
 	state_base_name = "states/%e/" % (density)
 	
 	print "### Thermalizing with gravity ... ###"
-	program.prepare_frozen_thermostat(temperature=T, timesteps=20000, run=True, save_state_path=state_base_name+"04_thermalized")
+	program.prepare_frozen_thermostat(temperature=temperature, timesteps=50000, run=True, save_state_path=state_base_name+"04_thermalized")
 	print "### Sampling statistics ###"
-	program.prepare_frozen_thermostat(temperature=T, timesteps=50000, run=True, save_state_path=state_base_name+"05_sampling")
+	program.prepare_frozen_thermostat(temperature=temperature, timesteps=100000, run=True, save_state_path=state_base_name+"05_sampling")
