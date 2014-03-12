@@ -1,6 +1,7 @@
 TEMPLATE = app
 CONFIG += console
 CONFIG -= qt
+TARGET = main
 
 release {
 
@@ -16,7 +17,6 @@ SOURCES += \
     unitconverter.cpp \
     settings.cpp \
     mdio.cpp \
-    atom.cpp \
     mdtimer.cpp
 
 HEADERS += \
@@ -29,7 +29,6 @@ HEADERS += \
     unitconverter.h \
     settings.h \
     mdio.h \
-    atom.h \
     mdtimer.h \
     atom_types.h \
     potential_lennard_jones.h

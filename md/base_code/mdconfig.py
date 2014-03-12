@@ -123,9 +123,6 @@ class MD:
 			move_command = 'mv '+path+'/md ./%s' % self.name
 			self.run_command(move_command)
 
-		if not os.path.isfile("./"+self.name):
-			print "Executable ./"+self.name+" is not compiled, aborting!"
-			exit()
 		return './%s' % self.name
 
 	def create_config_file(self, config_file='md.ini.original'):

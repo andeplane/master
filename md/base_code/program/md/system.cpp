@@ -9,7 +9,6 @@
 #include <unitconverter.h>
 #include <mdtimer.h>
 #include <random.h>
-#include <atom.h>
 #include <statisticssampler.h>
 #include <atom_types.h>
 
@@ -137,9 +136,11 @@ void System::create_FCC() {
                         atom_ids[num_atoms_local] = myid*max_number_of_atoms + num_atoms_local;
 
                         num_atoms_local++;
-                        if(!warning_shown && num_atoms_local >= 0.8*max_number_of_atoms) {
+                        if(!warning_shown && num_atoms_local >= 0.9*max_number_of_atoms) {
                             cout << "                 ### WARNING ###" << endl;
-                            cout << "NUMBER OF PARTICLES IS MORE THAN 0.8*MAX_ATOM_NUM" << endl << endl;
+                            cout << "NUMBER OF PARTICLES IS MORE THAN 0.9*MAX_ATOM_NUM" << endl;
+                            cout << "MAX_ATOM_NUM = " << max_number_of_atoms << endl;
+                            cout << "Increase this number in Python with program.max_number_of_atoms = yourfavoritenumber" << endl << endl;
                             warning_shown = true;
                         }
                     }
@@ -553,7 +554,6 @@ void System::step() {
     calculate_accelerations();
     apply_harmonic_oscillator();
     half_kick();
-
 
     steps++;
     t += dt;
