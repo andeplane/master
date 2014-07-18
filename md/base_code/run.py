@@ -9,19 +9,20 @@ geometry = MDGeometry(program)
 unit_converter = MDUnitConverter(program)
 md_statistics = MDStatistics(program, unit_converter)
 
-program.nodes_x = 2
-program.nodes_y = 2
-program.nodes_z = 2
-program.unit_cells_x = 3
-program.unit_cells_y = 3
-program.unit_cells_z = 3
+program.nodes_x = 1
+program.nodes_y = 1
+program.nodes_z = 1
+program.unit_cells_x = 1
+program.unit_cells_y = 1
+program.unit_cells_z = 1
 program.max_number_of_cells = 10000
-temperature = unit_converter.temperature_from_si(300)
+temperature = unit_converter.temperature_from_si(100)
 
 if True:
 	program.reset()
 	program.prepare_new_system()
 	program.run()
+	program.prepare_thermostat(temperature=0, timesteps=1, run=True)
 	#for i in range(5):
 	#	print "### Applying thermostat, T=300K ###"
 	#	program.prepare_thermostat(temperature=temperature, timesteps=2000, run=True)
@@ -29,7 +30,8 @@ if True:
 	#	program.prepare_thermalize(timesteps=2000, run=True)
 
 	print "### Applying thermostat, T=300K ###"
-	program.prepare_thermostat(temperature=temperature, timesteps=200, run=True, save_state_path="states/01_T_300K")
+	program.prepare_thermostat(temperature=temperature, timesteps=1000, run=True, save_state_path="states/01_T_300K")
+	exit()
 	print "### Thermalizing ... ###"
 	program.prepare_thermalize(timesteps=100, run=True, save_state_path="states/02_thermalized")
 

@@ -21,12 +21,18 @@ class MDUnitConverter:
 		self.diff0 = self.L0**2/self.t0
 		self.perm0 = self.L0**2
 		self.number_density0 = 1.0/(self.L0**3)
-
+		
 	def pressure_to_si(self, P): 
 		return P*self.P0
 
 	def pressure_from_si(self, P): 
 		return P/self.P0
+
+	def charge_to_si(self, Q): 
+		return Q*self.Q0
+
+	def charge_from_si(self, Q): 
+		return Q/self.Q0
 
 	def temperature_to_si(self, T):
 		return T*self.T0
